@@ -1,8 +1,52 @@
-<!DOCTYPE html>
-<html>
-<body>
-<h1>Hello World</h1>
-<p>Underconstruction</p>
-<p>Sorry 🙇 I will start shortly!</p>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Radiant Blaze — a pixel-powered creative corner." />
+    <title>Radiant Blaze</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="dark-theme">
+    <main class="game-screen">
+      <header class="top-bar">
+        <a class="pixel-logo" href="#top" aria-label="Radiant Blaze home">RB</a>
+        <div class="top-controls">
+          <button class="pixel-button light-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme">
+            <span aria-hidden="true">☼</span> THEME
+          </button>
+          <button class="pixel-button dark-audio-button" id="audio-toggle" type="button" aria-pressed="false">
+            <span class="audio-icon" aria-hidden="true">♫</span> PLAY
+          </button>
+        </div>
+      </header>
+
+      <section class="hero" id="top">
+        <div class="pixel-spark spark-one" aria-hidden="true"></div>
+        <div class="pixel-spark spark-two" aria-hidden="true"></div>
+        <p class="level-label">PLAYER ONE PRESENTS</p>
+        <h1>RADIANT<br /><span>BLAZE</span></h1>
+        <p class="hero-copy">A tiny corner of the internet<br />made with big pixels and bright ideas.</p>
+        <a class="pixel-button cta-button" href="#start">PRESS START <span aria-hidden="true">→</span></a>
+      </section>
+
+      <section class="status-panel" id="start" aria-label="Site status">
+        <div class="status-light" aria-hidden="true"></div>
+        <div>
+          <p class="panel-title">QUEST LOG</p>
+          <p class="panel-copy">New adventures are loading.<br />Please check back soon!</p>
+        </div>
+        <span class="loading-dots" aria-label="Loading">...</span>
+      </section>
+
+      <footer>
+        <span>© <span id="year"></span> RADIANT BLAZE</span>
+        <span>MADE WITH ♥ + PIXELS</span>
+      </footer>
+    </main>
+    <script src="script.js"></script>
+  </body>
 </html>
