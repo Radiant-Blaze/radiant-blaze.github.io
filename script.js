@@ -1,12 +1,25 @@
 const themeToggle = document.querySelector("#theme-toggle");
 const audioToggle = document.querySelector("#audio-toggle");
 const body = document.body;
+const themeStorageKey = "radiant-blaze-theme";
+
+if (localStorage.getItem(themeStorageKey) === "light") {
+  body.classList.replace("dark-theme", "light-theme");
+}
+
+const initialIsDark = body.classList.contains("dark-theme");
+themeToggle.setAttribute(
+  "aria-label",
+  `Switch to ${initialIsDark ? "light" : "dark"} theme`,
+);
+themeToggle.querySelector("span").textContent = initialIsDark ? "☼" : "☾";
 
 document.querySelector("#year").textContent = new Date().getFullYear();
 
 themeToggle.addEventListener("click", () => {
   const isDark = body.classList.toggle("dark-theme");
   body.classList.toggle("light-theme", !isDark);
+  localStorage.setItem(themeStorageKey, isDark ? "dark" : "light");
   themeToggle.setAttribute(
     "aria-label",
     `Switch to ${isDark ? "light" : "dark"} theme`,

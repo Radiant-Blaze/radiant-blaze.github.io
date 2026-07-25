@@ -197,6 +197,22 @@ h1 span {
   border: 4px solid var(--dark-text);
   background: var(--dark-panel);
   box-shadow: 8px 8px 0 var(--dark-shadow);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.14s steps(2),
+    box-shadow 0.14s steps(2);
+}
+.status-panel:hover,
+.status-panel:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 10px 11px 0 var(--dark-shadow);
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 4px;
+}
+.light-theme .status-panel:hover,
+.light-theme .status-panel:focus-visible {
+  box-shadow: 10px 11px 0 var(--light-shadow);
 }
 .light-theme .status-panel {
   border-color: var(--light-text);

@@ -2,120 +2,44 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Quest #021 · Radiant Blaze</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post · Radiant Blaze</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../style.css" />
     <link rel="stylesheet" href="../assets/css/quest-log.css" />
   </head>
   <body class="dark-theme">
     <main class="quest-screen">
       <header class="quest-top quest-wrap">
-        <a class="quest-brand" href="../index.html"
-          ><span class="pixel-logo">RB</span>RADIANT BLAZE</a
-        >
-        <nav class="quest-nav" aria-label="Quest navigation">
-          <a href="quest-log.html">BLOG</a><a href="region.html">CATEGORIES</a
-          ><a href="search.html">SEARCH</a
-          ><a href="save-files.html">ARCHIVE</a>
+        <a class="quest-brand" href="../index.html"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="quest-log.html">BLOG</a><a href="region.html">CATEGORIES</a><a href="search.html">SEARCH</a><a href="save-files.html">ARCHIVE</a>
         </nav>
       </header>
-      <header class="article-header quest-wrap">
-        <p class="quest-number">QUEST #021 · LINUX REGION</p>
-        <h1 class="quest-title">BUILDING A TINY<br />COMMAND-LINE TOOLKIT</h1>
-        <div class="article-info">
-          <span class="difficulty">★★★☆☆</span><span><b>450 XP</b> REWARD</span
-          ><span>EST. PLAY TIME: <b>8 MIN</b></span
-          ><span>JUL 22, 2026</span><span>BY <b>RADIANT BLAZE</b></span>
-        </div>
+      <header class="article-header quest-wrap" data-post-header>
+        <p class="quest-number">LOADING POST...</p>
       </header>
       <div class="page-grid article-layout quest-wrap">
-        <article class="quest-article">
-          <section class="mission-map pixel-panel">
-            <h2>MISSION MAP</h2>
-            <ol>
-              <li><a href="#kit">PACKING THE KIT</a></li>
-              <li><a href="#aliases">ALIAS MAGIC</a></li>
-              <li><a href="#wrap">THE FINAL SAVE</a></li>
-            </ol>
-          </section>
-          <p>
-            Every useful command-line setup starts small. This is the collection
-            of tiny tools I reach for when I want the terminal to feel less like
-            a maze and more like a well-stocked inventory.
-          </p>
-          <h2 id="kit">PACKING THE KIT</h2>
-          <p>
-            The best tools have one job, clear output, and a shortcut you can
-            remember after a long night of debugging.
-          </p>
-          <pre class="terminal"><code># find the thing, fast
-rg "TODO" src
-
-# inspect a file without leaving the terminal
-bat --style=numbers package.json</code></pre>
-          <blockquote>
-            Equip only what you need. A cluttered inventory is still
-            cluttered—even in a terminal.
-          </blockquote>
-          <h2 id="aliases">ALIAS MAGIC</h2>
-          <p>
-            Aliases earn their place when they remove repetition, not when they
-            hide important behavior. Keep them obvious and easy to inspect.
-          </p>
-          <div
-            class="pixel-image"
-            role="img"
-            aria-label="Decorative pixel landscape"
-          ></div>
-          <h2 id="wrap">THE FINAL SAVE</h2>
-          <p>
-            Put your setup in version control and revise it whenever a command
-            causes friction twice. That is where the useful little tools come
-            from.
-          </p>
-          <section aria-labelledby="chat">
-            <h2 id="chat">CAMPFIRE CHAT</h2>
-            <div class="comment">
-              <b>BYTEBARD · LV. 08</b>Great reminder that a small toolkit beats
-              a huge pile of plugins.
-            </div>
-            <div class="comment">
-              <b>PIXELMAGE · LV. 14</b>Adding <code>bat</code> to my inventory
-              immediately. Thanks for the quest!
-            </div>
-          </section>
+        <article class="quest-article" data-markdown-post="linux/021-tiny-command-line-toolkit.md">
+          <p>LOADING POST...</p>
         </article>
         <aside class="sidebar">
           <section class="pixel-panel">
-            <div class="hp-label">
-              <span>HP BAR</span><span>READING PROGRESS</span>
-            </div>
+            <div class="hp-label"><span>READING PROGRESS</span><span>ARTICLE</span></div>
             <div class="hp-track"><span class="hp-fill" data-hp></span></div>
           </section>
           <section class="pixel-panel">
-            <h2>QUEST SKILLS</h2>
-            <nav class="region-list">
-              <a href="search.html"># TERMINAL</a
-              ><a href="search.html"># TOOLING</a
-              ><a href="search.html"># PRODUCTIVITY</a>
-            </nav>
+            <h2>TAGS</h2>
+            <nav class="region-list" data-post-tags></nav>
           </section>
         </aside>
       </div>
       <footer class="site-footer">
         <div class="quest-wrap">
-          <p class="section-heading">PLAYER STATUS</p>
-          <div class="footer-stats">
-            <span><b>LEVEL 12</b>PLAYER</span><span><b>8,750</b>XP</span
-            ><span><b>21</b>QUESTS COMPLETED</span
-            ><span><b>v1.0.0</b>CURRENT BUILD</span>
-          </div>
+          <p class="section-heading">BLOG STATUS</p>
+          <div class="footer-stats"><span><b>21</b>POSTS</span><span><b>28,750</b>WORDS</span><span><b>01,284</b>READERS</span><span><b>v1.0.0</b>CURRENT BUILD</span></div>
         </div>
       </footer>
     </main>
