@@ -5,12 +5,14 @@
   --dark-text: #fff7de;
   --dark-muted: #baaed6;
   --dark-grid: rgba(255, 255, 255, 0.055);
+
   --light-ink: #fff7de;
   --light-panel: #fffdf3;
   --light-shadow: #c9b991;
   --light-text: #25203e;
   --light-muted: #6d6485;
   --light-grid: rgba(48, 37, 75, 0.08);
+
   --accent-pink: #ff5e9d;
   --accent-orange: #ffb347;
   --accent-cyan: #65e7e3;
