@@ -9,7 +9,7 @@ xp: 450
 thumbnail: /assets/quests/021-toolkit.png
 estimatedPlayTime: 8 min
 author: Radiant Blaze
-path: /pages/quest.html
+path: /pages/post.html
 ---
 Every useful command-line setup starts small. This is the collection of tiny tools I reach for when I want the terminal to feel less like a maze and more like a well-stocked workspace.
 

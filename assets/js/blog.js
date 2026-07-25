@@ -53,7 +53,7 @@ const formatDate = (date) =>
     .format(new Date(`${date}T00:00:00`))
     .toUpperCase();
 const postCard = (post) =>
-  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${escapeHtml(post.title)}"></div><div><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="quest-meta"><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span>${formatDate(post.date)}</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="quest.html?post=${encodeURIComponent(post.file)}">READ POST →</a></div></article>`;
+  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${escapeHtml(post.title)}"></div><div><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="quest-meta"><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span>${formatDate(post.date)}</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="post.html?post=${encodeURIComponent(post.file)}">READ POST →</a></div></article>`;
 const markdownToHtml = (markdown) => {
   const code = [];
   let html = escapeHtml(markdown).replace(/```(\w+)?\n([\s\S]*?)```/g, (_, language, source) => {
@@ -84,7 +84,7 @@ loadPosts().then((posts) => {
       groups[month] = [...(groups[month] || []), post];
       return groups;
     }, {});
-    archive.innerHTML = Object.entries(grouped).map(([month, items]) => `<section class="pixel-panel"><h2>${month}</h2><ul class="region-list">${items.map((post) => `<li><a href="quest.html?post=${encodeURIComponent(post.file)}">${escapeHtml(post.title).toUpperCase()}</a></li>`).join("")}</ul></section>`).join("");
+    archive.innerHTML = Object.entries(grouped).map(([month, items]) => `<section class="pixel-panel"><h2>${month}</h2><ul class="region-list">${items.map((post) => `<li><a href="post.html?post=${encodeURIComponent(post.file)}">${escapeHtml(post.title).toUpperCase()}</a></li>`).join("")}</ul></section>`).join("");
   });
   const search = document.querySelector("[data-search]");
   if (search) {
