@@ -1,12 +1,70 @@
 const quests = [
-  { id:'021', title:'Building a Tiny Command-Line Toolkit', description:'A practical expedition through small tools, useful aliases, and less terminal friction.', difficulty:3, xp:'450 XP', time:'8 MIN', date:'JUL 22, 2026', region:'Linux' },
-  { id:'020', title:'How I Approach a CTF Web Challenge', description:'Notes from the field on spotting entry points before reaching for the heavy tools.', difficulty:4, xp:'600 XP', time:'11 MIN', date:'JUL 08, 2026', region:'CTFs' },
-  { id:'019', title:'Making Interfaces Feel Like Games', description:'A small interface quest about feedback, motion, and giving buttons a little soul.', difficulty:2, xp:'300 XP', time:'6 MIN', date:'JUN 26, 2026', region:'Web Development' }
+  {
+    id: "021",
+    title: "Building a Tiny Command-Line Toolkit",
+    description:
+      "A practical expedition through small tools, useful aliases, and less terminal friction.",
+    difficulty: 3,
+    xp: "450 XP",
+    time: "8 MIN",
+    date: "JUL 22, 2026",
+    region: "Linux",
+    path: "quest.html",
+  },
+  {
+    id: "020",
+    title: "How I Approach a CTF Web Challenge",
+    description:
+      "Notes from the field on spotting entry points before reaching for the heavy tools.",
+    difficulty: 4,
+    xp: "600 XP",
+    time: "11 MIN",
+    date: "JUL 08, 2026",
+    region: "CTFs",
+  },
+  {
+    id: "019",
+    title: "Making Interfaces Feel Like Games",
+    description:
+      "A small interface quest about feedback, motion, and giving buttons a little soul.",
+    difficulty: 2,
+    xp: "300 XP",
+    time: "6 MIN",
+    date: "JUN 26, 2026",
+    region: "Web Development",
+  },
 ];
-const stars = level => '★'.repeat(level) + '☆'.repeat(5 - level);
-const card = quest => `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${quest.title}"></div><div><p class="quest-number">QUEST #${quest.id} · ${quest.region.toUpperCase()}</p><h2>${quest.title}</h2><p>${quest.description}</p><div class="quest-meta"><span class="difficulty" aria-label="Difficulty ${quest.difficulty} out of 5">${stars(quest.difficulty)}</span><span><b>${quest.xp}</b> REWARD</span><span>${quest.time}</span><span>${quest.date}</span></div><a class="pixel-button start-button" href="quest.html">START QUEST →</a></div></article>`;
-document.querySelectorAll('[data-quest-list]').forEach(el => el.innerHTML = quests.map(card).join(''));
-const search = document.querySelector('[data-search]');
-if (search) { search.closest('form').addEventListener('submit', event => event.preventDefault()); search.addEventListener('input', e => { const found = quests.filter(q => (q.title+q.description+q.region).toLowerCase().includes(e.target.value.toLowerCase())); document.querySelector('[data-record-count]').textContent = `FOUND ${found.length} RECORD${found.length === 1 ? '' : 'S'}`; document.querySelector('[data-quest-list]').innerHTML = found.map(card).join('') || '<p class="quest-intro">NO RECORDS FOUND. TRY ANOTHER SEARCH.</p>'; }); }
-const hp = document.querySelector('[data-hp]');
-if (hp) { const updateHp = () => { const article = document.querySelector('.quest-article'); const total = article.offsetHeight - innerHeight; hp.style.width = `${Math.min(100,Math.max(0,scrollY / total * 100))}%`; }; addEventListener('scroll', updateHp, {passive:true}); updateHp(); }
+const stars = (level) => "★".repeat(level) + "☆".repeat(5 - level);
+const card = (quest) =>
+  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${quest.title}"></div><div><p class="quest-number">QUEST #${quest.id} · ${quest.region.toUpperCase()}</p><h2>${quest.title}</h2><p>${quest.description}</p><div class="quest-meta"><span class="difficulty" aria-label="Difficulty ${quest.difficulty} out of 5">${stars(quest.difficulty)}</span><span><b>${quest.xp}</b> REWARD</span><span>${quest.time}</span><span>${quest.date}</span></div><a class="pixel-button start-button" href="${quest.path || 'quest.html'}">START QUEST →</a></div></article>`;
+document
+  .querySelectorAll("[data-quest-list]")
+  .forEach((el) => (el.innerHTML = quests.map(card).join("")));
+const search = document.querySelector("[data-search]");
+if (search) {
+  search
+    .closest("form")
+    .addEventListener("submit", (event) => event.preventDefault());
+  search.addEventListener("input", (e) => {
+    const found = quests.filter((q) =>
+      (q.title + q.description + q.region)
+        .toLowerCase()
+        .includes(e.target.value.toLowerCase()),
+    );
+    document.querySelector("[data-record-count]").textContent =
+      `FOUND ${found.length} RECORD${found.length === 1 ? "" : "S"}`;
+    document.querySelector("[data-quest-list]").innerHTML =
+      found.map(card).join("") ||
+      '<p class="quest-intro">NO RECORDS FOUND. TRY ANOTHER SEARCH.</p>';
+  });
+}
+const hp = document.querySelector("[data-hp]");
+if (hp) {
+  const updateHp = () => {
+    const article = document.querySelector(".quest-article");
+    const total = article.offsetHeight - innerHeight;
+    hp.style.width = `${Math.min(100, Math.max(0, (scrollY / total) * 100))}%`;
+  };
+  addEventListener("scroll", updateHp, { passive: true });
+  updateHp();
+}

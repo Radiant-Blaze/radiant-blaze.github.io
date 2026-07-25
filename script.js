@@ -1,14 +1,17 @@
-const themeToggle = document.querySelector('#theme-toggle');
-const audioToggle = document.querySelector('#audio-toggle');
+const themeToggle = document.querySelector("#theme-toggle");
+const audioToggle = document.querySelector("#audio-toggle");
 const body = document.body;
 
-document.querySelector('#year').textContent = new Date().getFullYear();
+document.querySelector("#year").textContent = new Date().getFullYear();
 
-themeToggle.addEventListener('click', () => {
-  const isDark = body.classList.toggle('dark-theme');
-  body.classList.toggle('light-theme', !isDark);
-  themeToggle.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} theme`);
-  themeToggle.querySelector('span').textContent = isDark ? '☼' : '☾';
+themeToggle.addEventListener("click", () => {
+  const isDark = body.classList.toggle("dark-theme");
+  body.classList.toggle("light-theme", !isDark);
+  themeToggle.setAttribute(
+    "aria-label",
+    `Switch to ${isDark ? "light" : "dark"} theme`,
+  );
+  themeToggle.querySelector("span").textContent = isDark ? "☼" : "☾";
 });
 
 let audioContext;
@@ -36,19 +39,21 @@ function playBar() {
   const start = audioContext.currentTime + 0.03;
   melody.forEach((note, index) => {
     const time = start + index * 0.2;
-    blip(note, time, 0.16, 'square', 0.055);
-    blip(bass[index], time, 0.18, 'triangle', 0.075);
+    blip(note, time, 0.16, "square", 0.055);
+    blip(bass[index], time, 0.18, "triangle", 0.075);
   });
 }
 
 function updateAudioButton() {
-  audioToggle.setAttribute('aria-pressed', isPlaying);
-  audioToggle.innerHTML = isPlaying ? '<span class="audio-icon" aria-hidden="true">♫</span> PAUSE' : '<span class="audio-icon" aria-hidden="true">♫</span> PLAY';
+  audioToggle.setAttribute("aria-pressed", isPlaying);
+  audioToggle.innerHTML = isPlaying
+    ? '<span class="audio-icon" aria-hidden="true">♫</span> PAUSE'
+    : '<span class="audio-icon" aria-hidden="true">♫</span> PLAY';
 }
 
-audioToggle.addEventListener('click', async () => {
+audioToggle.addEventListener("click", async () => {
   if (!audioContext) audioContext = new AudioContext();
-  if (audioContext.state === 'suspended') await audioContext.resume();
+  if (audioContext.state === "suspended") await audioContext.resume();
 
   isPlaying = !isPlaying;
   if (isPlaying) {

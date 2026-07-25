@@ -9,8 +9,8 @@ xp: 450
 thumbnail: /assets/quests/021-toolkit.png
 estimatedPlayTime: 8 min
 author: Radiant Blaze
+path: /pages/quest.html
 ---
-
 ## Packing the Kit
 
 Start with small, single-purpose tools.
