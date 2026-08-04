@@ -19,7 +19,6 @@ document.querySelector("#year").textContent = new Date().getFullYear();
 themeToggle.addEventListener("click", () => {
   const isDark = body.classList.toggle("dark-theme");
   body.classList.toggle("light-theme", !isDark);
-  localStorage.setItem(themeStorageKey, isDark ? "dark" : "light");
   themeToggle.setAttribute(
     "aria-label",
     `Switch to ${isDark ? "light" : "dark"} theme`,

@@ -6,13 +6,6 @@
   --muted: var(--dark-muted);
   --shadow: var(--dark-shadow);
 }
-.light-theme {
-  --panel: var(--light-panel);
-  --ink: var(--light-ink);
-  --text: var(--light-text);
-  --muted: var(--light-muted);
-  --shadow: var(--light-shadow);
-}
 .sr-only {
   position: absolute;
   width: 1px;
@@ -38,11 +31,6 @@
     linear-gradient(var(--dark-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--dark-grid) 1px, transparent 1px);
   background-size: 28px 28px;
-}
-.light-theme .quest-screen::before {
-  background-image:
-    linear-gradient(var(--light-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--light-grid) 1px, transparent 1px);
 }
 .quest-wrap {
   width: min(100% - 40px, 1180px);
@@ -70,29 +58,6 @@
 .quest-nav a:hover,
 .quest-nav a[aria-current="page"] {
   color: var(--accent-cyan);
-}
-.theme-toggle {
-  display: grid;
-  place-items: center;
-  width: 31px;
-  height: 31px;
-  padding: 0;
-  border: 3px solid var(--text);
-  background: var(--accent-cyan);
-  color: var(--shadow);
-  box-shadow: 3px 3px 0 var(--accent-pink);
-  cursor: pointer;
-  font: inherit;
-  font-size: 15px;
-  line-height: 1;
-  transition: transform 0.12s steps(2), box-shadow 0.12s steps(2);
-}
-.theme-toggle:hover,
-.theme-toggle:focus-visible {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--accent-pink);
-  outline: 3px solid var(--accent-orange);
-  outline-offset: 3px;
 }
 .quest-brand {
   display: flex;
@@ -401,7 +366,7 @@
   padding: 19px;
 }
 .quest-article blockquote::before {
-  content: "NOTE >";
+  content: "NPC >";
   display: block;
   color: var(--accent-orange);
   font-size: 8px;
@@ -483,156 +448,4 @@
   .search-form {
     flex-direction: column;
   }
-}
-
-/* Arcade polish: intentionally stepped and low-motion to keep the pixel feel. */
-.quest-screen::after {
-  content: "";
-  position: fixed;
-  z-index: -1;
-  top: 14%;
-  right: 7%;
-  width: 6px;
-  height: 6px;
-  background: var(--accent-pink);
-  box-shadow:
-    -76px 104px 0 var(--accent-cyan),
-    48px 250px 0 var(--accent-orange),
-    -420px 390px 0 var(--accent-pink),
-    -610px 110px 0 var(--accent-cyan);
-  opacity: 0.65;
-  animation: pixel-twinkle 2.8s steps(2) infinite;
-}
-.quest-brand:hover .pixel-logo,
-.quest-brand:focus-visible .pixel-logo {
-  animation: logo-pop 0.35s steps(3);
-}
-.quest-brand:focus-visible,
-.quest-nav a:focus-visible,
-.mission-map a:focus-visible,
-.region-list a:focus-visible {
-  outline: 3px solid var(--accent-cyan);
-  outline-offset: 4px;
-}
-.quest-nav a {
-  border-bottom: 3px solid transparent;
-  transition: color 0.12s steps(2), border-color 0.12s steps(2), transform 0.12s steps(2);
-}
-.quest-nav a:hover,
-.quest-nav a[aria-current="page"] {
-  border-bottom-color: var(--accent-pink);
-  transform: translateY(-2px);
-}
-.quest-hero,
-.article-header {
-  animation: screen-enter 0.45s steps(4) both;
-}
-.quest-list > * {
-  animation: card-enter 0.4s steps(4) both;
-}
-.quest-list > :nth-child(2) { animation-delay: 0.08s; }
-.quest-list > :nth-child(3) { animation-delay: 0.16s; }
-.quest-card:focus-within {
-  border-color: var(--accent-cyan);
-  transform: translateY(-3px);
-}
-.quest-card:hover .quest-thumb::before { animation: treasure-bob 0.6s steps(3) infinite alternate; }
-.quest-card:hover .quest-thumb::after { animation: water-scroll 0.55s steps(2) infinite; }
-.pixel-panel {
-  position: relative;
-  transition: transform 0.14s steps(2), border-color 0.14s steps(2), box-shadow 0.14s steps(2);
-}
-.pixel-panel::before {
-  content: "";
-  position: absolute;
-  top: -4px;
-  right: 14px;
-  width: 28px;
-  height: 4px;
-  background: var(--accent-pink);
-}
-.pixel-panel:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: 9px 9px 0 var(--shadow);
-  transform: translate(-1px, -1px);
-}
-.light-theme .quest-thumb,
-.light-theme .pixel-image {
-  background: #8d7caf;
-}
-.light-theme .quest-article blockquote,
-.light-theme .region-list a:hover {
-  background: #eee6d5;
-}
-.pixel-panel h2,
-.section-heading {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.pixel-panel h2::before,
-.section-heading::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
-  background: var(--accent-orange);
-  box-shadow: 3px 3px 0 var(--shadow);
-}
-.stat-list li,
-.save-list li,
-.region-list a {
-  transition: color 0.12s steps(2), transform 0.12s steps(2), background-color 0.12s steps(2);
-}
-.stat-list li:hover,
-.save-list li:hover {
-  color: var(--text);
-  transform: translateX(3px);
-}
-.region-list a:hover {
-  background: #332b54;
-  padding-left: 7px;
-}
-.start-button:hover,
-.start-button:focus-visible {
-  animation: button-bounce 0.32s steps(3);
-}
-.difficulty { text-shadow: 2px 2px 0 var(--shadow); }
-.hp-track { box-shadow: 3px 3px 0 var(--shadow); }
-.hp-fill { box-shadow: inset -4px 0 0 var(--accent-orange); }
-.hp-fill:not([style*="width: 0"]) { animation: hp-pulse 1.2s steps(2) infinite; }
-.terminal { position: relative; }
-.terminal::after {
-  content: "";
-  position: absolute;
-  right: 16px;
-  bottom: 17px;
-  width: 7px;
-  height: 12px;
-  background: var(--accent-cyan);
-  animation: cursor-blink 0.9s steps(2) infinite;
-}
-.comment { transition: transform 0.14s steps(2), border-color 0.14s steps(2); }
-.comment:hover { border-color: var(--accent-orange); transform: translateX(4px); }
-.site-footer { position: relative; }
-.site-footer::before {
-  content: "";
-  position: absolute;
-  top: -4px;
-  left: 0;
-  width: 88px;
-  height: 4px;
-  background: var(--accent-cyan);
-}
-@keyframes screen-enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes card-enter { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes pixel-twinkle { 50% { opacity: 0.15; transform: translateY(-6px); } }
-@keyframes logo-pop { 50% { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--accent-pink); } }
-@keyframes treasure-bob { to { transform: translateY(-5px); } }
-@keyframes water-scroll { to { transform: translateX(-14px); } }
-@keyframes button-bounce { 50% { transform: translate(1px, -2px); } }
-@keyframes hp-pulse { 50% { opacity: 0.72; } }
-@keyframes cursor-blink { 50% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }

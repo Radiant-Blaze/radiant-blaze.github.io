@@ -253,7 +253,6 @@ h1 span {
   font-size: 18px;
   animation: blink 0.9s steps(2) infinite;
 }
-
 footer {
   display: flex;
   justify-content: space-between;

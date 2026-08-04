@@ -80,7 +80,7 @@ loadPosts().then((posts) => {
   });
   document.querySelectorAll("[data-archive-list]").forEach((archive) => {
     const grouped = posts.reduce((groups, post) => {
-      const month = formatDate(post.date).replace(/ \d{4}$/, "");
+      const month = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date(`${post.date}T00:00:00`)).toUpperCase();
       groups[month] = [...(groups[month] || []), post];
       return groups;
     }, {});
