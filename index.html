@@ -1,22 +1,36 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark-theme">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Radiant Blaze — a pixel-powered creative corner."
+      content="A pixel-powered dev blog about code, Linux, and side quests."
     />
     <title>Radiant Blaze</title>
+    <link rel="canonical" href="https://radiant-blaze.github.io/" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Radiant Blaze" />
+    <meta property="og:description" content="A pixel-powered dev blog about code, Linux, and side quests." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Radiant Blaze" />
+    <meta name="twitter:description" content="A pixel-powered dev blog about code, Linux, and side quests." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <script src="assets/js/theme.js"></script>
   </head>
-  <body class="dark-theme">
+  <body>
     <main class="game-screen">
       <header class="top-bar">
         <a class="pixel-logo" href="#top" aria-label="Radiant Blaze home">RB</a>
@@ -25,9 +39,11 @@
             class="pixel-button light-toggle"
             id="theme-toggle"
             type="button"
+            data-theme-toggle
+            aria-pressed="false"
             aria-label="Switch to light theme"
           >
-            <span aria-hidden="true">☼</span> THEME
+            <span class="theme-icon" aria-hidden="true">☼</span> THEME
           </button>
           <button
             class="pixel-button dark-audio-button"
@@ -57,24 +73,27 @@
       <a
         class="status-panel"
         id="start"
-        href="pages/post.html"
-        aria-label="Read the latest blog post: Building a Tiny Command-Line Toolkit"
+        href="pages/blog.html"
+        data-latest-post
+        aria-label="Read the latest blog post"
       >
         <div class="status-light" aria-hidden="true"></div>
         <div>
-          <p class="panel-title">QUEST LOG</p>
-          <p class="panel-copy">
-            New adventures are loading.<br />Please check back soon!
-          </p>
+          <p class="panel-title">LATEST POST</p>
+          <p class="panel-copy" data-latest-title>Loading latest quest…</p>
+          <p class="panel-copy" data-latest-copy>Fetching from the archive.</p>
         </div>
         <span class="loading-dots" aria-hidden="true">→</span>
       </a>
 
       <footer>
-        <span>© <span id="year"></span> RADIANT BLAZE</span>
-        <span>MADE WITH ♥ + PIXELS</span>
+        <nav class="social-links" data-social aria-label="Social links"></nav>
+        <div class="footer-meta">
+          <span>© <span id="year"></span> RADIANT BLAZE</span>
+          <span>MADE WITH ♥ + PIXELS</span>
+        </div>
       </footer>
     </main>
-    <script src="script.js"></script>
+    <script type="module" src="assets/js/home.js"></script>
   </body>
 </html>

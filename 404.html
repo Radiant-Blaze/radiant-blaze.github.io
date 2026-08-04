@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>404 — Game Over · Radiant Blaze</title>
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+  </head>
+  <body>
+    <main class="game-screen">
+      <header class="top-bar">
+        <a class="pixel-logo" href="/" aria-label="Radiant Blaze home">RB</a>
+        <div class="top-controls">
+          <button
+            class="theme-toggle"
+            type="button"
+            data-theme-toggle
+            aria-pressed="false"
+            aria-label="Switch to light theme"
+          >
+            <span class="theme-icon" aria-hidden="true">☼</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="hero" id="top">
+        <div class="pixel-spark spark-one" aria-hidden="true"></div>
+        <div class="pixel-spark spark-two" aria-hidden="true"></div>
+        <p class="level-label">ERROR 404</p>
+        <h1>GAME<br /><span>OVER</span></h1>
+        <p class="hero-copy">
+          This quest doesn't exist —<br />the page wandered off the map.
+        </p>
+        <a class="pixel-button cta-button" href="/"
+          >RETURN HOME <span aria-hidden="true">→</span></a
+        >
+      </section>
+
+      <footer>
+        <span>© <span id="year"></span> RADIANT BLAZE</span>
+        <span>MADE WITH ♥ + PIXELS</span>
+      </footer>
+    </main>
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>

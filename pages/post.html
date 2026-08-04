@@ -1,21 +1,46 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark-theme">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Post · Radiant Blaze</title>
+    <meta name="description" content="Read dev quests and write-ups on Radiant Blaze." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/pages/post.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Radiant Blaze" />
+    <meta property="og:description" content="Read dev quests and write-ups on Radiant Blaze." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/pages/post.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Radiant Blaze" />
+    <meta name="twitter:description" content="Read dev quests and write-ups on Radiant Blaze." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../style.css" />
-    <link rel="stylesheet" href="../assets/css/blog.css" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <script src="../assets/js/theme.js"></script>
   </head>
-  <body class="dark-theme">
+  <body>
     <main class="quest-screen">
       <header class="quest-top quest-wrap">
         <a class="quest-brand" href="../index.html"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
         <nav class="quest-nav" aria-label="Blog navigation">
-          <a href="blog.html">BLOG</a><a href="categories.html">CATEGORIES</a><a href="search.html">SEARCH</a><a href="archive.html">ARCHIVE</a>
+          <a href="blog.html">BLOG</a
+          ><a href="search.html">SEARCH</a
+          ><a href="archive.html">ARCHIVE</a>
+          <button
+            class="theme-toggle"
+            type="button"
+            data-theme-toggle
+            aria-pressed="false"
+            aria-label="Switch to light theme"
+          >
+            <span class="theme-icon" aria-hidden="true">☼</span>
+          </button>
         </nav>
       </header>
       <header class="article-header quest-wrap" data-post-header>
@@ -40,9 +65,10 @@
         <div class="quest-wrap">
           <p class="section-heading">BLOG STATUS</p>
           <div class="footer-stats"><span><b>21</b>POSTS</span><span><b>28,750</b>WORDS</span><span><b>01,284</b>READERS</span><span><b>v1.0.0</b>CURRENT BUILD</span></div>
+          <nav class="social-links" data-social aria-label="Social links"></nav>
         </div>
       </footer>
     </main>
-    <script src="../assets/js/blog.js"></script>
+    <script type="module" src="../assets/js/blog.js"></script>
   </body>
 </html>
