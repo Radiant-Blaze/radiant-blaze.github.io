@@ -50,7 +50,7 @@ export const parsePost = (source, file) => {
 
 export const markdownToHtml = (markdown) => {
   const code = [];
-  let html = escapeHtml(markdown).replace(
+  let html = escapeHtml(markdown.replace(/\r\n?/g, "\n")).replace(
     /```(\w+)?\n([\s\S]*?)```/g,
     (_, language, source) => {
       code.push(
@@ -92,4 +92,48 @@ export const loadData = async (base) => {
     ),
   );
   return { site, posts };
+};
+
+// Loads the CTF archive: site metadata plus every event and its parsed
+// challenge writeups. Mirrors loadData's shape ({ site, ... }).
+export const loadCtfs = async (base) => {
+  const [site, index] = await Promise.all([
+    fetch(`${base}site.json`).then((response) => response.json()),
+    fetch(`${base}ctfs/index.json`).then((response) => response.json()),
+  ]);
+  const ctfs = await Promise.all(
+    (index.ctfs || []).map(async (id) => {
+      const meta = await fetch(`${base}ctfs/${id}/ctf.json`).then((response) =>
+        response.json(),
+      );
+      const challenges = await Promise.all(
+        (meta.challenges || []).map(async (file) =>
+          parsePost(
+            await fetch(`${base}ctfs/${id}/${file}`).then((response) =>
+              response.text(),
+            ),
+            file,
+          ),
+        ),
+      );
+      return { ...meta, id, challenges };
+    }),
+  );
+  return { site, ctfs };
+};
+
+// Wires the scroll-driven "reading progress" bar to overall page scroll, so it
+// tracks correctly whether the article is shorter or taller than the viewport.
+// No-op unless the page has a [data-hp] fill. Shared by post and writeup pages.
+export const initReadingProgress = () => {
+  const hp = document.querySelector("[data-hp]");
+  if (!hp) return;
+  const update = () => {
+    const scrollable = document.documentElement.scrollHeight - innerHeight;
+    const pct = scrollable > 0 ? (scrollY / scrollable) * 100 : 0;
+    hp.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+  };
+  addEventListener("scroll", update, { passive: true });
+  addEventListener("resize", update, { passive: true });
+  update();
 };

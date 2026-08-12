@@ -1,4 +1,4 @@
-import { loadData, escapeHtml, formatDate, markdownToHtml, socialHtml } from "./content.js";
+import { loadData, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress } from "./content.js";
 
 const DATA_BASE = "../content/";
 
@@ -148,13 +148,4 @@ loadData(DATA_BASE)
     }),
   );
 
-const hp = document.querySelector("[data-hp]");
-if (hp) {
-  const updateHp = () => {
-    const article = document.querySelector(".quest-article");
-    const total = article.offsetHeight - innerHeight;
-    hp.style.width = `${Math.min(100, Math.max(0, (scrollY / total) * 100))}%`;
-  };
-  addEventListener("scroll", updateHp, { passive: true });
-  updateHp();
-}
+initReadingProgress();

@@ -11,8 +11,6 @@ estimatedPlayTime: 8 min
 author: Radiant Blaze
 path: /pages/post.html
 ---
-Every useful command-line setup starts small. This is the collection of tiny tools I reach for when I want the terminal to feel less like a maze and more like a well-stocked workspace.
-
 ## Packing the Kit
 
 The best tools have one job, clear output, and a shortcut you can remember after a long night of debugging. Start with small, single-purpose tools.

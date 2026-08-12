@@ -844,6 +844,32 @@ footer {
   flex-wrap: wrap;
   gap: 6px 20px;
 }
+
+/* ===== CTF arena / writeups ===== */
+.ctf-back {
+  font-size: 8px;
+  margin-bottom: 14px;
+}
+.ctf-back:empty {
+  display: none;
+}
+.ctf-back a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.ctf-back a:hover,
+.ctf-back a:focus-visible {
+  color: var(--accent-cyan);
+}
+.ctf-flag {
+  margin: 12px 0 0;
+  padding: 12px;
+  border: 3px dashed var(--accent-cyan);
+  background: #0b0815;
+  color: var(--accent-cyan);
+  font: 9px/1.7 monospace;
+  word-break: break-all;
+}
 @media (max-width: 800px) {
   .page-grid,
   .article-layout {

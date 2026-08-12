@@ -25,4 +25,44 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/ctf.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/ctf.html?ctf=picoctf-2025</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/ctf.html?ctf=htb-apocalypse-2025</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=picoctf-2025&amp;challenge=web-cookie-monster.md</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=picoctf-2025&amp;challenge=crypto-interception.md</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=picoctf-2025&amp;challenge=rev-patchwork.md</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=htb-apocalypse-2025&amp;challenge=pwn-stack-overture.md</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=htb-apocalypse-2025&amp;challenge=web-token-of-appreciation.md</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

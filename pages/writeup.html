@@ -3,20 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Post · Radiant Blaze</title>
-    <meta name="description" content="Read dev quests and write-ups on Radiant Blaze." />
-    <link rel="canonical" href="https://radiant-blaze.github.io/pages/post.html" />
+    <title>Writeup · Radiant Blaze</title>
+    <meta name="description" content="Read a capture-the-flag challenge write-up on Radiant Blaze." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/pages/writeup.html" />
     <meta name="theme-color" content="#171329" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Radiant Blaze" />
-    <meta property="og:title" content="Radiant Blaze" />
-    <meta property="og:description" content="Read dev quests and write-ups on Radiant Blaze." />
-    <meta property="og:url" content="https://radiant-blaze.github.io/pages/post.html" />
+    <meta property="og:title" content="CTF Writeup · Radiant Blaze" />
+    <meta property="og:description" content="Read a capture-the-flag challenge write-up on Radiant Blaze." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/pages/writeup.html" />
     <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Radiant Blaze" />
-    <meta name="twitter:description" content="Read dev quests and write-ups on Radiant Blaze." />
+    <meta name="twitter:title" content="CTF Writeup · Radiant Blaze" />
+    <meta name="twitter:description" content="Read a capture-the-flag challenge write-up on Radiant Blaze." />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -30,8 +30,8 @@
         <a class="quest-brand" href="../index.html"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
         <nav class="quest-nav" aria-label="Blog navigation">
           <a href="blog.html">BLOG</a
-          ><a href="ctf.html">CTFS</a
-          ><a href="search.html">SEARCH</
+          ><a aria-current="page" href="ctf.html">CTFS</a
+          ><a href="search.html">SEARCH</a
           ><a href="archive.html">ARCHIVE</a>
           <button
             class="theme-toggle"
@@ -44,32 +44,33 @@
           </button>
         </nav>
       </header>
-      <header class="article-header quest-wrap" data-post-header>
-        <p class="quest-number">LOADING POST...</p>
+      <p class="ctf-back quest-wrap" data-writeup-back></p>
+      <header class="article-header quest-wrap" data-writeup-header>
+        <p class="quest-number">LOADING WRITEUP...</p>
       </header>
       <div class="page-grid article-layout quest-wrap">
-        <article class="quest-article" data-markdown-post="linux/021-tiny-command-line-toolkit.md">
-          <p>LOADING POST...</p>
+        <article class="quest-article" data-writeup>
+          <p>LOADING WRITEUP...</p>
         </article>
         <aside class="sidebar">
           <section class="pixel-panel">
-            <div class="hp-label"><span>READING PROGRESS</span><span>ARTICLE</span></div>
+            <div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div>
             <div class="hp-track"><span class="hp-fill" data-hp></span></div>
           </section>
+          <section class="pixel-panel" data-writeup-meta></section>
           <section class="pixel-panel">
             <h2>TAGS</h2>
-            <nav class="region-list" data-post-tags></nav>
+            <nav class="region-list" data-writeup-tags></nav>
           </section>
         </aside>
       </div>
       <footer class="site-footer">
         <div class="quest-wrap">
-          <p class="section-heading">BLOG STATUS</p>
-          <div class="footer-stats"><span><b>21</b>POSTS</span><span><b>28,750</b>WORDS</span><span><b>01,284</b>READERS</span><span><b>v1.0.0</b>CURRENT BUILD</span></div>
+          <p class="section-heading">CONNECT</p>
           <nav class="social-links" data-social aria-label="Social links"></nav>
         </div>
       </footer>
     </main>
-    <script type="module" src="../assets/js/blog.js"></script>
+    <script type="module" src="../assets/js/ctf.js"></script>
   </body>
 </html>

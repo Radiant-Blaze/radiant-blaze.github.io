@@ -3,20 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Search Database · Radiant Blaze</title>
-    <meta name="description" content="Search the Radiant Blaze post database." />
-    <link rel="canonical" href="https://radiant-blaze.github.io/pages/search.html" />
+    <title>CTF Arena · Radiant Blaze</title>
+    <meta name="description" content="Capture-the-flag write-ups grouped by event — browse solved challenges from each competition." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/pages/ctf.html" />
     <meta name="theme-color" content="#171329" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Radiant Blaze" />
-    <meta property="og:title" content="Search · Radiant Blaze" />
-    <meta property="og:description" content="Search the Radiant Blaze post database." />
-    <meta property="og:url" content="https://radiant-blaze.github.io/pages/search.html" />
+    <meta property="og:title" content="CTF Arena · Radiant Blaze" />
+    <meta property="og:description" content="Capture-the-flag write-ups grouped by event — browse solved challenges from each competition." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/pages/ctf.html" />
     <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Search · Radiant Blaze" />
-    <meta name="twitter:description" content="Search the Radiant Blaze post database." />
+    <meta name="twitter:title" content="CTF Arena · Radiant Blaze" />
+    <meta name="twitter:description" content="Capture-the-flag write-ups grouped by event — browse solved challenges from each competition." />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -35,8 +35,8 @@
         >
         <nav class="quest-nav" aria-label="Blog navigation">
           <a href="blog.html">BLOG</a
-          ><a href="ctf.html">CTFS</a
-          ><a aria-current="page" href="search.html">SEARCH</a
+          ><a aria-current="page" href="ctf.html">CTFS</a
+          ><a href="search.html">SEARCH</a
           ><a href="archive.html">ARCHIVE</a>
           <button
             class="theme-toggle"
@@ -50,28 +50,18 @@
         </nav>
       </header>
       <section class="quest-hero quest-wrap">
-        <p class="eyebrow">ARCHIVE TERMINAL · READY</p>
-        <h1 class="quest-title">SEARCH DATABASE</h1>
-        <form class="search-form" role="search">
-          <label class="sr-only" for="search-database"
-            >Search quest records</label
-          ><input
-            data-search
-            id="search-database"
-            type="search"
-            placeholder="Search Database..."
-          /><button class="pixel-button start-button" type="submit">
-            SCAN →
-          </button>
-        </form>
-        <p class="record-count" data-record-count>FOUND 3 RECORDS</p>
+        <p class="ctf-back" data-ctf-back></p>
+        <p class="eyebrow">CAPTURE LOG · ONLINE</p>
+        <h1 class="quest-title" data-ctf-title>CTF ARENA</h1>
+        <p class="quest-intro" data-ctf-intro>
+          Capture-the-flag write-ups, grouped by event. Pick a competition to
+          browse the challenges I cracked.
+        </p>
+        <p class="record-count" data-ctf-count>LOADING EVENTS…</p>
       </section>
       <div class="page-grid quest-wrap">
-        <section
-          class="quest-list"
-          data-quest-list
-          aria-live="polite"
-        ></section>
+        <section class="quest-list" data-ctf-list aria-live="polite"></section>
+        <aside class="sidebar" data-ctf-aside></aside>
       </div>
       <footer class="site-footer">
         <div class="quest-wrap">
@@ -80,6 +70,6 @@
         </div>
       </footer>
     </main>
-    <script type="module" src="../assets/js/blog.js"></script>
+    <script type="module" src="../assets/js/ctf.js"></script>
   </body>
 </html>
