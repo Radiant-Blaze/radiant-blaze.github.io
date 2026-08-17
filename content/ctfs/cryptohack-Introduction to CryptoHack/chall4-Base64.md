@@ -32,7 +32,7 @@ First, we convert the hexadecimal string into bytes using `bytes.fromhex()`.
 
 Then, we use `base64.b64encode()` to encode those bytes into Base64.
 
-```python id="q4w2sp"
+```python
 import base64
 
 cipher_hex = "72bca9b68fc16ac7beeb8f849dca1d8a783e8acf9679bf9269f7bf"
@@ -49,7 +49,7 @@ print("Encoded Base64 : ", message)
 
 The complete solution is:
 
-```python id="n8f3zc"
+```python
 import base64
 
 cipher_hex = "72bca9b68fc16ac7beeb8f849dca1d8a783e8acf9679bf9269f7bf"
@@ -66,6 +66,7 @@ print("Cipher         : ", cipher)
 ```
 
 The resulting Base64 value is:
+```text
 b'crypto/Base+64+Encoding+is+Web+Safe/
 ```
 

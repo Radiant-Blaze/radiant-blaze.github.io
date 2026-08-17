@@ -1,0 +1,22 @@
+{
+  "title": "cryptohack-Modular Arithmetic",
+  "event": "CryptoHack",
+  "date": "2026-07-31",
+  "difficulty": 3,
+  "url": "https://cryptohack.org/courses/modular/course_details/",
+  "description": "Wrirteups for the module 2 of cryptohack",
+  "challenges":
+  [
+    "chall1-Greatest-Common-Divisor.md",
+    "chall2-Extended-GCD.md",
+    "chall3-Modular-Arithmetic-1.md",
+    "chall4-Modular-Arithmetic-2.md",
+    "chall5-Modular-Inverting.md",
+    "chall6-Quadratic-Residues.md",
+    "chall7-Legendre-Symbol.md",
+    "chall8-Modular-Square-Root.md",
+    "chall9-Chinese-Remainder-Theorem.md",
+    "chall10-Adrien's-Signs.md",
+    "chall11-Modular-Binomials.md"
+  ]
+}

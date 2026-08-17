@@ -71,5 +71,3 @@ The second loop simply converts the characters back into their ASCII integer val
 ```text
 crypto{ASCII_pr1nt4bl3}
 ```
-
-:::

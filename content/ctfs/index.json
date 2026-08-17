@@ -1,3 +1,7 @@
 {
-  "ctfs": ["picoctf-2025","cryptohack-Introduction to CryptoHack"]
+  "ctfs":
+  [
+    "cryptohack-Introduction to CryptoHack",
+    "cryptohack-Modular-Arithmetic"
+  ]
 }
