@@ -1,3 +1,6 @@
 {
-  "posts": ["linux/021-tiny-command-line-toolkit.md"]
+  "posts":
+  [
+    "linux/021-tiny-command-line-toolkit.md"
+  ]
 }

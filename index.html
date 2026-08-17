@@ -29,11 +29,18 @@
     />
     <link rel="stylesheet" href="assets/css/style.css" />
     <script src="assets/js/theme.js"></script>
+    <script src="assets/js/audio.js"></script>
+    <script src="assets/js/spa.js"></script>
   </head>
   <body>
     <main class="game-screen">
       <header class="top-bar">
         <a class="pixel-logo" href="#top" aria-label="Radiant Blaze home">RB</a>
+        <nav class="home-nav" aria-label="Site navigation">
+          <a href="pages/blog.html">BLOG</a>
+          <a href="pages/ctf.html">CTFS</a>
+          <a href="pages/search.html">SEARCH</a>
+        </nav>
         <div class="top-controls">
           <button
             class="pixel-button light-toggle"
@@ -49,6 +56,7 @@
             class="pixel-button dark-audio-button"
             id="audio-toggle"
             type="button"
+            data-audio-toggle
             aria-pressed="false"
           >
             <span class="audio-icon" aria-hidden="true">♫</span> PLAY
@@ -75,11 +83,11 @@
         id="start"
         href="pages/blog.html"
         data-latest-post
-        aria-label="Read the latest blog post"
+        aria-label="Read the latest post"
       >
         <div class="status-light" aria-hidden="true"></div>
         <div>
-          <p class="panel-title">LATEST POST</p>
+          <p class="panel-title" data-latest-type>LATEST RECORD</p>
           <p class="panel-copy" data-latest-title>Loading latest quest…</p>
           <p class="panel-copy" data-latest-copy>Fetching from the archive.</p>
         </div>

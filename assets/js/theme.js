@@ -24,12 +24,14 @@
 
   addEventListener("DOMContentLoaded", () => {
     apply(root.classList.contains("light-theme") ? "light" : "dark");
-    document.querySelectorAll("[data-theme-toggle]").forEach((button) =>
-      button.addEventListener("click", () => {
-        const next = root.classList.contains("light-theme") ? "dark" : "light";
-        localStorage.setItem(KEY, next);
-        apply(next);
-      }),
+    addEventListener("radiantblaze:contentchange", () =>
+      apply(root.classList.contains("light-theme") ? "light" : "dark"),
     );
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-theme-toggle]")) return;
+      const next = root.classList.contains("light-theme") ? "dark" : "light";
+      localStorage.setItem(KEY, next);
+      apply(next);
+    });
   });
 })();

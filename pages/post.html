@@ -23,6 +23,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/css/style.css" />
     <script src="../assets/js/theme.js"></script>
+    <script src="../assets/js/audio.js"></script>
+    <script src="../assets/js/spa.js"></script>
   </head>
   <body>
     <main class="quest-screen">
@@ -31,8 +33,7 @@
         <nav class="quest-nav" aria-label="Blog navigation">
           <a href="blog.html">BLOG</a
           ><a href="ctf.html">CTFS</a
-          ><a href="search.html">SEARCH</
-          ><a href="archive.html">ARCHIVE</a>
+          ><a href="search.html">SEARCH</a>
           <button
             class="theme-toggle"
             type="button"
@@ -41,6 +42,9 @@
             aria-label="Switch to light theme"
           >
             <span class="theme-icon" aria-hidden="true">☼</span>
+          </button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music">
+            <span class="audio-icon" aria-hidden="true">♫</span>
           </button>
         </nav>
       </header>

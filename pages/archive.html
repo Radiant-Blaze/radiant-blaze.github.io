@@ -3,16 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Archive · Radiant Blaze</title>
-    <meta name="description" content="Browse every Radiant Blaze post by year and month." />
-    <link rel="canonical" href="https://radiant-blaze.github.io/pages/archive.html" />
+    <title>Search Records · Radiant Blaze</title>
+    <meta name="description" content="The Radiant Blaze archive is now part of Search Records." />
+    <meta http-equiv="refresh" content="0; url=search.html" />
+    <link rel="canonical" href="https://radiant-blaze.github.io/pages/search.html" />
     <meta name="theme-color" content="#171329" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Radiant Blaze" />
     <meta property="og:title" content="Archive · Radiant Blaze" />
     <meta property="og:description" content="Browse every Radiant Blaze post by year and month." />
-    <meta property="og:url" content="https://radiant-blaze.github.io/pages/archive.html" />
+    <meta property="og:url" content="https://radiant-blaze.github.io/pages/search.html" />
     <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Archive · Radiant Blaze" />
@@ -26,6 +27,9 @@
     />
     <link rel="stylesheet" href="../assets/css/style.css" />
     <script src="../assets/js/theme.js"></script>
+    <script>
+      location.replace(`search.html${location.search}`);
+    </script>
   </head>
   <body>
     <main class="quest-screen">
@@ -36,8 +40,7 @@
         <nav class="quest-nav" aria-label="Blog navigation">
           <a href="blog.html">BLOG</a
           ><a href="ctf.html">CTFS</a
-          ><a href="search.html">SEARCH</a
-          ><a aria-current="page" href="archive.html">ARCHIVE</a>
+          ><a aria-current="page" href="search.html">SEARCH</a>
           <button
             class="theme-toggle"
             type="button"

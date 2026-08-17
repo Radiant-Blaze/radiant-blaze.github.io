@@ -1,78 +1,42 @@
-import { loadData, socialHtml } from "./content.js";
+import { loadData, loadCtfs, socialHtml } from "./content.js";
 
 const yearEl = document.querySelector("#year");
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-// Wire the home status panel to the actual latest post.
-loadData("content/")
-  .then(({ site, posts }) => {
+// Wire the home status panel to the newest blog post or CTF writeup.
+Promise.all([loadData("content/"), loadCtfs("content/")])
+  .then(([{ site, posts }, { ctfs }]) => {
     const social = document.querySelector("[data-social]");
     if (social) social.innerHTML = socialHtml(site.social);
 
+    const records = [
+      ...posts.map((post) => ({
+        type: "blog post",
+        title: post.title,
+        description: post.description,
+        date: post.date,
+        href: `pages/post.html?post=${encodeURIComponent(post.file)}`,
+      })),
+      ...ctfs.flatMap((ctf) =>
+        ctf.challenges.map((challenge) => ({
+          type: "CTF writeup",
+          title: challenge.title,
+          description: challenge.description || `Writeup from ${ctf.title}.`,
+          date: ctf.date,
+          href: `pages/writeup.html?ctf=${encodeURIComponent(ctf.id)}&challenge=${encodeURIComponent(challenge.file)}`,
+        })),
+      ),
+    ];
     const panel = document.querySelector("[data-latest-post]");
-    if (!panel || !posts.length) return;
-    const latest = [...posts].sort(
-      (a, b) => new Date(b.date) - new Date(a.date),
-    )[0];
-    panel.href = `pages/post.html?post=${encodeURIComponent(latest.file)}`;
-    panel.setAttribute("aria-label", `Read the latest blog post: ${latest.title}`);
+    if (!panel || !records.length) return;
+    const latest = records.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    panel.href = latest.href;
+    panel.setAttribute("aria-label", `Read the latest ${latest.type}: ${latest.title}`);
     const title = panel.querySelector("[data-latest-title]");
     const copy = panel.querySelector("[data-latest-copy]");
+    const type = panel.querySelector("[data-latest-type]");
+    if (type) type.textContent = `LATEST ${latest.type.toUpperCase()}`;
     if (title) title.textContent = latest.title.toUpperCase();
     if (copy) copy.textContent = latest.description;
   })
   .catch(() => {});
-
-// A short loop built from square waves: no audio asset or download required.
-let audioContext;
-let loopId;
-let isPlaying = false;
-const audioToggle = document.querySelector("#audio-toggle");
-
-const melody = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880, 698.46];
-const bass = [130.81, 130.81, 146.83, 146.83, 174.61, 174.61, 130.81, 130.81];
-
-function blip(frequency, start, duration, type, volume) {
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, start);
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(gain).connect(audioContext.destination);
-  oscillator.start(start);
-  oscillator.stop(start + duration + 0.02);
-}
-
-function playBar() {
-  const start = audioContext.currentTime + 0.03;
-  melody.forEach((note, index) => {
-    const time = start + index * 0.2;
-    blip(note, time, 0.16, "square", 0.055);
-    blip(bass[index], time, 0.18, "triangle", 0.075);
-  });
-}
-
-function updateAudioButton() {
-  audioToggle.setAttribute("aria-pressed", isPlaying);
-  audioToggle.innerHTML = isPlaying
-    ? '<span class="audio-icon" aria-hidden="true">♫</span> PAUSE'
-    : '<span class="audio-icon" aria-hidden="true">♫</span> PLAY';
-}
-
-if (audioToggle) {
-  audioToggle.addEventListener("click", async () => {
-    if (!audioContext) audioContext = new AudioContext();
-    if (audioContext.state === "suspended") await audioContext.resume();
-
-    isPlaying = !isPlaying;
-    if (isPlaying) {
-      playBar();
-      loopId = window.setInterval(playBar, 1600);
-    } else {
-      window.clearInterval(loopId);
-    }
-    updateAudioButton();
-  });
-}

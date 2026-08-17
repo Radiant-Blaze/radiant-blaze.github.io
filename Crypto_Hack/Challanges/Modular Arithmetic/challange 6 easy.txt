@@ -1,0 +1,95 @@
+Quadratic Residues (Easy Summary)
+What is the goal?
+
+We want to find a number a such that:
+(a * a) % p == x
+
+If such a number exists, then a is the square root of x modulo p.
+Why do we check from 0 to p-1?
+
+Because in modulo p, these are the only unique numbers.
+Example (p = 29):
+
+29 % 29 = 0
+30 % 29 = 1
+31 % 29 = 2
+...
+
+After p-1, the numbers repeat.
+
+So we only need to check:
+0, 1, 2, ..., p-1
+
+Algorithm
+for a in range(p):
+    if (a * a) % p == x:
+        print(a)
+
+This tries every possible value of a.
+
+Quadratic Residue (QR)
+If we find one or more values of a such that
+
+(a * a) % p == x
+then x is a Quadratic Residue (QR).
+
+Example:
+
+8² % 29 = 6
+21² % 29 = 6
+
+Therefore:
+
+6 is a Quadratic Residue.
+Quadratic Non-Residue (QNR)
+
+If no value of a satisfies
+
+(a * a) % p == x
+then x is a Quadratic Non-Residue (QNR).
+
+Example:
+No value of a gives
+
+(a * a) % 29 = 18
+
+Therefore,
+
+18 is a Quadratic Non-Residue.
+Important
+
+If p is prime:
+
+Quadratic Residue (QR) → 2 roots
+Quadratic Non-Residue (QNR) → 0 roots
+
+The two roots are:
+
+a
+p - a
+
+because
+
+(-a)² ≡ a² (mod p)
+
+Example:
+
+11² % 29 = 5
+18² % 29 = 5
+
+Roots = 11 and 18
+Cheat Sheet
+Goal:
+Find a such that
+
+(a * a) % p == x
+
+Found root(s)?
+    YES → Quadratic Residue (QR)
+    NO  → Quadratic Non-Residue (QNR)
+
+Check only:
+0 to p-1
+
+Reason:
+Numbers repeat after p because of modulo arithmetic.

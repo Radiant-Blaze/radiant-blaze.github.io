@@ -4,19 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Search Database · Radiant Blaze</title>
-    <meta name="description" content="Search the Radiant Blaze post database." />
+    <meta name="description" content="Search the complete Radiant Blaze archive, including blog posts and CTF writeups." />
     <link rel="canonical" href="https://radiant-blaze.github.io/pages/search.html" />
     <meta name="theme-color" content="#171329" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Radiant Blaze" />
     <meta property="og:title" content="Search · Radiant Blaze" />
-    <meta property="og:description" content="Search the Radiant Blaze post database." />
+    <meta property="og:description" content="Search the complete Radiant Blaze archive, including blog posts and CTF writeups." />
     <meta property="og:url" content="https://radiant-blaze.github.io/pages/search.html" />
     <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Search · Radiant Blaze" />
-    <meta name="twitter:description" content="Search the Radiant Blaze post database." />
+    <meta name="twitter:description" content="Search the complete Radiant Blaze archive, including blog posts and CTF writeups." />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,6 +26,8 @@
     />
     <link rel="stylesheet" href="../assets/css/style.css" />
     <script src="../assets/js/theme.js"></script>
+    <script src="../assets/js/audio.js"></script>
+    <script src="../assets/js/spa.js"></script>
   </head>
   <body>
     <main class="quest-screen">
@@ -36,8 +38,7 @@
         <nav class="quest-nav" aria-label="Blog navigation">
           <a href="blog.html">BLOG</a
           ><a href="ctf.html">CTFS</a
-          ><a aria-current="page" href="search.html">SEARCH</a
-          ><a href="archive.html">ARCHIVE</a>
+          ><a aria-current="page" href="search.html">SEARCH</a>
           <button
             class="theme-toggle"
             type="button"
@@ -47,11 +48,14 @@
           >
             <span class="theme-icon" aria-hidden="true">☼</span>
           </button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music">
+            <span class="audio-icon" aria-hidden="true">♫</span>
+          </button>
         </nav>
       </header>
       <section class="quest-hero quest-wrap">
-        <p class="eyebrow">ARCHIVE TERMINAL · READY</p>
-        <h1 class="quest-title">SEARCH DATABASE</h1>
+        <p class="eyebrow">COMPLETE ARCHIVE · READY</p>
+        <h1 class="quest-title">SEARCH RECORDS</h1>
         <form class="search-form" role="search">
           <label class="sr-only" for="search-database"
             >Search quest records</label
@@ -64,14 +68,15 @@
             SCAN →
           </button>
         </form>
-        <p class="record-count" data-record-count>FOUND 3 RECORDS</p>
+        <p class="record-count" data-record-count>LOADING RECORDS...</p>
       </section>
-      <div class="page-grid quest-wrap">
+      <div class="page-grid search-results quest-wrap">
         <section
           class="quest-list"
           data-quest-list
           aria-live="polite"
         ></section>
+        <nav class="search-pagination" data-search-pagination aria-label="Search result pages"></nav>
       </div>
       <footer class="site-footer">
         <div class="quest-wrap">

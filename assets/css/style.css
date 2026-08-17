@@ -86,7 +86,39 @@ footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
   padding: 26px 0;
+}
+.home-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 14px;
+  margin-left: auto;
+}
+.home-nav a {
+  color: var(--dark-muted);
+  font-size: 8px;
+  text-decoration: none;
+}
+.home-nav a:hover,
+.home-nav a:focus-visible {
+  color: var(--accent-cyan);
+}
+.light-theme .home-nav a {
+  color: var(--light-muted);
+}
+.top-controls .pixel-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 0;
+  padding: 0;
+}
+.top-controls .theme-icon,
+.top-controls .audio-icon {
+  font-size: 10px;
 }
 
 .pixel-logo {
@@ -158,7 +190,8 @@ footer {
 }
 h1 {
   color: var(--dark-text);
-  font-size: clamp(37px, 8vw, 76px);
+  /* Keep the display type bold without letting it crowd smaller screens. */
+  font-size: clamp(32px, 6vw, 64px);
   letter-spacing: -0.08em;
   line-height: 1.12;
   margin: 0;
@@ -320,7 +353,12 @@ footer {
     width: min(100% - 28px, 1000px);
   }
   .top-bar {
+    flex-wrap: wrap;
     padding-top: 18px;
+  }
+  .home-nav {
+    order: 3;
+    width: 100%;
   }
   .pixel-button {
     font-size: 7px;
@@ -330,7 +368,7 @@ footer {
     font-size: 0;
   }
   .light-toggle span {
-    font-size: 14px;
+    font-size: 10px;
   }
   .hero {
     padding-top: 90px;
@@ -382,7 +420,8 @@ footer {
 }
 .quest-screen {
   min-height: 100vh;
-  overflow: hidden;
+  /* Clip decorative overflow without creating a scroll container that breaks sticky UI. */
+  overflow-x: clip;
   position: relative;
 }
 .quest-screen::before {
@@ -430,6 +469,9 @@ footer {
 .theme-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
   border: 3px solid currentColor;
   background: var(--accent-cyan);
   color: var(--dark-shadow);
@@ -438,10 +480,17 @@ footer {
   font: inherit;
   font-size: 11px;
   line-height: 1;
-  padding: 6px 9px;
+  padding: 0;
   transition:
     transform 0.1s,
     box-shadow 0.1s;
+}
+.audio-toggle {
+  background: var(--accent-pink);
+  color: var(--dark-shadow);
+}
+.light-theme .audio-toggle {
+  color: var(--light-text);
 }
 .theme-toggle:hover,
 .theme-toggle:focus-visible {
@@ -478,7 +527,7 @@ footer {
 .quest-title {
   margin: 0;
   color: var(--text);
-  font-size: clamp(25px, 5vw, 50px);
+  font-size: clamp(23px, 4vw, 44px);
   line-height: 1.35;
   text-shadow: 4px 4px 0 var(--accent-pink);
 }
@@ -594,6 +643,14 @@ footer {
   align-content: start;
   gap: 23px;
 }
+@media (min-width: 801px) {
+  /* Keep the reading meter in view for the full length of an article/writeup. */
+  .article-layout .sidebar > :first-child {
+    position: sticky;
+    top: 24px;
+    z-index: 1;
+  }
+}
 .pixel-panel {
   padding: 20px;
 }
@@ -664,6 +721,15 @@ footer {
 .search-form input::placeholder {
   color: var(--muted);
 }
+.search-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+.search-results {
+  grid-template-columns: minmax(0, 1fr);
+}
 .record-count {
   color: var(--accent-orange);
   font-size: 9px;
@@ -681,7 +747,7 @@ footer {
   flex-wrap: wrap;
   gap: 12px 22px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 9px;
   margin-top: 23px;
 }
 .article-info b {
@@ -698,14 +764,14 @@ footer {
 }
 .mission-map a {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 9px;
   text-decoration: none;
 }
 .hp-label {
   display: flex;
   justify-content: space-between;
   color: var(--accent-cyan);
-  font-size: 8px;
+  font-size: 9px;
   margin-bottom: 8px;
 }
 .hp-track {
@@ -722,7 +788,8 @@ footer {
 }
 .quest-article {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
+  line-height: 1.9;
 }
 .quest-article h2 {
   color: var(--accent-orange);
@@ -741,7 +808,7 @@ footer {
   border: 4px solid var(--accent-pink);
   box-shadow: 6px 6px 0 var(--shadow);
   color: #65e7e3;
-  font: 9px/2 monospace;
+  font: 11px/1.8 monospace;
   overflow: auto;
   padding: 17px;
 }
@@ -750,7 +817,7 @@ footer {
   display: block;
   color: var(--accent-pink);
   font:
-    8px "Press Start 2P",
+    9px "Press Start 2P",
     monospace;
   margin-bottom: 13px;
 }
@@ -765,7 +832,7 @@ footer {
   content: "NPC >";
   display: block;
   color: var(--accent-orange);
-  font-size: 8px;
+  font-size: 9px;
   margin-bottom: 9px;
 }
 .pixel-image {
@@ -781,7 +848,7 @@ footer {
   padding: 17px;
   margin: 15px 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 10px;
 }
 .comment b {
   display: block;
@@ -847,7 +914,7 @@ footer {
 
 /* ===== CTF arena / writeups ===== */
 .ctf-back {
-  font-size: 8px;
+  font-size: 9px;
   margin-bottom: 14px;
 }
 .ctf-back:empty {
@@ -867,7 +934,7 @@ footer {
   border: 3px dashed var(--accent-cyan);
   background: #0b0815;
   color: var(--accent-cyan);
-  font: 9px/1.7 monospace;
+  font: 11px/1.7 monospace;
   word-break: break-all;
 }
 @media (max-width: 800px) {

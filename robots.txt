@@ -1,4 +1,2 @@
 User-agent: *
-Allow: /
-
-Sitemap: https://radiant-blaze.github.io/sitemap.xml
+Disallow: /

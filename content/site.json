@@ -1,17 +1,18 @@
 {
-  "social": [
-    { "label": "GitHub", "icon": "GH", "url": "https://github.com/radiant-blaze" },
-    { "label": "X", "icon": "X", "url": "https://x.com/radiantblaze" },
-    { "label": "Mastodon", "icon": "MA", "url": "https://mastodon.social/@radiantblaze" },
-    { "label": "Email", "icon": "@", "url": "mailto:hello@radiant-blaze.dev" }
+  "social":
+  [
+    { "label": "GitHub", "icon": "GitHub", "url": "https://github.com/radiant-blaze" },
+    { "label": "X", "icon": "X", "url": "coming soon" },
+    { "label": "Email", "icon": "@Email", "url": "Coming Soon" }
   ],
+
   "categoryBlurbs": {
-    "Programming": "Language deep-dives, patterns, and the craft of writing code that lasts.",
-    "Linux": "Terminal workflows, portable setups, and notes from the open-source world.",
-    "Cyber Security": "Defense, offense, and the mindset for keeping systems honest.",
-    "CTFs": "Write-ups and field notes from capture-the-flag expeditions.",
-    "Web Development": "Building for the browser — interfaces, performance, and the platform.",
-    "Projects": "Build logs and postmortems from things I actually shipped.",
-    "Personal": "Off-the-clock notes on learning, habits, and the developer life."
+    "Programming"     : "Language deep-dives, patterns, and the craft of writing code that lasts.",
+    "Linux"           : "Terminal workflows, portable setups, and notes from the open-source world.",
+    "Cyber Security"  : "Defense, offense, and the mindset for keeping systems honest.",
+    "CTFs"            : "Write-ups and field notes from capture-the-flag expeditions.",
+    "Web Development" : "Building for the browser — interfaces, performance, and the platform.",
+    "Projects"        : "Build logs and postmortems from things I actually shipped.",
+    "Personal"        : "Off-the-clock notes on learning, habits, and the developer life."
   }
 }

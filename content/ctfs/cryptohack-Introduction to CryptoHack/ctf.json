@@ -1,0 +1,20 @@
+{
+  "title": "cryptohack-Introduction to CryptoHack",
+  "event": "CryptoHack",
+  "date": "2026-07-21",
+  "difficulty": 1,
+  "url": "https://cryptohack.org/courses/intro/course_details/",
+  "description": "Wrirteups for the module 1 of cryptohack",
+  "challenges":
+  [
+    "chall1-Great-Snakes.md",
+    "chall2-ASCII.md",
+    "chall3-Hex.md",
+    "chall4-Base64.md",
+    "chall5-Bytes-and-Big-Integers.md",
+    "chall6-XOR-Starter.md",
+    "chall7-XOR-Properties.md",
+    "chall8-Favourite-byte.md",
+    "chall9-You-either-know-XOR-you-don't.md"
+  ]
+}

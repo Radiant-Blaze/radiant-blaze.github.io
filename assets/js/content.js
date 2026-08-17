@@ -126,6 +126,7 @@ export const loadCtfs = async (base) => {
 // tracks correctly whether the article is shorter or taller than the viewport.
 // No-op unless the page has a [data-hp] fill. Shared by post and writeup pages.
 export const initReadingProgress = () => {
+  window.__radiantBlazeReadingProgressCleanup?.();
   const hp = document.querySelector("[data-hp]");
   if (!hp) return;
   const update = () => {
@@ -135,5 +136,9 @@ export const initReadingProgress = () => {
   };
   addEventListener("scroll", update, { passive: true });
   addEventListener("resize", update, { passive: true });
+  window.__radiantBlazeReadingProgressCleanup = () => {
+    removeEventListener("scroll", update);
+    removeEventListener("resize", update);
+  };
   update();
 };

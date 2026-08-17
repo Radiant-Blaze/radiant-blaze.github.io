@@ -1,11 +1,12 @@
 {
-  "title": "picoCTF 2025",
+  "title": "picoctf-2025",
   "event": "picoCTF",
   "date": "2025-03-07",
   "difficulty": 2,
   "url": "https://picoctf.org",
   "description": "Beginner-friendly jeopardy CTF from Carnegie Mellon. Warmups across web, crypto, and reversing — good for building muscle memory.",
-  "challenges": [
+  "challenges":
+  [
     "web-cookie-monster.md",
     "crypto-interception.md",
     "rev-patchwork.md"

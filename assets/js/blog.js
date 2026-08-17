@@ -1,12 +1,17 @@
-import { loadData, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress } from "./content.js";
+import { loadData, loadCtfs, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress } from "./content.js";
 
 const DATA_BASE = "../content/";
 
 const postCard = (post) =>
   `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${escapeHtml(post.title)}"></div><div><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="quest-meta"><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span>${formatDate(post.date)}</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="post.html?post=${encodeURIComponent(post.file)}">READ POST →</a></div></article>`;
 
-loadData(DATA_BASE)
-  .then(({ site, posts }) => {
+const writeupCard = (ctf, challenge) =>
+  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(ctf.title).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="writeup.html?ctf=${encodeURIComponent(ctf.id)}&challenge=${encodeURIComponent(challenge.file)}">READ WRITEUP →</a></div></article>`;
+
+const isSearchPage = Boolean(document.querySelector("[data-search]"));
+
+Promise.all([loadData(DATA_BASE), isSearchPage ? loadCtfs(DATA_BASE) : Promise.resolve({ ctfs: [] })])
+  .then(([{ site, posts }, { ctfs }]) => {
     const params = new URLSearchParams(location.search);
     const currentCategory = params.get("category");
     const currentYear = params.get("year");
@@ -36,7 +41,7 @@ loadData(DATA_BASE)
         .sort(([a], [b]) => b - a)
         .map(
           ([year, count]) =>
-            `<li><a href="archive.html?year=${year}">${year} <small>${count}</small></a></li>`,
+            `<li><a href="search.html?year=${year}">${year} <small>${count}</small></a></li>`,
         )
         .join("");
     });
@@ -107,21 +112,68 @@ loadData(DATA_BASE)
 
     const search = document.querySelector("[data-search]");
     if (search) {
+      const writeups = ctfs.flatMap((ctf) =>
+        ctf.challenges.map((challenge) => ({ ctf, challenge })),
+      );
+      const records = [
+        ...posts.map((post) => ({ type: "post", item: post, date: post.date })),
+        ...writeups.map(({ ctf, challenge }) => ({
+          type: "writeup",
+          item: challenge,
+          ctf,
+          date: ctf.date,
+        })),
+      ].sort((a, b) => new Date(`${b.date}T00:00:00`) - new Date(`${a.date}T00:00:00`));
+      const query = params.get("q") || "";
+      const selectedYear = params.get("year") || "";
+      const pageSize = 5;
+      let currentPage = 0;
+      search.value = query;
       search
         .closest("form")
         .addEventListener("submit", (event) => event.preventDefault());
-      search.addEventListener("input", (event) => {
-        const found = posts.filter((post) =>
-          `${post.title} ${post.description} ${post.category}`
-            .toLowerCase()
-            .includes(event.target.value.toLowerCase()),
-        );
+      const renderSearch = (value, resetPage = true) => {
+        if (resetPage) currentPage = 0;
+        const term = value.trim().toLowerCase();
+        const found = records.filter((record) => {
+          const { item, ctf } = record;
+          const searchable = `${item.title} ${item.description || ""} ${item.category || ""} ${(item.tags || []).join(" ")} ${ctf?.title || ""}`.toLowerCase();
+          return (!term || searchable.includes(term)) &&
+            (!selectedYear || new Date(`${record.date}T00:00:00`).getFullYear() === Number(selectedYear));
+        });
+        const totalPages = Math.ceil(found.length / pageSize);
+        currentPage = Math.min(currentPage, Math.max(0, totalPages - 1));
+        const start = currentPage * pageSize;
+        const shown = found.slice(start, start + pageSize);
+        const visibleRange = found.length ? ` · SHOWING ${start + 1}–${start + shown.length}` : "";
         document.querySelector("[data-record-count]").textContent =
-          `FOUND ${found.length} POST${found.length === 1 ? "" : "S"}`;
+          `FOUND ${found.length} RECORD${found.length === 1 ? "" : "S"}${visibleRange}`;
         document.querySelector("[data-quest-list]").innerHTML =
-          found.map(postCard).join("") ||
-          '<p class="quest-intro">NO POSTS FOUND. TRY ANOTHER SEARCH.</p>';
+          shown
+            .map((record) =>
+              record.type === "post" ? postCard(record.item) : writeupCard(record.ctf, record.item),
+            )
+            .join("") || '<p class="quest-intro">NO RECORDS FOUND. TRY ANOTHER SEARCH.</p>';
+        const pagination = document.querySelector("[data-search-pagination]");
+        if (pagination) {
+          pagination.innerHTML = totalPages > 1
+            ? `<button class="pixel-button start-button" type="button" data-search-page="previous" ${currentPage === 0 ? "disabled" : ""}>← PREVIOUS</button><button class="pixel-button start-button" type="button" data-search-page="next" ${currentPage === totalPages - 1 ? "disabled" : ""}>NEXT →</button>`
+            : "";
+          pagination.querySelectorAll("[data-search-page]").forEach((button) => {
+            button.addEventListener("click", () => {
+              currentPage += button.dataset.searchPage === "next" ? 1 : -1;
+              renderSearch(search.value, false);
+            });
+          });
+        }
+      };
+      search.addEventListener("input", (event) => {
+        renderSearch(event.target.value);
+        const url = new URL(location.href);
+        event.target.value ? url.searchParams.set("q", event.target.value) : url.searchParams.delete("q");
+        history.replaceState(null, "", url);
       });
+      renderSearch(query);
     }
 
     const article = document.querySelector("[data-markdown-post]");

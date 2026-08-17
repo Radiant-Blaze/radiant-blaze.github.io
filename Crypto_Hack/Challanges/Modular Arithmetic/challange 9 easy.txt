@@ -1,0 +1,42 @@
+Chinese Remainder Theorem (CRT)
+
+Goal:
+Find one number x that satisfies multiple modular equations.
+
+Example:
+
+x ≡ 2 (mod 5)
+x ≡ 3 (mod 11)
+x ≡ 5 (mod 17)
+
+Method:
+1. Start with the largest modulus.
+2. Write:
+      x = a + k × modulus
+3. Try values of k until all equations are satisfied.
+
+Here:
+
+x = 5 + 17k
+
+Try k = 0, 1, 2, ...
+
+Eventually:
+
+x = 872
+
+Check:
+
+872 % 5  = 2 ✅
+872 % 11 = 3 ✅
+872 % 17 = 5 ✅
+
+Answer:
+
+x ≡ 872 (mod 935)
+
+Why 935?
+
+935 = 5 × 11 × 17
+
+CRT guarantees one unique solution modulo 935 because 5, 11, and 17 are pairwise coprime.
