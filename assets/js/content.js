@@ -53,6 +53,9 @@ export const markdownToHtml = (markdown) => {
   let html = escapeHtml(markdown.replace(/\r\n?/g, "\n")).replace(
     /```(\w+)?\n([\s\S]*?)```/g,
     (_, language, source) => {
+      if ((language || "").toLowerCase() === "math") {
+        return `<div class="math-block">\\[${source}\\]</div>`;
+      }
       code.push(
         `<pre class="terminal"><code data-language="${language || "text"}">${source}</code></pre>`,
       );
@@ -101,12 +104,12 @@ export const loadCtfs = async (base) => {
     fetch(`${base}site.json`).then((response) => response.json()),
     fetch(`${base}ctfs/index.json`).then((response) => response.json()),
   ]);
-  const ctfs = await Promise.all(
+  const settled = await Promise.allSettled(
     (index.ctfs || []).map(async (id) => {
       const meta = await fetch(`${base}ctfs/${id}/ctf.json`).then((response) =>
         response.json(),
       );
-      const challenges = await Promise.all(
+      const challenges = await Promise.allSettled(
         (meta.challenges || []).map(async (file) =>
           parsePost(
             await fetch(`${base}ctfs/${id}/${file}`).then((response) =>
@@ -116,9 +119,18 @@ export const loadCtfs = async (base) => {
           ),
         ),
       );
-      return { ...meta, id, challenges };
+      return {
+        ...meta,
+        id,
+        challenges: challenges
+          .filter((result) => result.status === "fulfilled")
+          .map((result) => result.value),
+      };
     }),
   );
+  const ctfs = settled
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
   return { site, ctfs };
 };
 

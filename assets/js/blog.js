@@ -9,6 +9,7 @@ const writeupCard = (ctf, challenge) =>
   `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(ctf.title).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="writeup.html?ctf=${encodeURIComponent(ctf.id)}&challenge=${encodeURIComponent(challenge.file)}">READ WRITEUP →</a></div></article>`;
 
 const isSearchPage = Boolean(document.querySelector("[data-search]"));
+const typesetMath = () => window.MathJax?.typesetPromise?.([document.body])?.catch?.(() => {});
 
 Promise.all([loadData(DATA_BASE), isSearchPage ? loadCtfs(DATA_BASE) : Promise.resolve({ ctfs: [] })])
   .then(([{ site, posts }, { ctfs }]) => {
@@ -192,6 +193,7 @@ Promise.all([loadData(DATA_BASE), isSearchPage ? loadCtfs(DATA_BASE) : Promise.r
             `<a href="search.html"># ${escapeHtml(tag).toUpperCase()}</a>`,
         )
         .join("");
+      typesetMath();
     }
   })
   .catch(() =>

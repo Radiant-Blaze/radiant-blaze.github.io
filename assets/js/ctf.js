@@ -17,6 +17,7 @@ const stars = (value) => {
 };
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "S"}`;
 const emptyMsg = (text) => `<p class="quest-intro">${text}</p>`;
+const typesetMath = () => window.MathJax?.typesetPromise?.([document.body])?.catch?.(() => {});
 
 const ctfCard = (ctf) =>
   `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(ctf.title)}"></div><div><p class="quest-number">CTF · ${year(ctf.date)}</p><h2>${escapeHtml(ctf.title)}</h2><p>${escapeHtml(ctf.description || "")}</p><div class="quest-meta"><span><b>${ctf.challenges.length}</b> ${ctf.challenges.length === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span>${formatDate(ctf.date)}</span><span class="difficulty" title="Difficulty">${stars(ctf.difficulty)}</span></div><a class="pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT →</a></div></article>`;
@@ -151,6 +152,7 @@ const renderWriteup = (ctf, challengeFile) => {
           `<a href="ctf.html?ctf=${encodeURIComponent(ctf.id)}"># ${escapeHtml(tag).toUpperCase()}</a>`,
       )
       .join("");
+  typesetMath();
 };
 
 loadCtfs(DATA_BASE)

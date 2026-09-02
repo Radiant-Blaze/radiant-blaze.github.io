@@ -803,6 +803,12 @@ footer {
 .quest-article code {
   color: var(--accent-cyan);
 }
+.quest-article .math-block,
+.quest-article mjx-container[jax="CHTML"][display="true"] {
+  display: block;
+  overflow-x: auto;
+  margin: 24px 0;
+}
 .terminal {
   background: #0b0815;
   border: 4px solid var(--accent-pink);

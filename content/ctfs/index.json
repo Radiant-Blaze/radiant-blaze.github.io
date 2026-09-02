@@ -2,6 +2,7 @@
   "ctfs":
   [
     "cryptohack-Introduction to CryptoHack",
-    "cryptohack-Modular-Arithmetic"
+    "cryptohack-Modular-Arithmetic",
+    "ASIS-CTF-2026"
   ]
 }
