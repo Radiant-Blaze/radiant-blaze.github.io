@@ -63,6 +63,10 @@ export const markdownToHtml = (markdown) => {
     },
   );
   html = html.replace(
+    /^\\\[((?:.|\n)*?)\\\]$/gm,
+    (_, source) => `<div class="math-block">\\[${source}\\]</div>`,
+  );
+  html = html.replace(
     /^## (.+)$/gm,
     (_, title) =>
       `<h2 id="${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}">${title}</h2>`,
