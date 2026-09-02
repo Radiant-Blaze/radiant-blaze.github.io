@@ -1,9 +1,9 @@
 ---
 title: Headache
 category: Crypto
-points: 0
-difficulty: 0
-flag:
+points: 34
+difficulty: 4
+flag: Not saved
 solves:
 tags: [crypto, oracle, nonlinear, optimization, scipy]
 author: Radiant Blaze
@@ -722,3 +722,5 @@ Only 84 oracle queries per round were required by the final solver, and the reco
 ```math
 \boxed{ \text{4 queries} \rightarrow B_{\text{sum}} \rightarrow \text{80 training queries} \rightarrow \text{56-parameter fit} \rightarrow \text{challenge prediction} \rightarrow \text{FLAG} }
 ```
+
+> **The flag is missing as i didn't save it**
