@@ -1,3 +1,30 @@
+/* Self-hosted Press Start 2P (SIL Open Font License 1.1). Serving the font from
+   this origin removes the two third-party handshakes and the blocking Google
+   Fonts stylesheet from the critical path. Subsets and unicode ranges mirror the
+   Google Fonts CSS response so glyph fallback behaviour is unchanged. */
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/press-start-2p-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/press-start-2p-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 :root {
   --dark-ink: #171329;
   --dark-panel: #272044;
@@ -543,8 +570,17 @@ footer {
   gap: 36px;
   padding: 30px 0 65px;
 }
+/* A grid item's automatic minimum size is its min-content size, so a single
+   wide block (code line, rendered equation) widens its whole track past the
+   viewport and clips the page. Let columns shrink and the block scroll instead. */
+.page-grid > *,
+.quest-list > * {
+  min-width: 0;
+}
 .quest-list {
   display: grid;
+  /* Same min-content guard as .page-grid: keeps card content from widening the column. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   align-content: start;
 }
@@ -557,7 +593,7 @@ footer {
 }
 .quest-card {
   display: grid;
-  grid-template-columns: 138px 1fr;
+  grid-template-columns: 138px minmax(0, 1fr);
   gap: 22px;
   padding: 18px;
   transition:
@@ -790,12 +826,42 @@ footer {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.9;
+  /* Keep long unbroken tokens (URLs, hashes) inside the column. */
+  overflow-wrap: break-word;
 }
 .quest-article h2 {
   color: var(--accent-orange);
   font-size: 14px;
   line-height: 1.7;
   margin: 43px 0 17px;
+}
+.quest-article h3 {
+  color: var(--accent-cyan);
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 34px 0 14px;
+}
+.quest-article h4 {
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 28px 0 12px;
+}
+.quest-article ul,
+.quest-article ol {
+  margin: 0 0 21px;
+  padding-left: 20px;
+}
+.quest-article li {
+  margin-bottom: 9px;
+}
+.quest-article strong {
+  color: var(--text);
+}
+.quest-article a {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .quest-article p {
   margin: 0 0 21px;
@@ -946,7 +1012,10 @@ footer {
 @media (max-width: 800px) {
   .page-grid,
   .article-layout {
-    grid-template-columns: 1fr;
+    /* A bare `1fr` floors the track at min-content, so one long code line
+       widens the whole column past the viewport. `minmax(0, 1fr)` lets the
+       column shrink and keeps wide blocks scrolling inside it. */
+    grid-template-columns: minmax(0, 1fr);
   }
   .sidebar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -974,13 +1043,19 @@ footer {
     min-height: 105px;
   }
   .sidebar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .sidebar > :first-child {
     grid-column: auto;
   }
   .search-form {
     flex-direction: column;
+  }
+  /* Hard-wrapped code is unreadable once the column narrows to ~35 characters,
+     so let code soft-wrap instead of scrolling or clipping. */
+  .terminal {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 }
 @media (prefers-reduced-motion: reduce) {

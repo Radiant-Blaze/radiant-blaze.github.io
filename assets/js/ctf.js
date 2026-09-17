@@ -5,9 +5,25 @@ import {
   markdownToHtml,
   socialHtml,
   initReadingProgress,
+  typesetMath,
 } from "./content.js";
 
 const DATA_BASE = "../content/";
+
+// The archive is every writeup body on the site, so each page asks only for the
+// slice it renders: one writeup, one event's challenge list, or (on the arena
+// landing view) the whole archive.
+const writeupArticle = document.querySelector("[data-writeup]");
+const params = new URLSearchParams(location.search);
+const requestedId = params.get("ctf");
+const challengeFile = params.get("challenge");
+const scope = requestedId
+  ? {
+      events: [requestedId],
+      challenges:
+        writeupArticle && challengeFile ? [challengeFile] : undefined,
+    }
+  : {};
 
 const year = (date) => new Date(`${date}T00:00:00`).getFullYear();
 const clampDifficulty = (value) => Math.max(0, Math.min(5, parseInt(value, 10) || 0));
@@ -17,7 +33,6 @@ const stars = (value) => {
 };
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "S"}`;
 const emptyMsg = (text) => `<p class="quest-intro">${text}</p>`;
-const typesetMath = () => window.MathJax?.typesetPromise?.([document.body])?.catch?.(() => {});
 
 const ctfCard = (ctf) =>
   `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(ctf.title)}"></div><div><p class="quest-number">CTF · ${year(ctf.date)}</p><h2>${escapeHtml(ctf.title)}</h2><p>${escapeHtml(ctf.description || "")}</p><div class="quest-meta"><span><b>${ctf.challenges.length}</b> ${ctf.challenges.length === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span>${formatDate(ctf.date)}</span><span class="difficulty" title="Difficulty">${stars(ctf.difficulty)}</span></div><a class="pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT →</a></div></article>`;
@@ -155,15 +170,12 @@ const renderWriteup = (ctf, challengeFile) => {
   typesetMath();
 };
 
-loadCtfs(DATA_BASE)
+loadCtfs(DATA_BASE, scope)
   .then(({ site, ctfs }) => {
     document
       .querySelectorAll("[data-social]")
       .forEach((el) => (el.innerHTML = socialHtml(site.social)));
 
-    const params = new URLSearchParams(location.search);
-    const requestedId = params.get("ctf");
-    const challengeFile = params.get("challenge");
     const ctf = requestedId ? ctfs.find((item) => item.id === requestedId) : null;
 
     renderArena(ctfs, ctf, requestedId);

@@ -48,85 +48,166 @@ export const parsePost = (source, file) => {
   };
 };
 
+// Content is authored in a deliberately small Markdown subset: ATX headings,
+// fenced and inline code, blockquotes, ordered/unordered lists, bold and links.
+// Anything outside that subset is escaped and rendered as literal text.
+const TOKEN_LINE = /^@@TOKEN\d+@@$/;
+
+// Headings inside an article start at h2 — the page supplies the document h1 —
+// so levels 1 and 2 both map to h2 and deeper levels keep their relative depth.
+const headingTag = (level) => `h${level <= 2 ? 2 : Math.min(6, level)}`;
+
+const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
 export const markdownToHtml = (markdown) => {
-  const code = [];
-  let html = escapeHtml(markdown.replace(/\r\n?/g, "\n")).replace(
-    /```(\w+)?\n([\s\S]*?)```/g,
-    (_, language, source) => {
-      if ((language || "").toLowerCase() === "math") {
-        return `<div class="math-block">\\[${source}\\]</div>`;
-      }
-      code.push(
-        `<pre class="terminal"><code data-language="${language || "text"}">${source}</code></pre>`,
-      );
-      return `@@CODE${code.length - 1}@@`;
-    },
-  );
-  html = html.replace(
-    /^\\\[((?:.|\n)*?)\\\]$/gm,
-    (_, source) => `<div class="math-block">\\[${source}\\]</div>`,
-  );
-  html = html.replace(
-    /^## (.+)$/gm,
-    (_, title) =>
-      `<h2 id="${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}">${title}</h2>`,
-  );
-  html = html.replace(/^&gt; (.+)$/gm, "<blockquote>$1</blockquote>");
-  html = html
-    .split(/\n{2,}/)
-    .map((part) =>
-      part.startsWith("<") || part.startsWith("@@CODE")
-        ? part
-        : `<p>${part.replace(/\n/g, "<br>")}</p>`,
+  const tokens = [];
+  const stash = (html) => `@@TOKEN${tokens.push(html) - 1}@@`;
+
+  // Code and math are lifted out first so no inline rule can rewrite them.
+  const source = escapeHtml(markdown.replace(/\r\n?/g, "\n"))
+    .replace(/```(\w+)?\n([\s\S]*?)```/g, (_, language, code) =>
+      (language || "").toLowerCase() === "math"
+        ? stash(`<div class="math-block">\\[${code}\\]</div>`)
+        : stash(
+            `<pre class="terminal"><code data-language="${language || "text"}">${code}</code></pre>`,
+          ),
     )
-    .join("");
-  return html.replace(/@@CODE(\d+)@@/g, (_, index) => code[index]);
+    .replace(
+      /^\\\[((?:.|\n)*?)\\\]$/gm,
+      (_, math) => stash(`<div class="math-block">\\[${math}\\]</div>`),
+    )
+    .replace(/`([^`\n]+)`/g, (_, code) => stash(`<code>${code}</code>`));
+
+  const inline = (text) =>
+    text
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+
+  const lines = source.split("\n");
+  const html = [];
+  const paragraph = [];
+  const flush = () => {
+    if (!paragraph.length) return;
+    html.push(`<p>${paragraph.map(inline).join("<br>")}</p>`);
+    paragraph.length = 0;
+  };
+
+  let index = 0;
+  while (index < lines.length) {
+    const line = lines[index];
+
+    if (!line.trim()) {
+      flush();
+      index++;
+      continue;
+    }
+
+    if (TOKEN_LINE.test(line)) {
+      flush();
+      html.push(line);
+      index++;
+      continue;
+    }
+
+    const heading = /^(#{1,6}) (.+)$/.exec(line);
+    if (heading) {
+      flush();
+      const tag = headingTag(heading[1].length);
+      html.push(
+        `<${tag} id="${slug(heading[2])}">${inline(heading[2])}</${tag}>`,
+      );
+      index++;
+      continue;
+    }
+
+    if (line.startsWith("&gt; ")) {
+      flush();
+      const quote = [];
+      while (index < lines.length && lines[index].startsWith("&gt; ")) {
+        quote.push(lines[index].slice(5));
+        index++;
+      }
+      html.push(`<blockquote>${quote.map(inline).join("<br>")}</blockquote>`);
+      continue;
+    }
+
+    const bullet = /^[-*] /.test(line);
+    const pattern = bullet ? /^[-*] / : /^\d+\. /;
+    if (bullet || pattern.test(line)) {
+      flush();
+      const items = [];
+      while (index < lines.length && pattern.test(lines[index])) {
+        items.push(`<li>${inline(lines[index].replace(pattern, ""))}</li>`);
+        index++;
+      }
+      const tag = bullet ? "ul" : "ol";
+      html.push(`<${tag}>${items.join("")}</${tag}>`);
+      continue;
+    }
+
+    paragraph.push(line);
+    index++;
+  }
+  flush();
+
+  return html.join("").replace(/@@TOKEN(\d+)@@/g, (_, i) => tokens[Number(i)]);
+};
+
+const fetchJson = async (url) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`${url} responded ${response.status}`);
+  return response.json();
+};
+
+const fetchText = async (url) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`${url} responded ${response.status}`);
+  return response.text();
 };
 
 // `base` is the relative path to the content/ directory for the calling page
 // (e.g. "content/" from the site root, "../content/" from pages/).
-export const loadData = async (base) => {
+//
+// `files` narrows the load to specific post bodies. Post bodies dwarf the rest
+// of the payload, so a page that renders one post should always pass it.
+export const loadData = async (base, files) => {
   const [site, index] = await Promise.all([
-    fetch(`${base}site.json`).then((response) => response.json()),
-    fetch(`${base}posts/index.json`).then((response) => response.json()),
+    fetchJson(`${base}site.json`),
+    fetchJson(`${base}posts/index.json`),
   ]);
   const posts = await Promise.all(
-    index.posts.map(async (file) =>
-      parsePost(
-        await fetch(`${base}posts/${file}`).then((response) => response.text()),
-        file,
-      ),
+    (files || index.posts || []).map(async (file) =>
+      parsePost(await fetchText(`${base}posts/${file}`), file),
     ),
   );
   return { site, posts };
 };
 
-// Loads the CTF archive: site metadata plus every event and its parsed
-// challenge writeups. Mirrors loadData's shape ({ site, ... }).
-export const loadCtfs = async (base) => {
+// Loads the CTF archive: site metadata plus events and their parsed challenge
+// writeups. Mirrors loadData's shape ({ site, ... }).
+//
+// `events` narrows the load to specific event ids, and `challenges` to specific
+// challenge files within them; both default to the whole archive. The full
+// archive is every writeup body on the site, so pages that render one writeup
+// or one event must narrow. A missing event or challenge file is dropped rather
+// than fatal — callers render their own not-found state from the gap.
+export const loadCtfs = async (base, { events, challenges } = {}) => {
   const [site, index] = await Promise.all([
-    fetch(`${base}site.json`).then((response) => response.json()),
-    fetch(`${base}ctfs/index.json`).then((response) => response.json()),
+    fetchJson(`${base}site.json`),
+    events ? null : fetchJson(`${base}ctfs/index.json`),
   ]);
   const settled = await Promise.allSettled(
-    (index.ctfs || []).map(async (id) => {
-      const meta = await fetch(`${base}ctfs/${id}/ctf.json`).then((response) =>
-        response.json(),
-      );
-      const challenges = await Promise.allSettled(
-        (meta.challenges || []).map(async (file) =>
-          parsePost(
-            await fetch(`${base}ctfs/${id}/${file}`).then((response) =>
-              response.text(),
-            ),
-            file,
-          ),
+    (events || index?.ctfs || []).map(async (id) => {
+      const meta = await fetchJson(`${base}ctfs/${id}/ctf.json`);
+      const loaded = await Promise.allSettled(
+        (challenges || meta.challenges || []).map(async (file) =>
+          parsePost(await fetchText(`${base}ctfs/${id}/${file}`), file),
         ),
       );
       return {
         ...meta,
         id,
-        challenges: challenges
+        challenges: loaded
           .filter((result) => result.status === "fulfilled")
           .map((result) => result.value),
       };
@@ -136,6 +217,53 @@ export const loadCtfs = async (base) => {
     .filter((result) => result.status === "fulfilled")
     .map((result) => result.value);
   return { site, ctfs };
+};
+
+const MATHJAX_SRC =
+  "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+let mathJaxReady;
+
+// True when the rendered page has math for MathJax to typeset: a fenced ```math
+// block (rendered as .math-block) or one of the inline delimiters configured
+// below. Pages without math never pay for the parser.
+const hasMath = () =>
+  Boolean(document.querySelector(".math-block")) ||
+  /\$[^\n$]+\$|\\\([^\n]+\\\)/.test(document.body.textContent);
+
+// MathJax is a large parser, so it is fetched on demand. The config is applied
+// here rather than in each page's <head> so a writeup opened through the SPA
+// router gets identical delimiters to one loaded directly. skipHtmlTags keeps
+// code blocks literal.
+export const typesetMath = () => {
+  if (!hasMath()) return;
+  if (!mathJaxReady) {
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["\\[", "\\]"]],
+      },
+      options: {
+        skipHtmlTags: [
+          "script",
+          "noscript",
+          "style",
+          "textarea",
+          "pre",
+          "code",
+        ],
+      },
+    };
+    mathJaxReady = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = MATHJAX_SRC;
+      script.addEventListener("load", resolve, { once: true });
+      script.addEventListener("error", reject, { once: true });
+      document.head.append(script);
+    });
+  }
+  mathJaxReady
+    .then(() => window.MathJax?.typesetPromise?.([document.body]))
+    .catch(() => {});
 };
 
 // Wires the scroll-driven "reading progress" bar to overall page scroll, so it

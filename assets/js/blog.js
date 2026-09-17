@@ -1,4 +1,4 @@
-import { loadData, loadCtfs, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress } from "./content.js";
+import { loadData, loadCtfs, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress, typesetMath } from "./content.js";
 
 const DATA_BASE = "../content/";
 
@@ -9,9 +9,18 @@ const writeupCard = (ctf, challenge) =>
   `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(ctf.title).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="writeup.html?ctf=${encodeURIComponent(ctf.id)}&challenge=${encodeURIComponent(challenge.file)}">READ WRITEUP →</a></div></article>`;
 
 const isSearchPage = Boolean(document.querySelector("[data-search]"));
-const typesetMath = () => window.MathJax?.typesetPromise?.([document.body])?.catch?.(() => {});
 
-Promise.all([loadData(DATA_BASE), isSearchPage ? loadCtfs(DATA_BASE) : Promise.resolve({ ctfs: [] })])
+// A post page renders exactly one body, so it asks for exactly one.
+const article = document.querySelector("[data-markdown-post]");
+const requestedPost =
+  new URLSearchParams(location.search).get("post") ||
+  article?.dataset.markdownPost ||
+  "";
+
+Promise.all([
+  loadData(DATA_BASE, requestedPost ? [requestedPost] : undefined),
+  isSearchPage ? loadCtfs(DATA_BASE) : Promise.resolve({ ctfs: [] }),
+])
   .then(([{ site, posts }, { ctfs }]) => {
     const params = new URLSearchParams(location.search);
     const currentCategory = params.get("category");
@@ -177,12 +186,8 @@ Promise.all([loadData(DATA_BASE), isSearchPage ? loadCtfs(DATA_BASE) : Promise.r
       renderSearch(query);
     }
 
-    const article = document.querySelector("[data-markdown-post]");
     if (article) {
-      const requested =
-        new URLSearchParams(location.search).get("post") ||
-        article.dataset.markdownPost;
-      const post = posts.find((item) => item.file === requested) || posts[0];
+      const post = posts.find((item) => item.file === requestedPost) || posts[0];
       document.title = `${post.title} · Radiant Blaze`;
       article.innerHTML = markdownToHtml(post.body);
       document.querySelector("[data-post-header]").innerHTML =
@@ -196,10 +201,20 @@ Promise.all([loadData(DATA_BASE), isSearchPage ? loadCtfs(DATA_BASE) : Promise.r
       typesetMath();
     }
   })
-  .catch(() =>
+  .catch(() => {
     document.querySelectorAll("[data-quest-list]").forEach((list) => {
       list.innerHTML = '<p class="quest-intro">POSTS COULD NOT LOAD.</p>';
-    }),
-  );
+    });
+    // A post body that no longer exists leaves the header and article on their
+    // "LOADING POST..." placeholder unless the failure is reported here.
+    if (article) {
+      const header = document.querySelector("[data-post-header]");
+      if (header)
+        header.innerHTML =
+          '<p class="quest-number">POST NOT FOUND</p><h1 class="quest-title">404</h1>';
+      article.innerHTML =
+        '<p>That post isn\'t in the archive. <a href="blog.html">Return to the blog.</a></p>';
+    }
+  });
 
 initReadingProgress();
