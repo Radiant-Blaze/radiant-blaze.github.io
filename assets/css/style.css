@@ -968,8 +968,13 @@ footer {
     transform 0.1s,
     box-shadow 0.1s;
 }
-.social-link:hover,
-.social-link:focus-visible {
+/* Placeholder entries render as badges, not links, so they must not respond to
+   hover the way a real destination does. */
+.social-link.is-pending {
+  opacity: 0.55;
+}
+.social-link:not(.is-pending):hover,
+.social-link:not(.is-pending):focus-visible {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 var(--accent-pink);
   outline: none;

@@ -22,8 +22,13 @@ export const formatDate = (date) =>
 export const socialHtml = (social = []) =>
   social
     .map((item) => {
+      const icon = `<span aria-hidden="true">${item.icon}</span>`;
+      // A placeholder entry ("coming soon") is not a destination yet, and
+      // rendering it as an anchor sends visitors to a 404.
+      if (!/^(https?:|mailto:)/i.test(item.url || ""))
+        return `<span class="social-link is-pending" title="${item.label} · coming soon" aria-label="${item.label} · coming soon">${icon}</span>`;
       const external = !item.url.startsWith("mailto:");
-      return `<a class="social-link" href="${item.url}"${external ? ' target="_blank" rel="noopener"' : ""} aria-label="${item.label}"><span aria-hidden="true">${item.icon}</span></a>`;
+      return `<a class="social-link" href="${item.url}"${external ? ' target="_blank" rel="noopener"' : ""} aria-label="${item.label}">${icon}</a>`;
     })
     .join("");
 
