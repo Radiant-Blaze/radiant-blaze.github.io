@@ -62,10 +62,25 @@
           Capture-the-flag write-ups, grouped by event. Pick a competition to
           browse the challenges I cracked.
         </p>
+        <form class="search-form ctf-search-form" action="ctf.html" method="get" data-ctf-search>
+          <input type="hidden" name="ctf" data-ctf-search-scope />
+          <label class="sr-only" for="ctf-search">Search CTFs and challenges</label>
+          <input
+            id="ctf-search"
+            type="search"
+            name="q"
+            placeholder="SEARCH CTFS OR CHALLENGES"
+            data-ctf-search-input
+          />
+          <button class="pixel-button start-button" type="submit">SEARCH</button>
+        </form>
         <p class="record-count" data-ctf-count>LOADING EVENTS…</p>
       </section>
       <div class="page-grid quest-wrap">
-        <section class="quest-list" data-ctf-list aria-live="polite"></section>
+        <section>
+          <div class="quest-list" data-ctf-list aria-live="polite"></div>
+          <nav class="ctf-pagination" data-ctf-pagination aria-label="CTF list pages"></nav>
+        </section>
         <aside class="sidebar" data-ctf-aside></aside>
       </div>
       <footer class="site-footer">

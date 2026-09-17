@@ -1,6 +1,16 @@
 import { loadData, loadCtfs, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress, typesetMath } from "./content.js";
+import {
+  DEFAULT_PAGE_SIZE,
+  pageSlice,
+  paginationHtml,
+  searchableText,
+  syncSearchForm,
+} from "./list-utils.js";
 
 const DATA_BASE = "../content/";
+const params = new URLSearchParams(location.search);
+const requestedPage = Math.max(1, parseInt(params.get("pg"), 10) || 1);
+const blogQuery = (params.get("q") || "").trim();
 
 const postCard = (post) =>
   `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${escapeHtml(post.title)}"></div><div><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="quest-meta"><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span>${formatDate(post.date)}</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="post.html?post=${encodeURIComponent(post.file)}">READ POST →</a></div></article>`;
@@ -9,20 +19,38 @@ const writeupCard = (ctf, challenge) =>
   `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(ctf.title).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="writeup.html?ctf=${encodeURIComponent(ctf.id)}&challenge=${encodeURIComponent(challenge.file)}">READ WRITEUP →</a></div></article>`;
 
 const isSearchPage = Boolean(document.querySelector("[data-search]"));
+const blogList = document.querySelector("[data-category-dynamic]");
 
 // A post page renders exactly one body, so it asks for exactly one.
 const article = document.querySelector("[data-markdown-post]");
 const requestedPost =
-  new URLSearchParams(location.search).get("post") ||
+  params.get("post") ||
   article?.dataset.markdownPost ||
   "";
+
+const postMatches = (post, term) =>
+  searchableText(
+    post.title,
+    post.description,
+    post.category,
+    post.tags || [],
+    post.author,
+    post.body,
+  ).includes(term);
+
+const setupBlogSearch = (currentCategory) => {
+  syncSearchForm({
+    query: blogQuery,
+    inputSelector: "[data-blog-search-input]",
+    hidden: [{ selector: "[data-blog-search-category]", value: currentCategory }],
+  });
+};
 
 Promise.all([
   loadData(DATA_BASE, requestedPost ? [requestedPost] : undefined),
   isSearchPage ? loadCtfs(DATA_BASE) : Promise.resolve({ ctfs: [] }),
 ])
   .then(([{ site, posts }, { ctfs }]) => {
-    const params = new URLSearchParams(location.search);
     const currentCategory = params.get("category");
     const currentYear = params.get("year");
     const blurbs = site.categoryBlurbs || {};
@@ -40,6 +68,7 @@ Promise.all([
 
     const socialEl = document.querySelector("[data-social]");
     if (socialEl) socialEl.innerHTML = socialHtml(site.social);
+    setupBlogSearch(currentCategory);
 
     document.querySelectorAll("[data-save-list]").forEach((el) => {
       const byYear = posts.reduce((acc, post) => {
@@ -76,6 +105,31 @@ Promise.all([
         visiblePosts = posts.filter((post) => post.category === currentCategory);
       } else if (list.dataset.category) {
         visiblePosts = posts.filter((post) => post.category === list.dataset.category);
+      }
+      if (list === blogList) {
+        const term = blogQuery.toLowerCase();
+        if (term) visiblePosts = visiblePosts.filter((post) => postMatches(post, term));
+        const { currentPage, totalPages, shown: shownPosts } = pageSlice(
+          visiblePosts,
+          requestedPage,
+        );
+        const countEl = document.querySelector("[data-blog-count]");
+        if (countEl)
+          countEl.textContent = `${visiblePosts.length} POST${visiblePosts.length === 1 ? "" : "S"} · PAGE ${currentPage} OF ${totalPages}`;
+        list.innerHTML =
+          shownPosts.map(postCard).join("") ||
+          '<p class="quest-intro">NO POSTS FOUND.</p>';
+        const pagination = document.querySelector("[data-blog-pagination]");
+        if (pagination)
+          pagination.innerHTML = paginationHtml(visiblePosts.length, currentPage, (page) => {
+            const nextParams = new URLSearchParams();
+            if (currentCategory) nextParams.set("category", currentCategory);
+            if (blogQuery) nextParams.set("q", blogQuery);
+            if (page > 1) nextParams.set("pg", page);
+            const query = nextParams.toString();
+            return query ? `blog.html?${query}` : "blog.html";
+          });
+        return;
       }
       list.innerHTML =
         visiblePosts.map(postCard).join("") ||
@@ -136,7 +190,6 @@ Promise.all([
       ].sort((a, b) => new Date(`${b.date}T00:00:00`) - new Date(`${a.date}T00:00:00`));
       const query = params.get("q") || "";
       const selectedYear = params.get("year") || "";
-      const pageSize = 5;
       let currentPage = 0;
       search.value = query;
       search
@@ -151,10 +204,11 @@ Promise.all([
           return (!term || searchable.includes(term)) &&
             (!selectedYear || new Date(`${record.date}T00:00:00`).getFullYear() === Number(selectedYear));
         });
-        const totalPages = Math.ceil(found.length / pageSize);
-        currentPage = Math.min(currentPage, Math.max(0, totalPages - 1));
-        const start = currentPage * pageSize;
-        const shown = found.slice(start, start + pageSize);
+        const { currentPage: shownPage, totalPages, start, shown } = pageSlice(
+          found,
+          currentPage + 1,
+        );
+        currentPage = shownPage - 1;
         const visibleRange = found.length ? ` · SHOWING ${start + 1}–${start + shown.length}` : "";
         document.querySelector("[data-record-count]").textContent =
           `FOUND ${found.length} RECORD${found.length === 1 ? "" : "S"}${visibleRange}`;

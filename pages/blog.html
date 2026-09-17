@@ -61,14 +61,30 @@
           Field notes, build logs, and side missions collected along the Radiant
           Blaze adventure.
         </p>
+        <form class="search-form blog-search-form" action="blog.html" method="get" data-blog-search>
+          <input type="hidden" name="category" data-blog-search-category />
+          <label class="sr-only" for="blog-search">Search blog posts</label>
+          <input
+            id="blog-search"
+            type="search"
+            name="q"
+            placeholder="SEARCH BLOG POSTS"
+            data-blog-search-input
+          />
+          <button class="pixel-button start-button" type="submit">SEARCH</button>
+        </form>
+        <p class="record-count" data-blog-count>LOADING POSTS…</p>
       </section>
       <div class="page-grid quest-wrap">
-        <section
-          class="quest-list"
-          data-quest-list
-          data-category-dynamic
-          aria-label="Available posts"
-        ></section>
+        <section>
+          <div
+            class="quest-list"
+            data-quest-list
+            data-category-dynamic
+            aria-label="Available posts"
+          ></div>
+          <nav class="blog-pagination" data-blog-pagination aria-label="Blog post pages"></nav>
+        </section>
         <aside class="sidebar">
           <section class="pixel-panel">
             <h2>PLAYER STATS</h2>

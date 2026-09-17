@@ -757,11 +757,21 @@ footer {
 .search-form input::placeholder {
   color: var(--muted);
 }
-.search-pagination {
+.search-pagination,
+.ctf-pagination,
+.blog-pagination {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 8px;
+}
+.ctf-pagination,
+.blog-pagination {
+  margin-top: 24px;
+}
+.ctf-pagination a[aria-current="page"],
+.blog-pagination a[aria-current="page"] {
+  background: var(--accent-cyan);
 }
 .search-results {
   grid-template-columns: minmax(0, 1fr);

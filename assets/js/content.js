@@ -196,7 +196,10 @@ export const loadData = async (base, files) => {
 // archive is every writeup body on the site, so pages that render one writeup
 // or one event must narrow. A missing event or challenge file is dropped rather
 // than fatal — callers render their own not-found state from the gap.
-export const loadCtfs = async (base, { events, challenges } = {}) => {
+export const loadCtfs = async (
+  base,
+  { events, challenges, challengePage, loadChallengeBodies = true } = {},
+) => {
   const [site, index] = await Promise.all([
     fetchJson(`${base}site.json`),
     events ? null : fetchJson(`${base}ctfs/index.json`),
@@ -204,14 +207,31 @@ export const loadCtfs = async (base, { events, challenges } = {}) => {
   const settled = await Promise.allSettled(
     (events || index?.ctfs || []).map(async (id) => {
       const meta = await fetchJson(`${base}ctfs/${id}/ctf.json`);
+      const allChallenges = meta.challenges || [];
+      const selectedChallenges = challenges || allChallenges;
+      const pageSize =
+        challengePage && Math.max(1, challengePage.end - challengePage.start);
+      const pageStart =
+        challengePage && selectedChallenges.length
+          ? Math.min(
+              challengePage.start,
+              Math.floor((selectedChallenges.length - 1) / pageSize) * pageSize,
+            )
+          : challengePage?.start;
+      const pagedChallenges = challengePage
+        ? selectedChallenges.slice(pageStart, pageStart + pageSize)
+        : selectedChallenges;
       const loaded = await Promise.allSettled(
-        (challenges || meta.challenges || []).map(async (file) =>
-          parsePost(await fetchText(`${base}ctfs/${id}/${file}`), file),
-        ),
+        loadChallengeBodies
+          ? pagedChallenges.map(async (file) =>
+              parsePost(await fetchText(`${base}ctfs/${id}/${file}`), file),
+            )
+          : [],
       );
       return {
         ...meta,
         id,
+        challengeCount: allChallenges.length,
         challenges: loaded
           .filter((result) => result.status === "fulfilled")
           .map((result) => result.value),

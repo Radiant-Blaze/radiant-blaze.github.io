@@ -7,23 +7,39 @@ import {
   initReadingProgress,
   typesetMath,
 } from "./content.js";
+import {
+  DEFAULT_PAGE_SIZE,
+  pageMeta,
+  pageSlice,
+  paginationHtml,
+  searchableText,
+  syncSearchForm,
+} from "./list-utils.js";
 
 const DATA_BASE = "../content/";
 
-// The archive is every writeup body on the site, so each page asks only for the
-// slice it renders: one writeup, one event's challenge list, or (on the arena
-// landing view) the whole archive.
+// Writeup bodies are the heavy payload, so list views ask for only what they
+// render: one page of an event, one writeup, or metadata-only arena cards.
 const writeupArticle = document.querySelector("[data-writeup]");
 const params = new URLSearchParams(location.search);
 const requestedId = params.get("ctf");
 const challengeFile = params.get("challenge");
+const searchQuery = (params.get("q") || "").trim();
+const requestedPage = Math.max(1, parseInt(params.get("pg"), 10) || 1);
 const scope = requestedId
   ? {
       events: [requestedId],
       challenges:
-        writeupArticle && challengeFile ? [challengeFile] : undefined,
+        writeupArticle && challengeFile && !searchQuery ? [challengeFile] : undefined,
+      challengePage:
+        (writeupArticle && challengeFile) || searchQuery
+          ? undefined
+          : {
+              start: (requestedPage - 1) * DEFAULT_PAGE_SIZE,
+              end: requestedPage * DEFAULT_PAGE_SIZE,
+            },
     }
-  : {};
+  : { loadChallengeBodies: Boolean(searchQuery) };
 
 const year = (date) => new Date(`${date}T00:00:00`).getFullYear();
 const clampDifficulty = (value) => Math.max(0, Math.min(5, parseInt(value, 10) || 0));
@@ -33,9 +49,10 @@ const stars = (value) => {
 };
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "S"}`;
 const emptyMsg = (text) => `<p class="quest-intro">${text}</p>`;
+const challengeTotal = (ctf) => ctf.challengeCount ?? ctf.challenges.length;
 
 const ctfCard = (ctf) =>
-  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(ctf.title)}"></div><div><p class="quest-number">CTF · ${year(ctf.date)}</p><h2>${escapeHtml(ctf.title)}</h2><p>${escapeHtml(ctf.description || "")}</p><div class="quest-meta"><span><b>${ctf.challenges.length}</b> ${ctf.challenges.length === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span>${formatDate(ctf.date)}</span><span class="difficulty" title="Difficulty">${stars(ctf.difficulty)}</span></div><a class="pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT →</a></div></article>`;
+  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(ctf.title)}"></div><div><p class="quest-number">CTF · ${year(ctf.date)}</p><h2>${escapeHtml(ctf.title)}</h2><p>${escapeHtml(ctf.description || "")}</p><div class="quest-meta"><span><b>${challengeTotal(ctf)}</b> ${challengeTotal(ctf) === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span>${formatDate(ctf.date)}</span><span class="difficulty" title="Difficulty">${stars(ctf.difficulty)}</span></div><a class="pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT →</a></div></article>`;
 
 const challengeCard = (ctf, challenge) => {
   const category = (challenge.category || "MISC").toUpperCase();
@@ -58,23 +75,68 @@ const countRows = (counts) =>
     .map(([name, n]) => `<li>${escapeHtml(name).toUpperCase()} <strong>${n}</strong></li>`)
     .join("") || "<li>NONE YET <strong>0</strong></li>";
 
+const ctfMatches = (ctf, term) =>
+  searchableText(ctf.title, ctf.event, ctf.description, ctf.date).includes(term);
+
+const challengeMatches = (ctf, challenge, term) =>
+  searchableText(
+    challenge.title,
+    challenge.description,
+    challenge.category,
+    challenge.tags || [],
+    challenge.points,
+    challenge.body,
+    ctf.title,
+    ctf.event,
+  ).includes(term);
+
+const searchResults = (ctfs, term) =>
+  ctfs.flatMap((ctf) => {
+    const results = ctfMatches(ctf, term) ? [{ type: "ctf", ctf }] : [];
+    ctf.challenges
+      .filter((challenge) => challengeMatches(ctf, challenge, term))
+      .forEach((challenge) => results.push({ type: "challenge", ctf, challenge }));
+    return results;
+  });
+
+const searchResultCard = (result) =>
+  result.type === "ctf" ? ctfCard(result.ctf) : challengeCard(result.ctf, result.challenge);
+
+const setupSearchForm = () => {
+  syncSearchForm({
+    query: searchQuery,
+    inputSelector: "[data-ctf-search-input]",
+    hidden: [{ selector: "[data-ctf-search-scope]", value: requestedId }],
+  });
+};
+
 const arenaSidebar = (ctfs) => {
-  const writeups = ctfs.reduce((sum, ctf) => sum + ctf.challenges.length, 0);
+  const writeups = ctfs.reduce((sum, ctf) => sum + challengeTotal(ctf), 0);
+  const hasLoadedChallenges = ctfs.some((ctf) => ctf.challenges.length);
   const points = ctfs.reduce(
     (sum, ctf) =>
       sum + ctf.challenges.reduce((s, ch) => s + (parseInt(ch.points, 10) || 0), 0),
     0,
   );
   const counts = categoryCounts(ctfs.flatMap((ctf) => ctf.challenges));
-  return `<section class="pixel-panel"><h2>ARENA STATS</h2><ul class="stat-list"><li>EVENTS <strong>${ctfs.length}</strong></li><li>WRITEUPS <strong>${writeups}</strong></li><li>POINTS BANKED <strong>${points.toLocaleString()}</strong></li></ul></section><section class="pixel-panel"><h2>BY CATEGORY</h2><ul class="stat-list">${countRows(counts)}</ul></section>`;
+  const pointsRow = hasLoadedChallenges
+    ? `<li>POINTS BANKED <strong>${points.toLocaleString()}</strong></li>`
+    : "";
+  const categoryPanel = hasLoadedChallenges
+    ? `<section class="pixel-panel"><h2>BY CATEGORY</h2><ul class="stat-list">${countRows(counts)}</ul></section>`
+    : "";
+  return `<section class="pixel-panel"><h2>ARENA STATS</h2><ul class="stat-list"><li>EVENTS <strong>${ctfs.length}</strong></li><li>WRITEUPS <strong>${writeups}</strong></li>${pointsRow}</ul></section>${categoryPanel}`;
 };
 
 const eventSidebar = (ctf) => {
   const points = ctf.challenges.reduce((s, ch) => s + (parseInt(ch.points, 10) || 0), 0);
+  const isFullEvent = ctf.challenges.length === challengeTotal(ctf);
+  const pointsLabel = isFullEvent ? "TOTAL POINTS" : "PAGE POINTS";
+  const categoryLabel = isFullEvent ? "BY CATEGORY" : "BY PAGE CATEGORY";
   const source = ctf.url
     ? `<section class="pixel-panel"><h2>SOURCE</h2><nav class="region-list"><a href="${escapeHtml(ctf.url)}" target="_blank" rel="noopener">VISIT EVENT SITE →</a></nav></section>`
     : "";
-  return `<section class="pixel-panel"><h2>EVENT DATA</h2><ul class="stat-list"><li>ORGANIZER <strong>${escapeHtml(ctf.event || "—")}</strong></li><li>DATE <strong>${formatDate(ctf.date)}</strong></li><li>CHALLENGES <strong>${ctf.challenges.length}</strong></li><li>TOTAL POINTS <strong>${points.toLocaleString()}</strong></li><li>DIFFICULTY <strong class="difficulty">${stars(ctf.difficulty)}</strong></li></ul></section><section class="pixel-panel"><h2>BY CATEGORY</h2><ul class="stat-list">${countRows(categoryCounts(ctf.challenges))}</ul></section>${source}`;
+  return `<section class="pixel-panel"><h2>EVENT DATA</h2><ul class="stat-list"><li>ORGANIZER <strong>${escapeHtml(ctf.event || "—")}</strong></li><li>DATE <strong>${formatDate(ctf.date)}</strong></li><li>CHALLENGES <strong>${challengeTotal(ctf)}</strong></li><li>${pointsLabel} <strong>${points.toLocaleString()}</strong></li><li>DIFFICULTY <strong class="difficulty">${stars(ctf.difficulty)}</strong></li></ul></section><section class="pixel-panel"><h2>${categoryLabel}</h2><ul class="stat-list">${countRows(categoryCounts(ctf.challenges))}</ul></section>${source}`;
 };
 
 const challengeMeta = (ctf, challenge) => {
@@ -96,16 +158,52 @@ const renderArena = (ctfs, ctf, requestedId) => {
   const countEl = document.querySelector("[data-ctf-count]");
   const backEl = document.querySelector("[data-ctf-back]");
   const asideEl = document.querySelector("[data-ctf-aside]");
+  const paginationEl = document.querySelector("[data-ctf-pagination]");
+  const term = searchQuery.toLowerCase();
 
   if (ctf) {
+    if (term) {
+      const results = searchResults([ctf], term);
+      const { currentPage, totalPages, shown: shownResults } = pageSlice(
+        results,
+        requestedPage,
+      );
+      document.title = `Search ${ctf.title} · Radiant Blaze`;
+      if (titleEl) titleEl.textContent = ctf.title.toUpperCase();
+      if (introEl) introEl.textContent = `Search results for "${searchQuery}".`;
+      if (backEl) backEl.innerHTML = '<a href="ctf.html">← ALL CTF EVENTS</a>';
+      if (countEl)
+        countEl.textContent = `${plural(results.length, "RESULT")} · PAGE ${currentPage} OF ${totalPages}`;
+      list.innerHTML =
+        shownResults.map(searchResultCard).join("") || emptyMsg("NO MATCHING CTF RESULTS.");
+      if (paginationEl)
+        paginationEl.innerHTML = paginationHtml(
+          results.length,
+          currentPage,
+          (page) =>
+            `ctf.html?ctf=${encodeURIComponent(ctf.id)}&q=${encodeURIComponent(searchQuery)}&pg=${page}`,
+        );
+      if (asideEl) asideEl.innerHTML = eventSidebar(ctf);
+      return;
+    }
+
+    const totalChallenges = challengeTotal(ctf);
+    const { currentPage, totalPages } = pageMeta(totalChallenges, requestedPage);
     document.title = `${ctf.title} · Radiant Blaze`;
     if (titleEl) titleEl.textContent = ctf.title.toUpperCase();
     if (introEl) introEl.textContent = ctf.description || "";
     if (backEl) backEl.innerHTML = '<a href="ctf.html">← ALL CTF EVENTS</a>';
-    if (countEl) countEl.textContent = `${plural(ctf.challenges.length, "CHALLENGE")} LOGGED`;
+    if (countEl)
+      countEl.textContent = `${plural(totalChallenges, "CHALLENGE")} LOGGED · PAGE ${currentPage} OF ${totalPages}`;
     list.innerHTML =
       ctf.challenges.map((challenge) => challengeCard(ctf, challenge)).join("") ||
       emptyMsg("NO CHALLENGES LOGGED YET.");
+    if (paginationEl)
+      paginationEl.innerHTML = paginationHtml(
+        totalChallenges,
+        currentPage,
+        (page) => `ctf.html?ctf=${encodeURIComponent(ctf.id)}&pg=${page}`,
+      );
     if (asideEl) asideEl.innerHTML = eventSidebar(ctf);
     return;
   }
@@ -116,15 +214,45 @@ const renderArena = (ctfs, ctf, requestedId) => {
     if (backEl) backEl.innerHTML = '<a href="ctf.html">← ALL CTF EVENTS</a>';
     if (countEl) countEl.textContent = "";
     list.innerHTML = emptyMsg("THAT EVENT ISN'T IN THE ARCHIVE.");
+    if (paginationEl) paginationEl.innerHTML = "";
     if (asideEl) asideEl.innerHTML = "";
     return;
   }
 
-  const writeups = ctfs.reduce((sum, item) => sum + item.challenges.length, 0);
+  if (term) {
+    const results = searchResults(ctfs, term);
+    const {
+      currentPage: currentSearchPage,
+      totalPages: searchPages,
+      shown: shownResults,
+    } = pageSlice(results, requestedPage);
+    if (backEl) backEl.innerHTML = "";
+    if (titleEl) titleEl.textContent = "CTF SEARCH";
+    if (introEl) introEl.textContent = `Search results for "${searchQuery}".`;
+    if (countEl)
+      countEl.textContent = `${plural(results.length, "RESULT")} · PAGE ${currentSearchPage} OF ${searchPages}`;
+    list.innerHTML =
+      shownResults.map(searchResultCard).join("") || emptyMsg("NO MATCHING CTF RESULTS.");
+    if (paginationEl)
+      paginationEl.innerHTML = paginationHtml(results.length, currentSearchPage, (page) =>
+        page === 1
+          ? `ctf.html?q=${encodeURIComponent(searchQuery)}`
+          : `ctf.html?q=${encodeURIComponent(searchQuery)}&pg=${page}`,
+      );
+    if (asideEl) asideEl.innerHTML = arenaSidebar(ctfs);
+    return;
+  }
+
+  const { currentPage, totalPages, shown: shownCtfs } = pageSlice(ctfs, requestedPage);
+  const writeups = ctfs.reduce((sum, item) => sum + challengeTotal(item), 0);
   if (backEl) backEl.innerHTML = "";
   if (countEl)
-    countEl.textContent = `${plural(ctfs.length, "EVENT")} · ${plural(writeups, "WRITEUP")}`;
-  list.innerHTML = ctfs.map(ctfCard).join("") || emptyMsg("NO CTF EVENTS YET.");
+    countEl.textContent = `${plural(ctfs.length, "EVENT")} · ${plural(writeups, "WRITEUP")} · PAGE ${currentPage} OF ${totalPages}`;
+  list.innerHTML = shownCtfs.map(ctfCard).join("") || emptyMsg("NO CTF EVENTS YET.");
+  if (paginationEl)
+    paginationEl.innerHTML = paginationHtml(ctfs.length, currentPage, (page) =>
+      page === 1 ? "ctf.html" : `ctf.html?pg=${page}`,
+    );
   if (asideEl) asideEl.innerHTML = arenaSidebar(ctfs);
 };
 
@@ -175,6 +303,7 @@ loadCtfs(DATA_BASE, scope)
     document
       .querySelectorAll("[data-social]")
       .forEach((el) => (el.innerHTML = socialHtml(site.social)));
+    setupSearchForm();
 
     const ctf = requestedId ? ctfs.find((item) => item.id === requestedId) : null;
 
