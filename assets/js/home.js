@@ -1,4 +1,4 @@
-import { loadData, loadCtfs, socialHtml, escapeHtml, formatDate, postPageUrl, writeupPageUrl } from "./content.js";
+import { loadData, loadCtfs, socialHtml, escapeHtml, formatDate, postPageUrl, writeupPageUrl } from "./content.js?v=20260926-1";
 
 const yearEl = document.querySelector("#year");
 if (yearEl) yearEl.textContent = new Date().getFullYear();

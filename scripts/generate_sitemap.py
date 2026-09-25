@@ -198,10 +198,10 @@ def page_head(title, description, canonical):
     <meta name="twitter:description" content="{escape(description)}" />
     <meta name="twitter:image" content="{ORIGIN}/og-image.png" />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=20260926-2" />
     <script src="/assets/js/theme.js"></script>
     <script defer src="/assets/js/audio.js"></script>
-    <script type="module" src="/assets/js/static-article.js"></script>
+    <script type="module" src="/assets/js/static-article.js?v=20260926-1"></script>
   </head>
   <body>
     <main class="quest-screen">
@@ -298,6 +298,17 @@ def render_writeup(ctf, challenge, challenge_files, site):
     solves = f'<li>SOLVES <strong>{escape(challenge["solves"])}</strong></li>' if challenge.get("solves") else ""
     flag = f'<h2>FLAG CAPTURED</h2><p class="ctf-flag">{escape(challenge["flag"])}</p>' if challenge.get("flag") else ""
     body = render_markdown(challenge["body"])
+    has_math = bool(
+        re.search(r"```math\b|\\\[|\\\(|\$\$", challenge["body"], flags=re.IGNORECASE)
+    )
+    layout_class = "article-layout article-layout--full-width" if has_math else "article-layout"
+    layout_open = f'      <div class="page-grid {layout_class} quest-wrap">'
+    sidebar = "" if has_math else f'''
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>{escape(ctf.get("event", ctf["title"]))}</strong></li><li>CATEGORY <strong>{escape(category)}</strong></li><li>POINTS <strong>{points}</strong></li><li>DIFFICULTY <strong class="difficulty">{stars}</strong></li>{solves}</ul>{flag}</section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">{tags_html}</nav></section>
+        </aside>'''
     title_text = f"{title} · {ctf['title']} · Radiant Blaze"
     return f'''{page_head(title_text, description, ORIGIN + route)}
     <p class="ctf-back quest-wrap"><a href="{internal_page_url("ctf.html", ctf=ctf["id"])}">← {escape(ctf["title"]).upper()}</a></p>
@@ -306,13 +317,8 @@ def render_writeup(ctf, challenge, challenge_files, site):
         <h1 class="quest-title">{escape(title).upper()}</h1>
         <div class="article-info"><span>POINTS: <b>{points}</b></span><span>DIFFICULTY: <b class="difficulty">{stars}</b></span>{f'<span>SOLVES: <b>{escape(challenge["solves"])}</b></span>' if challenge.get("solves") else ""}<span>BY <b>{escape(challenge.get("author", "Radiant Blaze")).upper()}</b></span></div>
       </header>
-      <div class="page-grid article-layout quest-wrap">
-        <article class="quest-article">{body}<nav class="article-related" aria-label="Related writeups">{related}</nav></article>
-        <aside class="sidebar">
-          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
-          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>{escape(ctf.get("event", ctf["title"]))}</strong></li><li>CATEGORY <strong>{escape(category)}</strong></li><li>POINTS <strong>{points}</strong></li><li>DIFFICULTY <strong class="difficulty">{stars}</strong></li>{solves}</ul>{flag}</section>
-          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">{tags_html}</nav></section>
-        </aside>
+{layout_open}
+        <article class="quest-article">{body}<nav class="article-related" aria-label="Related writeups">{related}</nav></article>{sidebar}
       </div>
       <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links">{render_social(site)}</nav></div></footer>''' + page_end()
 

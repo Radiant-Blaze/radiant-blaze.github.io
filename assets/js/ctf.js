@@ -8,7 +8,7 @@ import {
   typesetMath,
   updatePageMetadata,
   writeupPageUrl,
-} from "./content.js";
+} from "./content.js?v=20260926-1";
 import {
   DEFAULT_PAGE_SIZE,
   pageMeta,
@@ -263,8 +263,6 @@ const renderWriteup = (ctf, challengeFile) => {
   const article = document.querySelector("[data-writeup]");
   if (!article) return;
   const headerEl = document.querySelector("[data-writeup-header]");
-  const metaEl = document.querySelector("[data-writeup-meta]");
-  const tagsEl = document.querySelector("[data-writeup-tags]");
   const backEl = document.querySelector("[data-writeup-back]");
 
   const challenge =
@@ -277,8 +275,6 @@ const renderWriteup = (ctf, challengeFile) => {
     if (backEl) backEl.innerHTML = '<a href="ctf.html">← ALL CTF EVENTS</a>';
     article.innerHTML =
       '<p>That challenge writeup isn\'t in the archive. <a href="ctf.html">Return to the CTF arena.</a></p>';
-    if (metaEl) metaEl.innerHTML = "";
-    if (tagsEl) tagsEl.innerHTML = "";
     return;
   }
 
@@ -298,6 +294,10 @@ const renderWriteup = (ctf, challengeFile) => {
   if (headerEl)
     headerEl.innerHTML = `<p class="quest-number">${escapeHtml(ctf.title.toUpperCase())} · ${escapeHtml(category)}</p><h1 class="quest-title">${escapeHtml(challenge.title.toUpperCase())}</h1><div class="article-info"><span>POINTS: <b>${escapeHtml(challenge.points || "—")}</b></span><span>DIFFICULTY: <b class="difficulty">${stars(challenge.difficulty)}</b></span>${challenge.solves ? `<span>SOLVES: <b>${escapeHtml(challenge.solves)}</b></span>` : ""}<span>BY <b>${escapeHtml((challenge.author || "Radiant Blaze").toUpperCase())}</b></span></div>`;
   article.innerHTML = markdownToHtml(challenge.body);
+  const layout = article.closest(".article-layout");
+  const hasMath = /```math\b|\\\[|\\\(|\$\$/i.test(challenge.body);
+  layout?.querySelector(":scope > .sidebar")?.remove();
+  layout?.classList.toggle("article-layout--full-width", hasMath);
   const challengeIndex = ctf.challengeFiles.indexOf(challenge.file);
   const previous = ctf.challengeFiles[challengeIndex - 1];
   const next = ctf.challengeFiles[challengeIndex + 1];
@@ -309,14 +309,19 @@ const renderWriteup = (ctf, challengeFile) => {
     "beforeend",
     `<nav class="article-related" aria-label="Related writeups">${writeupLink(previous, "← PREVIOUS CHALLENGE")}<span>CHALLENGE ${challengeIndex + 1} / ${ctf.challengeFiles.length}</span>${writeupLink(next, "NEXT CHALLENGE →")}</nav>`,
   );
-  if (metaEl) metaEl.innerHTML = challengeMeta(ctf, challenge);
-  if (tagsEl)
-    tagsEl.innerHTML = challenge.tags
+  if (layout && !hasMath) {
+    const tags = challenge.tags
       .map(
         (tag) =>
           `<a href="ctf.html?ctf=${encodeURIComponent(ctf.id)}"># ${escapeHtml(tag).toUpperCase()}</a>`,
       )
       .join("");
+    layout.insertAdjacentHTML(
+      "beforeend",
+      `<aside class="sidebar"><section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section><section class="pixel-panel">${challengeMeta(ctf, challenge)}</section><section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">${tags}</nav></section></aside>`,
+    );
+    initReadingProgress();
+  }
   typesetMath();
 };
 

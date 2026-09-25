@@ -19,10 +19,10 @@
     <meta name="twitter:description" content="Recover the parameters of a nonlinear Hamiltonian oracle using chosen-input queries and nonlinear least-squares optimization." />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=20260926-2" />
     <script src="/assets/js/theme.js"></script>
     <script defer src="/assets/js/audio.js"></script>
-    <script type="module" src="/assets/js/static-article.js"></script>
+    <script type="module" src="/assets/js/static-article.js?v=20260926-1"></script>
   </head>
   <body>
     <main class="quest-screen">
@@ -40,7 +40,7 @@
         <h1 class="quest-title">HEADACHE</h1>
         <div class="article-info"><span>POINTS: <b>34</b></span><span>DIFFICULTY: <b class="difficulty">★★★★☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
       </header>
-      <div class="page-grid article-layout quest-wrap">
+      <div class="page-grid article-layout article-layout--full-width quest-wrap">
         <article class="quest-article"><h2 id="headache">Headache</h2><h2 id="challenge-overview">Challenge Overview</h2><p>The challenge provides a remote <strong>Non-Linear Hamiltonian Authenticator Oracle (H-PRF)</strong>.</p><p>The server uses three secret channels. Each channel contains:</p><ul><li>a <code>4 × 4</code> coupling matrix <code>A</code></li><li>a <code>4</code>-element observable vector <code>B</code></li></ul><p>The secrets are regenerated for every round.</p><p>We are given an <code>eval</code> oracle that evaluates the hidden function on attacker-controlled matrices and a <code>challenge</code> command that provides six unknown test sequences.</p><p>To authenticate a round, we must submit predictions for those six sequences with an error smaller than:</p><pre class="terminal"><code data-language="text">1e-6
 </code></pre><p>There are seven rounds in total.</p><p>At first glance this looks like a complicated cryptographic construction. However, the oracle is actually a small differentiable mathematical model with only 60 continuous parameters. This makes it possible to recover the hidden parameters using numerical optimization.</p><p>---</p><h2 id="the-oracle">The Oracle</h2><p>The important part of the challenge is:</p><pre class="terminal"><code data-language="python">def evaluate_ensemble(X, coupling_tensors, observable_vectors):
 
@@ -270,11 +270,6 @@ maxerr=1.7764e-15
                       FLAG
 </code></pre><h2 id="conclusion">Conclusion</h2><p>The &quot;Headache&quot; challenge disguises a relatively small system-identification problem behind a nonlinear Hamiltonian model.</p><p>The key observation is that a one-element sequence collapses the softmax and reveals the sum of all observable vectors. This removes four degrees of freedom from the original 60-parameter problem.</p><p>The remaining 56 parameters can then be recovered using chosen-input oracle evaluations and bounded nonlinear least-squares optimization with an analytical Jacobian.</p><p>Only 84 oracle queries per round were required by the final solver, and the recovered model predicted the hidden challenge values with errors around <code>10^{-14}</code>, comfortably below the required <code>10^{-6}</code>.</p><h2 id="repeating-the-process-across-all-seven-rounds-results-in-successful-authentication-and-recovery-of-the-flag-">Repeating the process across all seven rounds results in successful authentication and recovery of the flag.</h2><h2 id="exploit-summary">Exploit Summary</h2><div class="math-block">\[\boxed{ \text{4 queries} \rightarrow B_{\text{sum}} \rightarrow \text{80 training queries} \rightarrow \text{56-parameter fit} \rightarrow \text{challenge prediction} \rightarrow \text{FLAG} }
 \]</div><blockquote><strong>The flag is missing as i didn&#x27;t save it</strong></blockquote><nav class="article-related" aria-label="Related writeups"><a href="/generated/writeups/ASIS-CTF-2026/Hackel.html">← PREVIOUS CHALLENGE</a><span>CHALLENGE 2 / 2</span><span>NEXT CHALLENGE →</span></nav></article>
-        <aside class="sidebar">
-          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
-          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>ASIS Team</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>34</strong></li><li>DIFFICULTY <strong class="difficulty">★★★★☆</strong></li></ul><h2>FLAG CAPTURED</h2><p class="ctf-flag">Not saved</p></section>
-          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># CRYPTO</a><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># ORACLE</a><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># NONLINEAR</a><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># OPTIMIZATION</a><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># SCIPY</a></nav></section>
-        </aside>
       </div>
       <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
     </main>

@@ -1,4 +1,4 @@
-import { loadData, loadCtfs, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress, typesetMath, updatePageMetadata, postPageUrl, writeupPageUrl } from "./content.js";
+import { loadData, loadCtfs, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress, typesetMath, updatePageMetadata, postPageUrl, writeupPageUrl } from "./content.js?v=20260926-1";
 import {
   DEFAULT_PAGE_SIZE,
   pageSlice,
