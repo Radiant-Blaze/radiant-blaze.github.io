@@ -198,7 +198,7 @@ def page_head(title, description, canonical):
     <meta name="twitter:description" content="{escape(description)}" />
     <meta name="twitter:image" content="{ORIGIN}/og-image.png" />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="/assets/css/style.css?v=20260926-2" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=20260926-4" />
     <script src="/assets/js/theme.js"></script>
     <script defer src="/assets/js/audio.js"></script>
     <script type="module" src="/assets/js/static-article.js?v=20260926-1"></script>

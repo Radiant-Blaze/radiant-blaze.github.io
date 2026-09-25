@@ -957,7 +957,7 @@ footer {
   grid-template-columns: minmax(0, 1fr);
 }
 .article-layout--full-width > .sidebar {
-  display: none;
+  display: none !important;
 }
 .article-header {
   padding: 42px 0 25px;
