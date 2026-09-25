@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Great Snakes · cryptohack-Introduction to CryptoHack · Radiant Blaze</title>
+    <meta name="description" content="A sequence of integers has been XORed by 50. Reverse the XOR operation to recover the hidden message." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall1-Great-Snakes.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Great Snakes · cryptohack-Introduction to CryptoHack · Radiant Blaze" />
+    <meta property="og:description" content="A sequence of integers has been XORed by 50. Reverse the XOR operation to recover the hidden message." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall1-Great-Snakes.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Great Snakes · cryptohack-Introduction to CryptoHack · Radiant Blaze" />
+    <meta name="twitter:description" content="A sequence of integers has been XORed by 50. Reverse the XOR operation to recover the hidden message." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/audio.js"></script>
+    <script type="module" src="/assets/js/static-article.js"></script>
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href="/"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="/pages/blog.html">BLOG</a><a href="/pages/ctf.html">CTFS</a><a href="/pages/search.html">SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>
+        </nav>
+      </header>
+    <p class="ctf-back quest-wrap"><a href="/pages/ctf.html?ctf=cryptohack-Introduction+to+CryptoHack">← CRYPTOHACK-INTRODUCTION TO CRYPTOHACK</a></p>
+      <header class="article-header quest-wrap">
+        <p class="quest-number">CRYPTOHACK-INTRODUCTION TO CRYPTOHACK · CRYPTO</p>
+        <h1 class="quest-title">GREAT SNAKES</h1>
+        <div class="article-info"><span>POINTS: <b>100</b></span><span>DIFFICULTY: <b class="difficulty">★☆☆☆☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
+      </header>
+      <div class="page-grid article-layout quest-wrap">
+        <article class="quest-article"><h2 id="the-capture">The Capture</h2><p>We are given a sequence of integers:</p><pre class="terminal"><code data-language="python">ords = [81, 64, 75, 66, 70, 93, 73, 72, 1, 92, 109, 2, 84, 109, 66, 75, 70, 90, 2, 92, 79]
+</code></pre><p>The challenge tells us that the values were XORed by 50.</p><h2 id="the-mistake">The Mistake</h2><p>XOR is reversible. Applying the same value again cancels the original XOR:</p><pre class="terminal"><code data-language="text">x XOR 50 XOR 50 = x
+</code></pre><p>So we simply XOR every number with <code>50</code> to recover the original characters.</p><h2 id="recovery">Recovery</h2><p>The solve script iterates through every value and converts the result back into a character:</p><pre class="terminal"><code data-language="python">ords = [81, 64, 75, 66, 70, 93, 73, 72, 1, 92, 109, 2, 84, 109, 66, 75, 70, 90, 2, 92, 79]
+
+flag = []
+
+for o in ords:
+    flag.append(chr(o ^ 50))
+
+print(&quot;&quot;.join(flag))
+</code></pre><p>Since <code>50</code> in hexadecimal is <code>0x32</code>, the same operation can also be written more compactly:</p><pre class="terminal"><code data-language="python">print(&quot;&quot;.join(chr(o ^ 0x32) for o in ords))
+</code></pre><p>Running the decoder reveals the original message.</p><h2 id="flag">Flag</h2><pre class="terminal"><code data-language="text">crypto{z3n_0f_pyth0n}
+</code></pre><nav class="article-related" aria-label="Related writeups"><span>← PREVIOUS CHALLENGE</span><span>CHALLENGE 1 / 9</span><a href="/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall2-ASCII.html">NEXT CHALLENGE →</a></nav></article>
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>CryptoHack</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>100</strong></li><li>DIFFICULTY <strong class="difficulty">★☆☆☆☆</strong></li></ul><h2>FLAG CAPTURED</h2><p class="ctf-flag">crypto{z3n_0f_pyth0n}</p></section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=cryptohack-Introduction+to+CryptoHack"># CRYPTO</a><a href="/pages/ctf.html?ctf=cryptohack-Introduction+to+CryptoHack"># XOR</a></nav></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
+    </main>
+  </body>
+</html>

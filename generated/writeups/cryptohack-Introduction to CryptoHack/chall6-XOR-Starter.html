@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XOR-Starter · cryptohack-Introduction to CryptoHack · Radiant Blaze</title>
+    <meta name="description" content="XOR each character of the string &quot;label&quot; with the integer 13 and convert the resulting integers back into characters." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall6-XOR-Starter.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="XOR-Starter · cryptohack-Introduction to CryptoHack · Radiant Blaze" />
+    <meta property="og:description" content="XOR each character of the string &quot;label&quot; with the integer 13 and convert the resulting integers back into characters." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall6-XOR-Starter.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="XOR-Starter · cryptohack-Introduction to CryptoHack · Radiant Blaze" />
+    <meta name="twitter:description" content="XOR each character of the string &quot;label&quot; with the integer 13 and convert the resulting integers back into characters." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/audio.js"></script>
+    <script type="module" src="/assets/js/static-article.js"></script>
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href="/"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="/pages/blog.html">BLOG</a><a href="/pages/ctf.html">CTFS</a><a href="/pages/search.html">SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>
+        </nav>
+      </header>
+    <p class="ctf-back quest-wrap"><a href="/pages/ctf.html?ctf=cryptohack-Introduction+to+CryptoHack">← CRYPTOHACK-INTRODUCTION TO CRYPTOHACK</a></p>
+      <header class="article-header quest-wrap">
+        <p class="quest-number">CRYPTOHACK-INTRODUCTION TO CRYPTOHACK · CRYPTO</p>
+        <h1 class="quest-title">XOR-STARTER</h1>
+        <div class="article-info"><span>POINTS: <b>100</b></span><span>DIFFICULTY: <b class="difficulty">★☆☆☆☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
+      </header>
+      <div class="page-grid article-layout quest-wrap">
+        <article class="quest-article"><h2 id="the-capture">The Capture</h2><p>XOR is a bitwise operator that returns <code>0</code> when two bits are the same and <code>1</code> when they are different.</p><p>The XOR operation is commonly represented using <code>^</code> in programming languages.</p><p>For two bits:</p><pre class="terminal"><code data-language="text">A B Output
+0 0   0
+0 1   1
+1 0   1
+1 1   0
+</code></pre><p>For longer binary numbers, XOR is performed bit by bit:</p><pre class="terminal"><code data-language="text">0110 ^ 1010 = 1100
+</code></pre><p>We are given the string:</p><pre class="terminal"><code data-language="text">label
+</code></pre><p>The challenge asks us to XOR each character with the integer <code>13</code>, convert the resulting integers back into characters, and submit the result in the format:</p><pre class="terminal"><code data-language="text">crypto{new_string}
+</code></pre><h2 id="the-mistake">The Mistake</h2><p>Each character can be converted into its integer representation using <code>ord()</code>.</p><p>We can then XOR that integer with <code>13</code>:</p><pre class="terminal"><code data-language="python">ord(character) ^ 13
+</code></pre><p>Finally, <code>chr()</code> converts the resulting integer back into a character.</p><h2 id="recovery">Recovery</h2><p>We can implement the XOR operation manually:</p><pre class="terminal"><code data-language="python">encoded = &quot;label&quot;
+
+decoded = []
+
+for e in encoded:
+    decoded.append(ord(e) ^ 13)
+
+print(&quot;&quot;.join(chr(a) for a in decoded))
+</code></pre><p>The output is:</p><pre class="terminal"><code data-language="text">aloha
+</code></pre><p>The challenge also provides an alternative using pwntools&#x27; <code>xor()</code> function:</p><pre class="terminal"><code data-language="python">from pwn import *
+
+encoded = &quot;label&quot;
+
+decoded = xor(encoded, 13)
+
+print(decoded)
+</code></pre><p>Both approaches produce the same result.</p><h2 id="flag">Flag</h2><pre class="terminal"><code data-language="text">crypto{aloha}
+</code></pre><nav class="article-related" aria-label="Related writeups"><a href="/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall5-Bytes-and-Big-Integers.html">← PREVIOUS CHALLENGE</a><span>CHALLENGE 6 / 9</span><a href="/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall7-XOR-Properties.html">NEXT CHALLENGE →</a></nav></article>
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>CryptoHack</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>100</strong></li><li>DIFFICULTY <strong class="difficulty">★☆☆☆☆</strong></li></ul><h2>FLAG CAPTURED</h2><p class="ctf-flag">crypto{aloha}</p></section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=cryptohack-Introduction+to+CryptoHack"># CRYPTO</a><a href="/pages/ctf.html?ctf=cryptohack-Introduction+to+CryptoHack"># XOR</a></nav></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
+    </main>
+  </body>
+</html>

@@ -6,6 +6,8 @@ import {
   socialHtml,
   initReadingProgress,
   typesetMath,
+  updatePageMetadata,
+  writeupPageUrl,
 } from "./content.js";
 import {
   DEFAULT_PAGE_SIZE,
@@ -56,7 +58,7 @@ const ctfCard = (ctf) =>
 
 const challengeCard = (ctf, challenge) => {
   const category = (challenge.category || "MISC").toUpperCase();
-  return `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">CHALLENGE · ${escapeHtml(category)}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || "")}</p><div class="quest-meta"><span><b>${escapeHtml(challenge.points || "—")}</b> PTS</span><span class="difficulty" title="Difficulty">${stars(challenge.difficulty)}</span><span><b>${escapeHtml(category)}</b></span></div><a class="pixel-button start-button" href="writeup.html?ctf=${encodeURIComponent(ctf.id)}&challenge=${encodeURIComponent(challenge.file)}">READ WRITEUP →</a></div></article>`;
+  return `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">CHALLENGE · ${escapeHtml(category)}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || "")}</p><div class="quest-meta"><span><b>${escapeHtml(challenge.points || "—")}</b> PTS</span><span class="difficulty" title="Difficulty">${stars(challenge.difficulty)}</span><span><b>${escapeHtml(category)}</b></span></div><a class="pixel-button start-button" href="${writeupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></div></article>`;
 };
 
 const categoryCounts = (challenges) => {
@@ -281,12 +283,32 @@ const renderWriteup = (ctf, challengeFile) => {
   }
 
   const category = (challenge.category || "MISC").toUpperCase();
-  document.title = `${challenge.title} · ${ctf.title} · Radiant Blaze`;
+  const canonicalUrl = new URL(location.href);
+  canonicalUrl.search = "";
+  canonicalUrl.searchParams.set("ctf", ctf.id);
+  canonicalUrl.searchParams.set("challenge", challenge.file);
+  canonicalUrl.hash = "";
+  updatePageMetadata({
+    title: `${challenge.title} · ${ctf.title} · Radiant Blaze`,
+    description: challenge.description || `CTF writeup for ${challenge.title} from ${ctf.title}.`,
+    canonicalUrl: canonicalUrl.href,
+  });
   if (backEl)
     backEl.innerHTML = `<a href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">← ${escapeHtml(ctf.title.toUpperCase())}</a>`;
   if (headerEl)
     headerEl.innerHTML = `<p class="quest-number">${escapeHtml(ctf.title.toUpperCase())} · ${escapeHtml(category)}</p><h1 class="quest-title">${escapeHtml(challenge.title.toUpperCase())}</h1><div class="article-info"><span>POINTS: <b>${escapeHtml(challenge.points || "—")}</b></span><span>DIFFICULTY: <b class="difficulty">${stars(challenge.difficulty)}</b></span>${challenge.solves ? `<span>SOLVES: <b>${escapeHtml(challenge.solves)}</b></span>` : ""}<span>BY <b>${escapeHtml((challenge.author || "Radiant Blaze").toUpperCase())}</b></span></div>`;
   article.innerHTML = markdownToHtml(challenge.body);
+  const challengeIndex = ctf.challengeFiles.indexOf(challenge.file);
+  const previous = ctf.challengeFiles[challengeIndex - 1];
+  const next = ctf.challengeFiles[challengeIndex + 1];
+  const writeupLink = (file, label) =>
+    file
+      ? `<a href="${writeupPageUrl(ctf.id, file)}">${label}</a>`
+      : `<span>${label}</span>`;
+  article.insertAdjacentHTML(
+    "beforeend",
+    `<nav class="article-related" aria-label="Related writeups">${writeupLink(previous, "← PREVIOUS CHALLENGE")}<span>CHALLENGE ${challengeIndex + 1} / ${ctf.challengeFiles.length}</span>${writeupLink(next, "NEXT CHALLENGE →")}</nav>`,
+  );
   if (metaEl) metaEl.innerHTML = challengeMeta(ctf, challenge);
   if (tagsEl)
     tagsEl.innerHTML = challenge.tags

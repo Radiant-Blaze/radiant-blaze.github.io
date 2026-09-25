@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adrien&#x27;s Signs · cryptohack-Modular Arithmetic · Radiant Blaze</title>
+    <meta name="description" content="Recover the flag by identifying the quadratic residue pattern in a Goldwasser-Micali style encryption scheme." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall10-Adrien%27s-Signs.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Adrien&#x27;s Signs · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta property="og:description" content="Recover the flag by identifying the quadratic residue pattern in a Goldwasser-Micali style encryption scheme." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall10-Adrien%27s-Signs.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Adrien&#x27;s Signs · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta name="twitter:description" content="Recover the flag by identifying the quadratic residue pattern in a Goldwasser-Micali style encryption scheme." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/audio.js"></script>
+    <script type="module" src="/assets/js/static-article.js"></script>
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href="/"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="/pages/blog.html">BLOG</a><a href="/pages/ctf.html">CTFS</a><a href="/pages/search.html">SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>
+        </nav>
+      </header>
+    <p class="ctf-back quest-wrap"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic">← CRYPTOHACK-MODULAR ARITHMETIC</a></p>
+      <header class="article-header quest-wrap">
+        <p class="quest-number">CRYPTOHACK-MODULAR ARITHMETIC · CRYPTO</p>
+        <h1 class="quest-title">ADRIEN&#X27;S SIGNS</h1>
+        <div class="article-info"><span>POINTS: <b>100</b></span><span>DIFFICULTY: <b class="difficulty">★☆☆☆☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
+      </header>
+      <div class="page-grid article-layout quest-wrap">
+        <article class="quest-article"><h2 id="the-capture">The Capture</h2><p>The challenge provides two files:</p><pre class="terminal"><code data-language="text">output.py
+output.txt
+</code></pre><p>The encryption code converts every byte of the flag into 8 bits and encrypts each bit independently.</p><p>The important part is:</p><pre class="terminal"><code data-language="python">for b in plaintext:
+    e = randint(1, p)
+    n = pow(a, e, p)
+
+    if b == &#x27;1&#x27;:
+        ciphertext.append(n)
+    else:
+        n = -n % p
+        ciphertext.append(n)
+</code></pre><p>The public values are:</p><pre class="terminal"><code data-language="python">a = 288260533169915
+p = 1007621497415251
+</code></pre><p>The challenge itself tells us that this is based on the <strong>Goldwasser-Micali cryptosystem</strong>.</p><p>The key observation is that the encryption does not hide the bit using a complicated operation. Instead, it changes whether the resulting number is a <strong>quadratic residue</strong> modulo <code>p</code>.</p><h2 id="the-mistake">The Mistake</h2><p>For every plaintext bit, the encryption first calculates:</p><pre class="terminal"><code data-language="python">n = a^e mod p
+</code></pre><p>If the bit is <code>1</code>, the ciphertext is simply:</p><pre class="terminal"><code data-language="text">n
+</code></pre><p>If the bit is <code>0</code>, the ciphertext becomes:</p><pre class="terminal"><code data-language="text">-n mod p
+</code></pre><p>So the ciphertext is effectively one of two possible forms:</p><pre class="terminal"><code data-language="text">1 bit -&gt;  a^e mod p
+0 bit -&gt; -a^e mod p
+</code></pre><p>The important mathematical property is the <strong>Legendre symbol</strong>.</p><p>For a value <code>x</code> modulo a prime <code>p</code>, the Legendre symbol tells us whether <code>x</code> is a quadratic residue:</p><pre class="terminal"><code data-language="text">(x / p) =  1   -&gt; quadratic residue
+(x / p) = -1   -&gt; quadratic non-residue
+</code></pre><p>Euler&#x27;s criterion gives us a convenient way to calculate it:</p><pre class="terminal"><code data-language="text">(x / p) ≡ x^((p-1)/2) mod p
+</code></pre><p>The result is:</p><pre class="terminal"><code data-language="text">1      if x is a quadratic residue
+p - 1  if x is a non-residue
+</code></pre><p>which we can convert to:</p><pre class="terminal"><code data-language="text">1  -&gt;  1
+p-1 -&gt; -1
+</code></pre><h2 id="recovery">Recovery</h2><p>We can implement the Legendre symbol directly in Python:</p><pre class="terminal"><code data-language="python">def legendre_symbol(a, p):
+    ls = pow(a, (p - 1) // 2, p)
+
+    if ls == p - 1:
+        return -1
+
+    return ls
+</code></pre><p>Now we examine every ciphertext value.</p><p>The important property is:</p><pre class="terminal"><code data-language="text">Legendre(a^e, p) = 1
+</code></pre><p>because <code>a^e</code> is a quadratic residue.</p><p>For the other case, the encryption uses:</p><pre class="terminal"><code data-language="text">-a^e mod p
+</code></pre><p>and this changes the quadratic-residue status.</p><p>Therefore, the Legendre symbol reveals the encrypted bit.</p><p>We can recover the bit string with:</p><pre class="terminal"><code data-language="python">bits = &quot;&quot;
+
+for c in ciphertext:
+
+    if legendre_symbol(c, p) == 1:
+        bits += &quot;1&quot;
+    else:
+        bits += &quot;0&quot;
+</code></pre><p>The recovered bits are still grouped into 8-bit bytes because the original encryption converted every flag character using:</p><pre class="terminal"><code data-language="python">plaintext = &#x27;&#x27;.join(
+    [bin(i)[2:].zfill(8) for i in flag]
+)
+</code></pre><p>So we reverse that process:</p><pre class="terminal"><code data-language="python">flag = bytes(
+    int(bits[i:i+8], 2)
+    for i in range(0, len(bits), 8)
+)
+</code></pre><p>The complete recovery script is:</p><pre class="terminal"><code data-language="python">a = 288260533169915
+p = 1007621497415251
+
+ciphertext = [
+    # Full ciphertext from output.txt
+]
+
+
+def legendre_symbol(a, p):
+    ls = pow(a, (p - 1) // 2, p)
+
+    if ls == p - 1:
+        return -1
+
+    return ls
+
+
+bits = &quot;&quot;
+
+for c in ciphertext:
+
+    if legendre_symbol(c, p) == 1:
+        bits += &quot;1&quot;
+    else:
+        bits += &quot;0&quot;
+
+
+flag = bytes(
+    int(bits[i:i+8], 2)
+    for i in range(0, len(bits), 8)
+)
+
+print(&quot;Bits:&quot;)
+print(bits)
+
+print(&quot;\nFlag:&quot;)
+print(flag)
+</code></pre><p>The resulting plaintext is:</p><pre class="terminal"><code data-language="text">crypto{p4tterns_1n_re5idu3s}
+</code></pre><h2 id="verification">Verification</h2><p>The recovered flag follows the expected CTF flag format:</p><pre class="terminal"><code data-language="text">crypto{...}
+</code></pre><p>The important part of the recovery is that each ciphertext value can be classified using its Legendre symbol.</p><p>The encryption therefore leaks the plaintext bit through its quadratic-residue status.</p><p>In short:</p><pre class="terminal"><code data-language="text">Legendre(c, p) =  1  -&gt;  bit 1
+Legendre(c, p) = -1  -&gt;  bit 0
+</code></pre><p>After converting the recovered binary string back into bytes:</p><pre class="terminal"><code data-language="text">b&#x27;crypto{p4tterns_1n_re5idu3s}&#x27;
+</code></pre><p>is obtained.</p><h2 id="flag">Flag</h2><pre class="terminal"><code data-language="text">crypto{p4tterns_1n_re5idu3s}
+</code></pre><nav class="article-related" aria-label="Related writeups"><a href="/generated/writeups/cryptohack-Modular-Arithmetic/chall9-Chinese-Remainder-Theorem.html">← PREVIOUS CHALLENGE</a><span>CHALLENGE 10 / 11</span><a href="/generated/writeups/cryptohack-Modular-Arithmetic/chall11-Modular-Binomials.html">NEXT CHALLENGE →</a></nav></article>
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>CryptoHack</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>100</strong></li><li>DIFFICULTY <strong class="difficulty">★☆☆☆☆</strong></li></ul><h2>FLAG CAPTURED</h2><p class="ctf-flag">crypto{p4tterns_1n_re5idu3s}</p></section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># CRYPTO</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># GOLDWASSER-MICALI</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># LEGENDRE-SYMBOL</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># QUADRATIC-RESIDUES</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># MODULAR-ARITHMETIC</a></nav></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
+    </main>
+  </body>
+</html>

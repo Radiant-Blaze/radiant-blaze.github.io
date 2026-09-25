@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Headache · ASIS CTF 2026 · Radiant Blaze</title>
+    <meta name="description" content="Recover the parameters of a nonlinear Hamiltonian oracle using chosen-input queries and nonlinear least-squares optimization." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/generated/writeups/ASIS-CTF-2026/Headache.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Headache · ASIS CTF 2026 · Radiant Blaze" />
+    <meta property="og:description" content="Recover the parameters of a nonlinear Hamiltonian oracle using chosen-input queries and nonlinear least-squares optimization." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/generated/writeups/ASIS-CTF-2026/Headache.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Headache · ASIS CTF 2026 · Radiant Blaze" />
+    <meta name="twitter:description" content="Recover the parameters of a nonlinear Hamiltonian oracle using chosen-input queries and nonlinear least-squares optimization." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/audio.js"></script>
+    <script type="module" src="/assets/js/static-article.js"></script>
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href="/"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="/pages/blog.html">BLOG</a><a href="/pages/ctf.html">CTFS</a><a href="/pages/search.html">SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>
+        </nav>
+      </header>
+    <p class="ctf-back quest-wrap"><a href="/pages/ctf.html?ctf=ASIS-CTF-2026">← ASIS CTF 2026</a></p>
+      <header class="article-header quest-wrap">
+        <p class="quest-number">ASIS CTF 2026 · CRYPTO</p>
+        <h1 class="quest-title">HEADACHE</h1>
+        <div class="article-info"><span>POINTS: <b>34</b></span><span>DIFFICULTY: <b class="difficulty">★★★★☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
+      </header>
+      <div class="page-grid article-layout quest-wrap">
+        <article class="quest-article"><h2 id="headache">Headache</h2><h2 id="challenge-overview">Challenge Overview</h2><p>The challenge provides a remote <strong>Non-Linear Hamiltonian Authenticator Oracle (H-PRF)</strong>.</p><p>The server uses three secret channels. Each channel contains:</p><ul><li>a <code>4 × 4</code> coupling matrix <code>A</code></li><li>a <code>4</code>-element observable vector <code>B</code></li></ul><p>The secrets are regenerated for every round.</p><p>We are given an <code>eval</code> oracle that evaluates the hidden function on attacker-controlled matrices and a <code>challenge</code> command that provides six unknown test sequences.</p><p>To authenticate a round, we must submit predictions for those six sequences with an error smaller than:</p><pre class="terminal"><code data-language="text">1e-6
+</code></pre><p>There are seven rounds in total.</p><p>At first glance this looks like a complicated cryptographic construction. However, the oracle is actually a small differentiable mathematical model with only 60 continuous parameters. This makes it possible to recover the hidden parameters using numerical optimization.</p><p>---</p><h2 id="the-oracle">The Oracle</h2><p>The important part of the challenge is:</p><pre class="terminal"><code data-language="python">def evaluate_ensemble(X, coupling_tensors, observable_vectors):
+
+    X = np.array(X, dtype=np.float64)
+
+    x_tail = X[-1]
+    total_energy = 0.0
+
+    for c in range(NUM_CHANNELS):
+
+        microstate_energies = np.einsum(
+            &#x27;j,jk,ik-&gt;i&#x27;,
+            x_tail,
+            coupling_tensors[c].T,
+            X
+        )
+
+        gauge_shift = np.max(microstate_energies)
+
+        boltzmann_weights = np.exp(
+            microstate_energies - gauge_shift
+        )
+
+        partition_fn = np.sum(boltzmann_weights)
+
+        observables = np.dot(
+            X,
+            observable_vectors[c]
+        )
+
+        ensemble_expectation = (
+            np.dot(boltzmann_weights, observables)
+            / partition_fn
+        )
+
+        total_energy += float(
+            ensemble_expectation
+        )
+
+    return total_energy
+</code></pre><p>For a sequence</p><div class="math-block">\[X=(x_1,x_2,\ldots,x_n)
+\]</div><p>let the final vector be</p><div class="math-block">\[t=x_n.
+\]</div><p>For channel <code>c</code>, the server computes:</p><div class="math-block">\[z_i=x_i^T A_c t.
+\]</div><p>These values are converted into softmax probabilities:</p><div class="math-block">\[p_i= \frac{e^{z_i}} {\sum_j e^{z_j}}.
+\]</div><p>The observable associated with <code>x_i</code> is:</p><div class="math-block">\[v_i=x_i^T B_c.
+\]</div><p>Therefore the contribution of one channel is:</p><div class="math-block">\[f_c(X)=\sum_i p_i v_i.
+\]</div><p>The final oracle output is:</p><div class="math-block">\[F(X)= \sum_{c=0}^{2} \sum_i p_i(x_i^TB_c).
+\]</div><p>So despite the fancy terminology, the server is simply evaluating a differentiable nonlinear function.</p><p>---</p><h2 id="recovering-the-first-secret-information">Recovering the First Secret Information</h2><p>The first weakness appears when we submit a sequence containing only one vector.</p><p>Suppose:</p><div class="math-block">\[X=[x].
+\]</div><p>There is only one microstate, so its softmax probability is exactly:</p><div class="math-block">\[p_1=1.
+\]</div><p>The coupling matrix disappears from the result:</p><div class="math-block">\[F([x]) = x^TB_0+x^TB_1+x^TB_2.
+\]</div><p>Therefore:</p><div class="math-block">\[F([x]) = x^T(B_0+B_1+B_2).
+\]</div><p>Define:</p><div class="math-block">\[B_{\text{sum}}=B_0+B_1+B_2.
+\]</div><p>We can recover every coordinate of this vector by querying the four standard basis vectors.</p><p>For example:</p><pre class="terminal"><code data-language="text">[1, 0, 0, 0]
+[0, 1, 0, 0]
+[0, 0, 1, 0]
+[0, 0, 0, 1]
+</code></pre><p>The resulting four oracle outputs are exactly:</p><div class="math-block">\[B_{\text{sum},0}, B_{\text{sum},1}, B_{\text{sum},2}, B_{\text{sum},3}.
+\]</div><p>Only four queries are required.</p><p>An example from the solve:</p><pre class="terminal"><code data-language="text">Bsum[0] = 2.326915454470
+Bsum[1] = 2.913068203874
+Bsum[2] = 3.455141027440
+Bsum[3] = 2.914002707811
+</code></pre><p>---</p><h2 id="turning-the-oracle-into-a-regression-problem">Turning the Oracle Into a Regression Problem</h2><p>The server generates:</p><pre class="terminal"><code data-language="python">coupling_tensors = np.random.uniform(
+    0.5, 2.0,
+    size=(3, 4, 4)
+)
+
+observable_vectors = np.random.uniform(
+    0.5, 2.0,
+    size=(3, 4)
+)
+</code></pre><p>Thus there are:</p><div class="math-block">\[3\times4\times4=48
+\]</div><p>unknown <code>A</code> parameters and:</p><div class="math-block">\[3\times4=12
+\]</div><p>unknown <code>B</code> parameters.</p><p>Total:</p><div class="math-block">\[48+12=60.
+\]</div><p>However, we already know:</p><div class="math-block">\[B_0+B_1+B_2=B_{\text{sum}}.
+\]</div><p>Therefore we don&#x27;t need to independently recover all three <code>B</code> vectors.</p><p>We can optimize:</p><pre class="terminal"><code data-language="text">A0 = 16 parameters
+A1 = 16 parameters
+A2 = 16 parameters
+
+B0 = 4 parameters
+B1 = 4 parameters
+</code></pre><p>and derive:</p><div class="math-block">\[B_2=B_{\text{sum}}-B_0-B_1.
+\]</div><p>This reduces the optimization problem from 60 parameters to:</p><div class="math-block">\[\boxed{56\text{ parameters}}
+\]</div><p>---</p><h2 id="building-the-reduced-model">Building the Reduced Model</h2><p>The solver uses:</p><pre class="terminal"><code data-language="python">def unpack_params(params, Bsum):
+
+    A = params[:48].reshape(3, 4, 4)
+
+    B0 = params[48:52]
+    B1 = params[52:56]
+
+    B2 = Bsum - B0 - B1
+
+    B = np.stack([B0, B1, B2])
+
+    return A, B
+</code></pre><p>This guarantees that the fitted parameters always satisfy the leaked constraint.</p><p>---</p><h2 id="analytical-jacobian">Analytical Jacobian</h2><p>A major part of making the attack reliable is giving SciPy the analytical Jacobian instead of forcing it to estimate derivatives numerically.</p><p>For one channel:</p><div class="math-block">\[f=\sum_i p_i v_i.
+\]</div><p>For the softmax:</p><div class="math-block">\[\frac{\partial f}{\partial z_i} = p_i(v_i-f).
+\]</div><p>The solver calculates:</p><pre class="terminal"><code data-language="python">dz = p * (v - fc)
+</code></pre><p>Since:</p><div class="math-block">\[z_i=x_i^TA_ct,
+\]</div><p>the gradient with respect to <code>A_c</code> is:</p><div class="math-block">\[\frac{\partial f}{\partial A_c} = \operatorname{outer} \left( \sum_i p_i(v_i-f)x_i, t \right).
+\]</div><p>In code:</p><pre class="terminal"><code data-language="python">g = dz @ X
+dA[c] = np.outer(g, tail)
+</code></pre><p>For <code>B_c</code>:</p><div class="math-block">\[\frac{\partial f}{\partial B_c} = \sum_i p_i x_i.
+\]</div><p>which becomes:</p><pre class="terminal"><code data-language="python">gb = p @ X
+</code></pre><p>Because <code>B2</code> is constrained by:</p><div class="math-block">\[B_2=B_{\text{sum}}-B_0-B_1,
+\]</div><p>the derivatives with respect to <code>B0</code> and <code>B1</code> include the contribution from <code>B2</code>.</p><pre class="terminal"><code data-language="python">if c == 0:
+    dB0 += gb
+
+elif c == 1:
+    dB1 += gb
+
+else:
+    dB0 -= gb
+    dB1 -= gb
+</code></pre><p>This gives the optimizer an exact 56-parameter Jacobian.</p><p>---</p><h2 id="collecting-training-data">Collecting Training Data</h2><p>We generate random sequences with values in the same range as the challenge:</p><pre class="terminal"><code data-language="python">X = np.random.uniform(
+    -1.0,
+    1.0,
+    size=(length, 4)
+)
+</code></pre><p>We avoid length-one sequences here because they do not contain information about <code>A</code>.</p><p>The final solver uses only:</p><pre class="terminal"><code data-language="python">TRAINING_QUERIES = 80
+</code></pre><p>training queries.</p><p>Together with the four basis-vector queries:</p><div class="math-block">\[80+4=84
+\]</div><p>oracle calls are required per round.</p><p>This is far below the server&#x27;s limit of 1200 queries.</p><p>---</p><h2 id="pipelining-the-oracle-queries">Pipelining the Oracle Queries</h2><p>The remote server sleeps for 0.03 seconds after every evaluation:</p><pre class="terminal"><code data-language="python">time.sleep(0.03)
+</code></pre><p>A naive client would do:</p><pre class="terminal"><code data-language="text">send
+wait for response
+send
+wait for response
+...
+</code></pre><p>This adds network round-trip overhead to every query.</p><p>Instead, the final solver sends all queries in one batch:</p><pre class="terminal"><code data-language="python">buf = bytearray()
+
+for X in seqs:
+    buf.extend(
+        (
+            &quot;eval &quot; +
+            json.dumps(
+                X,
+                separators=(&quot;,&quot;, &quot;:&quot;)
+            ) +
+            &quot;\n&quot;
+        ).encode()
+    )
+
+f.write(bytes(buf))
+f.flush()
+</code></pre><p>The server still processes each command normally, but the client doesn&#x27;t wait for each individual response before sending the next query.</p><p>This significantly improves reliability and speed against the remote service.</p><p>It also helped avoid the connection failures encountered with the earlier one-query-at-a-time implementation.</p><p>---</p><h2 id="nonlinear-least-squares">Nonlinear Least Squares</h2><p>After collecting the training data, we have pairs:</p><div class="math-block">\[(X_i,y_i)
+\]</div><p>where:</p><div class="math-block">\[y_i=F(X_i)
+\]</div><p>was obtained from the remote oracle.</p><p>We then solve:</p><div class="math-block">\[\min_\theta \sum_i \left( F(X_i;\theta)-y_i \right)^2.
+\]</div><p>The implementation uses SciPy&#x27;s <code>least_squares</code>:</p><pre class="terminal"><code data-language="python">result = least_squares(
+    residual,
+    x0,
+    jac=jac,
+    bounds=(lower, upper),
+    method=&quot;trf&quot;,
+    xtol=1e-12,
+    ftol=1e-12,
+    gtol=1e-12,
+    max_nfev=180
+)
+</code></pre><p>The parameter bounds are known from the challenge:</p><div class="math-block">\[0.5\leq\theta\leq2.0.
+\]</div><p>This is extremely useful because it prevents the optimizer from wandering into meaningless parameter regions.</p><p>---</p><h2 id="multiple-restarts">Multiple Restarts</h2><p>Nonlinear optimization is not guaranteed to find the correct solution from every starting point.</p><p>The solver therefore performs five random restarts:</p><pre class="terminal"><code data-language="python">MAX_RESTARTS = 5
+</code></pre><p>For every restart, the <code>A</code> matrices are initialized randomly inside the valid range:</p><pre class="terminal"><code data-language="python">A0 = np.random.uniform(
+    0.8,
+    1.7,
+    size=(3, 4, 4)
+)
+</code></pre><p>The best solution across all restarts is retained.</p><p>Interestingly, some restarts can converge poorly, while another suddenly finds an essentially exact solution.</p><p>For example, one successful round produced:</p><pre class="terminal"><code data-language="text">cost=...
+maxerr=1.7764e-15
+</code></pre><p>which is effectively exact compared with the server&#x27;s tolerance of:</p><pre class="terminal"><code data-language="text">1e-6
+</code></pre><p>---</p><h2 id="predicting-the-challenge">Predicting the Challenge</h2><p>Once the parameters have been recovered, we request:</p><pre class="terminal"><code data-language="text">challenge
+</code></pre><p>The server generates six new sequences:</p><pre class="terminal"><code data-language="python">lengths = [3, 5, 7, 9, 13, 17]
+</code></pre><p>and sends them to us.</p><p>The important part is that the server does not reveal their expected outputs.</p><p>However, because we have reconstructed the function, we can evaluate them locally:</p><pre class="terminal"><code data-language="python">for X in sequences:
+    y = predict(params, X, Bsum)
+    predictions.append(y)
+</code></pre><p>We then send:</p><pre class="terminal"><code data-language="text">verify [prediction0, prediction1, ...]
+</code></pre><p>The server checks:</p><div class="math-block">\[\max_i |\hat y_i-y_i| &lt; 10^{-6}.
+\]</div><p>---</p><h2 id="round-by-round-attack">Round-by-Round Attack</h2><p>The entire process is repeated for every round.</p><p>Each round performs:</p><pre class="terminal"><code data-language="text">1. Receive new secret parameters
+2. Recover Bsum using 4 queries
+3. Generate 80 random training sequences
+4. Query the oracle
+5. Fit 56 parameters
+6. Request challenge
+7. Predict six challenge values
+8. Submit verify
+</code></pre><p>The secrets are regenerated here:</p><pre class="terminal"><code data-language="python">true_A, true_B = init_ensemble()
+</code></pre><p>so parameters from one round cannot simply be reused for the next.</p><p>---</p><h2 id="why-the-challenge-is-breakable">Why the Challenge Is Breakable</h2><p>The fundamental problem is not the mathematical formula itself.</p><p>The oracle exposes too much information.</p><p>We have:</p><ul><li>arbitrary chosen inputs,</li><li>high-precision floating-point outputs,</li><li>a completely known mathematical model,</li><li>only 60 original parameters,</li><li>known parameter bounds,</li><li>a length-one input that directly leaks <code>Bsum</code>,</li><li>no output noise,</li><li>no rounding,</li><li>no cryptographic masking.</li></ul><p>This changes the problem from:</p><blockquote>&quot;Break a nonlinear cryptographic authenticator.&quot;</blockquote><p>into:</p><blockquote>&quot;Identify the parameters of a small differentiable function.&quot;</blockquote><p>Once viewed this way, nonlinear least-squares optimization becomes a natural attack.</p><p>The strongest weaknesses are therefore:</p><h3 id="length-one-input">Length-one input</h3><p>It eliminates the softmax complexity and directly exposes:</p><div class="math-block">\[B_0+B_1+B_2.
+\]</div><h3 id="exact-floating-point-oracle">Exact floating-point oracle</h3><p>Every query provides a highly precise equation involving the secret parameters.</p><h3 id="differentiability">Differentiability</h3><p>The entire function can be differentiated, allowing an analytical Jacobian to be supplied to the optimizer.</p><h3 id="small-parameter-space">Small parameter space</h3><p>Only 56 independent parameters remain after exploiting the <code>Bsum</code> leak.</p><h3 id="no-noise">No noise</h3><p>Even tiny optimization errors can be detected and corrected because the oracle returns precise values.</p><p>---</p><h2 id="final-solver-structure">Final Solver Structure</h2><p>The final exploit can be summarized as:</p><pre class="terminal"><code data-language="text">                 Remote Oracle
+                       |
+                       v
+             4 basis-vector queries
+                       |
+                       v
+                  Recover Bsum
+                       |
+                       v
+              80 random sequences
+                       |
+                       v
+                Oracle responses
+                       |
+                       v
+             56-parameter model
+                       |
+                       v
+          Analytical Jacobian + bounds
+                       |
+                       v
+          Nonlinear least-squares fit
+                       |
+                       v
+              Recovered parameters
+                       |
+                       v
+                  challenge
+                       |
+                       v
+             6 locally calculated
+                 predictions
+                       |
+                       v
+                    verify
+                       |
+                       v
+                Round authenticated
+                       |
+                       v
+                 Repeat × 7
+                       |
+                       v
+                      FLAG
+</code></pre><h2 id="conclusion">Conclusion</h2><p>The &quot;Headache&quot; challenge disguises a relatively small system-identification problem behind a nonlinear Hamiltonian model.</p><p>The key observation is that a one-element sequence collapses the softmax and reveals the sum of all observable vectors. This removes four degrees of freedom from the original 60-parameter problem.</p><p>The remaining 56 parameters can then be recovered using chosen-input oracle evaluations and bounded nonlinear least-squares optimization with an analytical Jacobian.</p><p>Only 84 oracle queries per round were required by the final solver, and the recovered model predicted the hidden challenge values with errors around <code>10^{-14}</code>, comfortably below the required <code>10^{-6}</code>.</p><h2 id="repeating-the-process-across-all-seven-rounds-results-in-successful-authentication-and-recovery-of-the-flag-">Repeating the process across all seven rounds results in successful authentication and recovery of the flag.</h2><h2 id="exploit-summary">Exploit Summary</h2><div class="math-block">\[\boxed{ \text{4 queries} \rightarrow B_{\text{sum}} \rightarrow \text{80 training queries} \rightarrow \text{56-parameter fit} \rightarrow \text{challenge prediction} \rightarrow \text{FLAG} }
+\]</div><blockquote><strong>The flag is missing as i didn&#x27;t save it</strong></blockquote><nav class="article-related" aria-label="Related writeups"><a href="/generated/writeups/ASIS-CTF-2026/Hackel.html">← PREVIOUS CHALLENGE</a><span>CHALLENGE 2 / 2</span><span>NEXT CHALLENGE →</span></nav></article>
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>ASIS Team</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>34</strong></li><li>DIFFICULTY <strong class="difficulty">★★★★☆</strong></li></ul><h2>FLAG CAPTURED</h2><p class="ctf-flag">Not saved</p></section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># CRYPTO</a><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># ORACLE</a><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># NONLINEAR</a><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># OPTIMIZATION</a><a href="/pages/ctf.html?ctf=ASIS-CTF-2026"># SCIPY</a></nav></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
+    </main>
+  </body>
+</html>

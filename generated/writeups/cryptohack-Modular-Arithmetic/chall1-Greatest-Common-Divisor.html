@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Greatest Common Divisor · cryptohack-Modular Arithmetic · Radiant Blaze</title>
+    <meta name="description" content="Calculate the Greatest Common Divisor of two integers and determine whether they are coprime." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Greatest Common Divisor · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta property="og:description" content="Calculate the Greatest Common Divisor of two integers and determine whether they are coprime." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Greatest Common Divisor · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta name="twitter:description" content="Calculate the Greatest Common Divisor of two integers and determine whether they are coprime." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/audio.js"></script>
+    <script type="module" src="/assets/js/static-article.js"></script>
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href="/"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="/pages/blog.html">BLOG</a><a href="/pages/ctf.html">CTFS</a><a href="/pages/search.html">SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>
+        </nav>
+      </header>
+    <p class="ctf-back quest-wrap"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic">← CRYPTOHACK-MODULAR ARITHMETIC</a></p>
+      <header class="article-header quest-wrap">
+        <p class="quest-number">CRYPTOHACK-MODULAR ARITHMETIC · CRYPTO</p>
+        <h1 class="quest-title">GREATEST COMMON DIVISOR</h1>
+        <div class="article-info"><span>POINTS: <b>100</b></span><span>DIFFICULTY: <b class="difficulty">★☆☆☆☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
+      </header>
+      <div class="page-grid article-layout quest-wrap">
+        <article class="quest-article"><h2 id="the-capture">The Capture</h2><p>The Greatest Common Divisor (GCD), sometimes known as the highest common factor, is the largest number that divides two positive integers.</p><p>For example, for <code>a = 12</code> and <code>b = 8</code>, the divisors are:</p><pre class="terminal"><code data-language="text">12: {1, 2, 3, 4, 6, 12}
+8:  {1, 2, 4, 8}
+</code></pre><p>The largest value they have in common is <code>4</code>, so:</p><pre class="terminal"><code data-language="text">gcd(12, 8) = 4
+</code></pre><p>If the GCD of two integers is <code>1</code>, the numbers are called <strong>coprime</strong>.</p><h2 id="the-mistake">The Mistake</h2><p>We are asked to calculate:</p><pre class="terminal"><code data-language="text">a = 66528
+b = 52920
+</code></pre><p>The challenge recommends using <strong>Euclid&#x27;s Algorithm</strong>, which repeatedly calculates remainders until the remainder becomes <code>0</code>.</p><p>The final non-zero remainder is the GCD.</p><p>We can also use Python&#x27;s built-in <code>gcd()</code> function from the <code>math</code> module.</p><h2 id="recovery">Recovery</h2><p>The solution uses <code>gcd()</code> and also checks whether the two numbers are coprime:</p><pre class="terminal"><code data-language="python">from math import gcd
+
+def coprime_chk(a, b):
+    remainder = gcd(a, b)
+
+    if remainder == 1:
+        return &quot;They are coprime&quot;
+    else:
+        return &quot;They are not coprime&quot;
+
+def line(a, b):
+    print(
+        &quot;GCD of &quot;, a, &quot; and &quot;, b,
+        &quot;\t = &quot;, gcd(a, b),
+        &quot;\t and &quot;, coprime_chk(a, b), &quot;\n&quot;
+    )
+
+a = 12
+b = 8
+line(a, b)
+
+a = 11
+b = 17
+line(a, b)
+
+a = 66528
+b = 52920
+line(a, b)
+</code></pre><p>For the challenge values:</p><pre class="terminal"><code data-language="text">gcd(66528, 52920) = 1512
+</code></pre><p>Therefore, the numbers are <strong>not coprime</strong>.</p><p>We can verify the Euclidean Algorithm manually:</p><pre class="terminal"><code data-language="text">66528 = 52920 × 1 + 13608
+52920 = 13608 × 3 + 12096
+13608 = 12096 × 1 + 1512
+12096 = 1512 × 8 + 0
+</code></pre><p>The last non-zero remainder is <code>1512</code>.</p><h2 id="result">Result</h2><pre class="terminal"><code data-language="text">GCD = 1512
+</code></pre><p>There is no flag for this challenge. The required answer is the GCD:</p><pre class="terminal"><code data-language="text">1512
+</code></pre><nav class="article-related" aria-label="Related writeups"><span>← PREVIOUS CHALLENGE</span><span>CHALLENGE 1 / 11</span><a href="/generated/writeups/cryptohack-Modular-Arithmetic/chall2-Extended-GCD.html">NEXT CHALLENGE →</a></nav></article>
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>CryptoHack</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>100</strong></li><li>DIFFICULTY <strong class="difficulty">★☆☆☆☆</strong></li></ul></section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># CRYPTO</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># GCD</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># EUCLIDEAN-ALGORITHM</a></nav></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
+    </main>
+  </body>
+</html>

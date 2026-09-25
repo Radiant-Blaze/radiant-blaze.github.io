@@ -79,21 +79,44 @@
         >
       </section>
 
-      <a
-        class="status-panel"
-        id="start"
-        href="pages/blog.html"
-        data-latest-post
-        aria-label="Read the latest post"
-      >
-        <div class="status-light" aria-hidden="true"></div>
-        <div>
-          <p class="panel-title" data-latest-type>LATEST RECORD</p>
-          <p class="panel-copy" data-latest-title>Loading latest quest…</p>
-          <p class="panel-copy" data-latest-copy>Fetching from the archive.</p>
+      <section class="status-panel" id="start" aria-label="Useful next steps">
+        <div class="status-panel-header">
+          <div class="status-status">
+            <span class="status-light" aria-hidden="true"></span>
+            <span class="panel-title">LIVE LOADOUT</span>
+          </div>
+          <span class="loading-dots" aria-hidden="true">→</span>
         </div>
-        <span class="loading-dots" aria-hidden="true">→</span>
-      </a>
+        <div class="status-panel-grid">
+          <a class="feature-tile feature-tile--primary" href="/generated/writeups/ASIS-CTF-2026/Hackel.html" data-latest-post aria-label="Read the latest CTF writeup: Hackel">
+            <p class="quest-number">LATEST WRITEUP</p>
+            <h3>Hackel</h3>
+            <p>Recover the flag by identifying a leaked one-bit classification rule from the training samples and decoding the resulting 496-bit stream as ASCII.</p>
+            <div class="quest-meta">
+              <span>AUG 29, 2026</span>
+              <span><b>CRYPTO</b></span>
+            </div>
+          </a>
+          <a class="feature-tile" href="/generated/posts/linux/021-tiny-command-line-toolkit.html" aria-label="Read the latest post: Building a Tiny Command-Line Toolkit">
+            <p class="quest-number">LATEST POST</p>
+            <h3>Building a Tiny Command-Line Toolkit</h3>
+            <p>A practical guide to creating compact shell utilities and making everyday terminal work faster.</p>
+            <div class="quest-meta">
+              <span>MAR 21, 2026</span>
+              <span><b>LINUX</b></span>
+            </div>
+          </a>
+          <a class="feature-tile" href="pages/search.html" aria-label="Search the archive">
+            <p class="quest-number">SEARCH ARCHIVE</p>
+            <h3>Search the archive</h3>
+            <p>Browse every post, writeup, and tag in one place to find the exact material you need.</p>
+            <div class="quest-meta">
+              <span>NOW</span>
+              <span><b>DISCOVER</b></span>
+            </div>
+          </a>
+        </div>
+      </section>
 
       <footer>
         <nav class="social-links" data-social aria-label="Social links"></nav>

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modular Square Root · cryptohack-Modular Arithmetic · Radiant Blaze</title>
+    <meta name="description" content="Find a modular square root of a large number using the Tonelli-Shanks algorithm or SageMath." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall8-Modular-Square-Root.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Modular Square Root · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta property="og:description" content="Find a modular square root of a large number using the Tonelli-Shanks algorithm or SageMath." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall8-Modular-Square-Root.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Modular Square Root · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta name="twitter:description" content="Find a modular square root of a large number using the Tonelli-Shanks algorithm or SageMath." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/audio.js"></script>
+    <script type="module" src="/assets/js/static-article.js"></script>
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href="/"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="/pages/blog.html">BLOG</a><a href="/pages/ctf.html">CTFS</a><a href="/pages/search.html">SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>
+        </nav>
+      </header>
+    <p class="ctf-back quest-wrap"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic">← CRYPTOHACK-MODULAR ARITHMETIC</a></p>
+      <header class="article-header quest-wrap">
+        <p class="quest-number">CRYPTOHACK-MODULAR ARITHMETIC · CRYPTO</p>
+        <h1 class="quest-title">MODULAR SQUARE ROOT</h1>
+        <div class="article-info"><span>POINTS: <b>100</b></span><span>DIFFICULTY: <b class="difficulty">★★☆☆☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
+      </header>
+      <div class="page-grid article-layout quest-wrap">
+        <article class="quest-article"><h2 id="the-capture">The Capture</h2><p>The goal of this challenge is to find:</p><pre class="terminal"><code data-language="text">sqrt(x) mod p
+</code></pre><p>There are two main cases when finding modular square roots.</p><h3 id="case-1-p-3-mod-4-">Case 1: p ≡ 3 (mod 4)</h3><p>If the prime satisfies:</p><pre class="terminal"><code data-language="text">p ≡ 3 (mod 4)
+</code></pre><p>we can use the simple formula:</p><pre class="terminal"><code data-language="python">root = pow(x, (p + 1) // 4, p)
+</code></pre><h3 id="case-2-p-1-mod-4-">Case 2: p ≡ 1 (mod 4)</h3><p>If:</p><pre class="terminal"><code data-language="text">p ≡ 1 (mod 4)
+</code></pre><p>we need a more general algorithm such as <strong>Tonelli-Shanks</strong>.</p><h2 id="the-mistake">The Mistake</h2><p>Tonelli-Shanks works only with <strong>prime moduli</strong>.</p><p>It is commonly used to find square roots of quadratic residues modulo a prime.</p><p>It is useful in cryptography, including:</p><ul><li>Elliptic Curve Cryptography (ECC)</li><li>Finding coordinates on elliptic curves</li></ul><p>The big picture:</p><pre class="terminal"><code data-language="text">Modular Arithmetic
+        ↓
+Finite Fields
+        ↓
+Quadratic Residues
+        ↓
+Legendre Symbol
+(Does a root exist?)
+        ↓
+Square Root Algorithms
+        ├── p ≡ 3 (mod 4)
+        │       ↓
+        │   Simple Formula
+        │
+        └── p ≡ 1 (mod 4)
+                ↓
+          Tonelli-Shanks
+</code></pre><h2 id="recovery">Recovery</h2><p>We are given a large value <code>a</code> and a large prime <code>p</code>.</p><pre class="terminal"><code data-language="python">a = 8479994658316772151941616510097127087554541274812435112009425778595495359700244470400642403747058566807127814165396640215844192327900454116257979487432016769329970767046735091249898678088061634796559556704959846424131820416048436501387617211770124292793308079214153179977624440438616958575058361193975686620046439877308339989295604537867493683872778843921771307305602776398786978353866231661453376056771972069776398999013769588936194859344941268223184197231368887060609212875507518936172060702209557124430477137421847130682601666968691651447236917018634902407704797328509461854842432015009878011354022108661461024768
+
+p = 30531851861994333252675935111487950694414332763909083514133769861350960895076504687261369815735742549428789138300843082086550059082835141454526618160634109969195486322015775943030060449557090064811940139431735209185996454739163555910726493597222646855506445602953689527405362207926990442391705014604777038685880527537489845359101552442292804398472642356609304810680731556542002301547846635101455995732584071355903010856718680732337369128498655255277003643669031694516851390505923416710601212618443109844041514942401969629158975457079026906304328749039997262960301209158175920051890620947063936347307238412281568760161
+</code></pre><p>The first step is to check whether <code>a</code> is a quadratic residue using the Legendre Symbol:</p><pre class="terminal"><code data-language="python">pow(a, (p - 1) // 2, p)
+</code></pre><p>If the result is <code>1</code>, then a square root exists.</p><h2 id="tonelli-shanks-solution">Tonelli-Shanks Solution</h2><p>The following implementation handles both the easy <code>p ≡ 3 (mod 4)</code> case and the general <code>p ≡ 1 (mod 4)</code> case.</p><pre class="terminal"><code data-language="python">def Tonelli_Shanks(a, p):
+    &quot;&quot;&quot;
+    Returns:
+       1  -&gt; Quadratic Residue
+      -1  -&gt; Quadratic Non-Residue
+       0  -&gt; a is divisible by p
+    &quot;&quot;&quot;
+    ls = pow(a, (p - 1) // 2, p)
+    return -1 if ls == p - 1 else ls
+
+
+def square_root(a, p):
+    &quot;&quot;&quot;Finds sqrt(a) mod p using the Tonelli-Shanks algorithm.&quot;&quot;&quot;
+
+    # No square root exists
+    if Tonelli_Shanks(a, p) != 1:
+        return None
+
+    # Easy cases
+    if a == 0:
+        return 0
+
+    if p == 2:
+        return 0
+
+    # Shortcut when p ≡ 3 (mod 4)
+    if p % 4 == 3:
+        return pow(a, (p + 1) // 4, p)
+
+    # Write p - 1 = q * 2^s
+    q = p - 1
+    s = 0
+
+    while q % 2 == 0:
+        q //= 2
+        s += 1
+
+    # Find a quadratic non-residue z
+    z = 2
+
+    while Tonelli_Shanks(z, p) != -1:
+        z += 1
+
+    # Initialize variables
+    m = s
+    c = pow(z, q, p)
+    t = pow(a, q, p)
+    r = pow(a, (q + 1) // 2, p)
+
+    while t != 1:
+
+        i = 0
+        temp = t
+
+        while temp != 1:
+            temp = pow(temp, 2, p)
+            i += 1
+
+        b = pow(c, 1 &lt;&lt; (m - i - 1), p)
+
+        r = (r * b) % p
+        t = (t * b * b) % p
+        c = (b * b) % p
+        m = i
+
+    return r
+
+
+# ------------------------
+# Find the square roots
+# ------------------------
+
+root1 = square_root(a, p)
+
+if root1 is None:
+    print(&quot;No square root exists.&quot;)
+else:
+    root2 = p - root1
+
+    print(&quot;Root 1 :&quot;, root1)
+    print(&quot;Root 2 :&quot;, root2)
+    print(&quot;Smaller Root :&quot;, min(root1, root2))
+    print(&quot;Larger Root :&quot;, max(root1, root2))
+</code></pre><p>Once one root is found, the other root is:</p><pre class="terminal"><code data-language="python">root2 = p - root1
+</code></pre><p>because:</p><pre class="terminal"><code data-language="text">(-root1)² ≡ root1² (mod p)
+</code></pre><p>The challenge asks for the <strong>larger root</strong>.</p><h2 id="sagemath-alternative">SageMath Alternative</h2><p>If you have access to <strong>SageMath</strong>, this challenge becomes much simpler because SageMath has built-in support for modular square roots.</p><pre class="terminal"><code data-language="python"># Given values
+a = 8479994658316772151941616510097127087554541274812435112009425778595495359700244470400642403747058566807127814165396640215844192327900454116257979487432016769329970767046735091249898678088061634796559556704959846424131820416048436501387617211770124292793308079214153179977624440438616958575058361193975686620046439877308339989295604537867493683872778843921771307305602776398786978353866231661453376056771972069776398999013769588936194859344941268223184197231368887060609212875507518936172060702209557124430477137421847130682601666968691651447236917018634902407704797328509461854842432015009878011354022108661461024768
+
+p = 30531851861994333252675935111487950694414332763909083514133769861350960895076504687261369815735742549428789138300843082086550059082835141454526618160634109969195486322015775943030060449557090064811940139431735209185996454739163555910726493597222646855506445602953689527405362207926990442391705014604777038685880527537489845359101552442292804398472642356609304810680731556542002301547846635101455995732584071355903010856718680732337369128498655255277003643669031694516851390505923416710601212618443109844041514942401969629158975457079026906304328749039997262960301209158175920051890620947063936347307238412281568760161
+
+# Find one square root using Sage
+root1 = Mod(a, p).sqrt()
+
+# The other root
+root2 = p - int(root1)
+
+print(&quot;Root 1 :&quot;, int(root1))
+print(&quot;Root 2 :&quot;, root2)
+
+# CryptoHack asks for the larger root
+print(&quot;Answer :&quot;, max(int(root1), root2))
+</code></pre><h3 id="using-sagemath">Using SageMath</h3><p>The SageMath solution can be run online using <strong>SageCell</strong>:</p><p><a href="https://sagecell.sagemath.org/">https://sagecell.sagemath.org/</a></p><blockquote><strong>Note:</strong> <code>Mod(a, p).sqrt()</code> is a SageMath function and will not work in normal Python.</blockquote><h2 id="result">Result</h2><p>The larger root is:</p><pre class="terminal"><code data-language="text">28169512554311284614348161812907461395482195258388583125795498809297226147214152907614055638917789190356917578259717792167302913007927989841763977292434488782635964253677743342038748567333074043589267896292373028724763808006697707070301035339291758998923066001985927788808579330075671953036025191791621915640175242425390397212674797332132801882880223506177201168864920484993546017284338829512010922075018689505381642887042980971582058343875078178836965895987271392081926458392283354971823611423820865651283490761548053384731721391637064349021755899877224522161311561209530712702153163501623531290150340903913036821041
+</code></pre><h2 id="flag">Flag</h2><pre class="terminal"><code data-language="text">28169512554311284614348161812907461395482195258388583125795498809297226147214152907614055638917789190356917578259717792167302913007927989841763977292434488782635964253677743342038748567333074043589267896292373028724763808006697707070301035339291758998923066001985927788808579330075671953036025191791621915640175242425390397212674797332132801882880223506177201168864920484993546017284338829512010922075018689505381642887042980971582058343875078178836965895987271392081926458392283354971823611423820865651283490761548053384731721391637064349021755899877224522161311561209530712702153163501623531290150340903913036821041
+</code></pre><nav class="article-related" aria-label="Related writeups"><a href="/generated/writeups/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.html">← PREVIOUS CHALLENGE</a><span>CHALLENGE 8 / 11</span><a href="/generated/writeups/cryptohack-Modular-Arithmetic/chall9-Chinese-Remainder-Theorem.html">NEXT CHALLENGE →</a></nav></article>
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>CryptoHack</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>100</strong></li><li>DIFFICULTY <strong class="difficulty">★★☆☆☆</strong></li></ul><h2>FLAG CAPTURED</h2><p class="ctf-flag">28169512554311284614348161812907461395482195258388583125795498809297226147214152907614055638917789190356917578259717792167302913007927989841763977292434488782635964253677743342038748567333074043589267896292373028724763808006697707070301035339291758998923066001985927788808579330075671953036025191791621915640175242425390397212674797332132801882880223506177201168864920484993546017284338829512010922075018689505381642887042980971582058343875078178836965895987271392081926458392283354971823611423820865651283490761548053384731721391637064349021755899877224522161311561209530712702153163501623531290150340903913036821041</p></section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># CRYPTO</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># MODULAR-ARITHMETIC</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># QUADRATIC-RESIDUES</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># TONELLI-SHANKS</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># SAGEMATH</a></nav></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
+    </main>
+  </body>
+</html>

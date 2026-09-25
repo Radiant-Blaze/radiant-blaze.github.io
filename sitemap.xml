@@ -1,63 +1,93 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://radiant-blaze.github.io/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://radiant-blaze.github.io/pages/blog.html</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://radiant-blaze.github.io/pages/search.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://radiant-blaze.github.io/pages/post.html?post=linux/021-tiny-command-line-toolkit.md</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://radiant-blaze.github.io/pages/ctf.html</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://radiant-blaze.github.io/pages/ctf.html?ctf=picoctf-2025</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://radiant-blaze.github.io/generated/posts/linux/021-tiny-command-line-toolkit.html</loc>
   </url>
   <url>
-    <loc>https://radiant-blaze.github.io/pages/ctf.html?ctf=htb-apocalypse-2025</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://radiant-blaze.github.io/pages/ctf.html?ctf=cryptohack-Introduction+to+CryptoHack</loc>
   </url>
   <url>
-    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=picoctf-2025&amp;challenge=web-cookie-monster.md</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall1-Great-Snakes.html</loc>
   </url>
   <url>
-    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=picoctf-2025&amp;challenge=crypto-interception.md</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall2-ASCII.html</loc>
   </url>
   <url>
-    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=picoctf-2025&amp;challenge=rev-patchwork.md</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall3-Hex.html</loc>
   </url>
   <url>
-    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=htb-apocalypse-2025&amp;challenge=pwn-stack-overture.md</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall4-Base64.html</loc>
   </url>
   <url>
-    <loc>https://radiant-blaze.github.io/pages/writeup.html?ctf=htb-apocalypse-2025&amp;challenge=web-token-of-appreciation.md</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall5-Bytes-and-Big-Integers.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall6-XOR-Starter.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall7-XOR-Properties.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall8-Favourite-byte.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall9-You-either-know-XOR-you-don%27t.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall2-Extended-GCD.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall3-Modular-Arithmetic-1.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall4-Modular-Arithmetic-2.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall5-Modular-Inverting.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall6-Quadratic-Residues.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall8-Modular-Square-Root.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall9-Chinese-Remainder-Theorem.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall10-Adrien%27s-Signs.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall11-Modular-Binomials.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/pages/ctf.html?ctf=ASIS-CTF-2026</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/ASIS-CTF-2026/Hackel.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-blaze.github.io/generated/writeups/ASIS-CTF-2026/Headache.html</loc>
   </url>
 </urlset>

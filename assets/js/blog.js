@@ -1,4 +1,4 @@
-import { loadData, loadCtfs, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress, typesetMath } from "./content.js";
+import { loadData, loadCtfs, escapeHtml, formatDate, markdownToHtml, socialHtml, initReadingProgress, typesetMath, updatePageMetadata, postPageUrl, writeupPageUrl } from "./content.js";
 import {
   DEFAULT_PAGE_SIZE,
   pageSlice,
@@ -13,10 +13,10 @@ const requestedPage = Math.max(1, parseInt(params.get("pg"), 10) || 1);
 const blogQuery = (params.get("q") || "").trim();
 
 const postCard = (post) =>
-  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${escapeHtml(post.title)}"></div><div><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="quest-meta"><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span>${formatDate(post.date)}</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="post.html?post=${encodeURIComponent(post.file)}">READ POST →</a></div></article>`;
+  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${escapeHtml(post.title)}"></div><div><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="quest-meta"><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span>${formatDate(post.date)}</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="${postPageUrl(post.file)}">READ POST →</a></div></article>`;
 
 const writeupCard = (ctf, challenge) =>
-  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(ctf.title).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="writeup.html?ctf=${encodeURIComponent(ctf.id)}&challenge=${encodeURIComponent(challenge.file)}">READ WRITEUP →</a></div></article>`;
+  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(ctf.title).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="${writeupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></div></article>`;
 
 const isSearchPage = Boolean(document.querySelector("[data-search]"));
 const blogList = document.querySelector("[data-category-dynamic]");
@@ -159,7 +159,7 @@ Promise.all([
               `<section class="pixel-panel"><h2>${month}</h2><ul class="region-list">${items
                 .map(
                   (post) =>
-                    `<li><a href="post.html?post=${encodeURIComponent(post.file)}">${escapeHtml(post.title).toUpperCase()}</a></li>`,
+                    `<li><a href="${postPageUrl(post.file)}">${escapeHtml(post.title).toUpperCase()}</a></li>`,
                 )
                 .join("")}</ul></section>`,
           )
@@ -191,18 +191,89 @@ Promise.all([
       const query = params.get("q") || "";
       const selectedYear = params.get("year") || "";
       let currentPage = 0;
+      let activeFilter = "all";
+      let activeTopic = (params.get("topic") || "all").toLowerCase();
+
+      const topicSet = new Set(
+        [...posts, ...writeups.map(({ challenge }) => challenge)]
+          .flatMap((item) => {
+            const categories = [];
+            if (item.category) categories.push(item.category);
+            if (item.tags?.length) categories.push(...item.tags);
+            return categories;
+          })
+          .filter(Boolean),
+      );
+      const topicOptions = [...topicSet].sort((a, b) => a.localeCompare(b));
+
+      const topicContainer = document.querySelector("[data-search-topics]");
+      if (topicContainer) {
+        topicContainer.innerHTML = [
+          '<button type="button" class="filter-pill is-active" data-search-topic="all">ALL TOPICS</button>',
+          ...topicOptions.map(
+            (topic) =>
+              `<button type="button" class="filter-pill" data-search-topic="${escapeHtml(topic.toLowerCase())}">${escapeHtml(topic.toUpperCase())}</button>`,
+          ),
+        ].join("");
+      }
+
+      const applyFilterClasses = () => {
+        document.querySelectorAll("[data-search-filter]").forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.searchFilter === activeFilter);
+        });
+        document.querySelectorAll("[data-search-topic]").forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.searchTopic === activeTopic);
+        });
+      };
+
+      const matchesTopic = (record, topic) => {
+        if (topic === "all") return true;
+        const item = record.item || {};
+        const tagText = [(item.category || ""), ...(item.tags || []), (record.ctf?.title || "")]
+          .join(" ")
+          .toLowerCase();
+        return tagText.includes(topic.toLowerCase());
+      };
+
+      const matchesType = (record, filter) => {
+        if (filter === "all") return true;
+        if (filter === "posts") return record.type === "post";
+        if (filter === "writeups") return record.type === "writeup";
+        return true;
+      };
+
       search.value = query;
       search
         .closest("form")
         .addEventListener("submit", (event) => event.preventDefault());
+
+      document.querySelectorAll("[data-search-filter]").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeFilter = button.dataset.searchFilter;
+          applyFilterClasses();
+          renderSearch(search.value, true);
+        });
+      });
+
+      document.querySelectorAll("[data-search-topic]").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeTopic = button.dataset.searchTopic;
+          applyFilterClasses();
+          renderSearch(search.value, true);
+        });
+      });
+
       const renderSearch = (value, resetPage = true) => {
         if (resetPage) currentPage = 0;
         const term = value.trim().toLowerCase();
         const found = records.filter((record) => {
           const { item, ctf } = record;
           const searchable = `${item.title} ${item.description || ""} ${item.category || ""} ${(item.tags || []).join(" ")} ${ctf?.title || ""}`.toLowerCase();
-          return (!term || searchable.includes(term)) &&
-            (!selectedYear || new Date(`${record.date}T00:00:00`).getFullYear() === Number(selectedYear));
+          const matchesQuery = !term || searchable.includes(term);
+          const matchesYear = !selectedYear || new Date(`${record.date}T00:00:00`).getFullYear() === Number(selectedYear);
+          const matchesTypeFilter = matchesType(record, activeFilter);
+          const matchesTopicFilter = matchesTopic(record, activeTopic);
+          return matchesQuery && matchesYear && matchesTypeFilter && matchesTopicFilter;
         });
         const { currentPage: shownPage, totalPages, start, shown } = pageSlice(
           found,
@@ -237,19 +308,38 @@ Promise.all([
         event.target.value ? url.searchParams.set("q", event.target.value) : url.searchParams.delete("q");
         history.replaceState(null, "", url);
       });
+      applyFilterClasses();
       renderSearch(query);
     }
 
     if (article) {
       const post = posts.find((item) => item.file === requestedPost) || posts[0];
-      document.title = `${post.title} · Radiant Blaze`;
+      const canonicalUrl = new URL(location.href);
+      canonicalUrl.search = "";
+      canonicalUrl.searchParams.set("post", post.file);
+      canonicalUrl.hash = "";
+      updatePageMetadata({
+        title: `${post.title} · Radiant Blaze`,
+        description: post.description,
+        canonicalUrl: canonicalUrl.href,
+      });
       article.innerHTML = markdownToHtml(post.body);
+      const relatedLinks = [
+        `<a href="blog.html?category=${encodeURIComponent(post.category)}">MORE ${escapeHtml(post.category).toUpperCase()} POSTS</a>`,
+        ...(post.tags || []).slice(0, 2).map(
+          (tag) => `<a href="search.html?topic=${encodeURIComponent(tag.toLowerCase())}">MORE ${escapeHtml(tag).toUpperCase()}</a>`,
+        ),
+      ];
+      article.insertAdjacentHTML(
+        "beforeend",
+        `<nav class="article-related" aria-label="Related content">${relatedLinks.join("")}</nav>`,
+      );
       document.querySelector("[data-post-header]").innerHTML =
         `<p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h1 class="quest-title">${escapeHtml(post.title).toUpperCase()}</h1><div class="article-info"><span>READ TIME: <b>${escapeHtml(post.estimatedPlayTime).toUpperCase()}</b></span><span>${formatDate(post.date)}</span><span>BY <b>${escapeHtml(post.author).toUpperCase()}</b></span></div>`;
       document.querySelector("[data-post-tags]").innerHTML = post.tags
         .map(
           (tag) =>
-            `<a href="search.html"># ${escapeHtml(tag).toUpperCase()}</a>`,
+            `<a href="search.html?topic=${encodeURIComponent(tag.toLowerCase())}"># ${escapeHtml(tag).toUpperCase()}</a>`,
         )
         .join("");
       typesetMath();

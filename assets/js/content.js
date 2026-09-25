@@ -19,6 +19,14 @@ export const formatDate = (date) =>
     .format(new Date(`${date}T00:00:00`))
     .toUpperCase();
 
+const encodePath = (path) => path.split("/").map(encodeURIComponent).join("/");
+
+export const postPageUrl = (file) =>
+  `/generated/posts/${encodePath(file.replace(/\.md$/i, ".html"))}`;
+
+export const writeupPageUrl = (ctfId, file) =>
+  `/generated/writeups/${encodeURIComponent(ctfId)}/${encodeURIComponent(file.replace(/\.md$/i, ".html"))}`;
+
 export const socialHtml = (social = []) =>
   social
     .map((item) => {
@@ -31,6 +39,35 @@ export const socialHtml = (social = []) =>
       return `<a class="social-link" href="${item.url}"${external ? ' target="_blank" rel="noopener"' : ""} aria-label="${item.label}">${icon}</a>`;
     })
     .join("");
+
+export const updatePageMetadata = ({ title, description, canonicalUrl }) => {
+  const setMeta = (attribute, key, value) => {
+    const selector = `meta[${attribute}="${key}"]`;
+    let element = document.head.querySelector(selector);
+    if (!element) {
+      element = document.createElement("meta");
+      element.setAttribute(attribute, key);
+      document.head.append(element);
+    }
+    element.setAttribute("content", value);
+  };
+
+  document.title = title;
+  let canonical = document.head.querySelector('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.append(canonical);
+  }
+  canonical.href = canonicalUrl;
+  setMeta("name", "description", description);
+  setMeta("property", "og:title", title);
+  setMeta("property", "og:description", description);
+  setMeta("property", "og:url", canonicalUrl);
+  setMeta("name", "twitter:title", title);
+  setMeta("name", "twitter:description", description);
+  setMeta("name", "twitter:url", canonicalUrl);
+};
 
 export const parsePost = (source, file) => {
   const [, frontmatter = "", body = ""] =
@@ -232,6 +269,7 @@ export const loadCtfs = async (
         ...meta,
         id,
         challengeCount: allChallenges.length,
+        challengeFiles: allChallenges,
         challenges: loaded
           .filter((result) => result.status === "fulfilled")
           .map((result) => result.value),

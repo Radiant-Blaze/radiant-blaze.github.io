@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modular Binomials · cryptohack-Modular Arithmetic · Radiant Blaze</title>
+    <meta name="description" content="Recover the RSA primes p and q from two modular equations involving linear combinations of the factors." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall11-Modular-Binomials.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Modular Binomials · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta property="og:description" content="Recover the RSA primes p and q from two modular equations involving linear combinations of the factors." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall11-Modular-Binomials.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Modular Binomials · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta name="twitter:description" content="Recover the RSA primes p and q from two modular equations involving linear combinations of the factors." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/audio.js"></script>
+    <script type="module" src="/assets/js/static-article.js"></script>
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href="/"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="/pages/blog.html">BLOG</a><a href="/pages/ctf.html">CTFS</a><a href="/pages/search.html">SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>
+        </nav>
+      </header>
+    <p class="ctf-back quest-wrap"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic">← CRYPTOHACK-MODULAR ARITHMETIC</a></p>
+      <header class="article-header quest-wrap">
+        <p class="quest-number">CRYPTOHACK-MODULAR ARITHMETIC · CRYPTO</p>
+        <h1 class="quest-title">MODULAR BINOMIALS</h1>
+        <div class="article-info"><span>POINTS: <b>100</b></span><span>DIFFICULTY: <b class="difficulty">★☆☆☆☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
+      </header>
+      <div class="page-grid article-layout quest-wrap">
+        <article class="quest-article"><h2 id="the-capture">The Capture</h2><p>The challenge gives us an RSA modulus:</p><pre class="terminal"><code data-language="text">N = p · q
+</code></pre><p>along with two ciphertext equations:</p><pre class="terminal"><code data-language="text">c1 = (2 · p + 3 · q)^e1 mod N
+c2 = (5 · p + 7 · q)^e2 mod N
+</code></pre><p>The goal is to recover the two prime factors <code>p</code> and <code>q</code>.</p><p>At first glance, this looks like a difficult RSA problem because <code>p</code> and <code>q</code> are hidden inside modular exponentiation.</p><p>However, the expressions contain a useful weakness.</p><p>The two plaintext expressions are:</p><pre class="terminal"><code data-language="text">2p + 3q
+5p + 7q
+</code></pre><p>and because:</p><pre class="terminal"><code data-language="text">N = p · q
+</code></pre><p>we can exploit their behavior modulo the two unknown factors.</p><h2 id="the-mistake">The Mistake</h2><p>Consider the first expression:</p><pre class="terminal"><code data-language="text">2p + 3q
+</code></pre><p>Modulo <code>p</code>:</p><pre class="terminal"><code data-language="text">2p + 3q ≡ 3q (mod p)
+</code></pre><p>Modulo <code>q</code>:</p><pre class="terminal"><code data-language="text">2p + 3q ≡ 2p (mod q)
+</code></pre><p>Likewise, the second expression:</p><pre class="terminal"><code data-language="text">5p + 7q
+</code></pre><p>becomes:</p><pre class="terminal"><code data-language="text">5p + 7q ≡ 7q (mod p)
+</code></pre><p>and:</p><pre class="terminal"><code data-language="text">5p + 7q ≡ 5p (mod q)
+</code></pre><p>This means that after choosing suitable exponent multiples, we can make the unknown powers disappear using Euler&#x27;s theorem.</p><p>The key is to use the least common multiple of the two exponents:</p><pre class="terminal"><code data-language="python">L = lcm(e1, e2)
+</code></pre><p>Then define:</p><pre class="terminal"><code data-language="python">a = L // e1
+b = L // e2
+</code></pre><p>so that:</p><pre class="terminal"><code data-language="text">e1 · a = L
+e2 · b = L
+</code></pre><p>Therefore:</p><pre class="terminal"><code data-language="text">c1^a ≡ (2p + 3q)^L mod N
+c2^b ≡ (5p + 7q)^L mod N
+</code></pre><h2 id="recovery">Recovery</h2><p>We now compensate for the coefficients in the two expressions.</p><p>Raise <code>7</code> and <code>3</code> to the common exponent <code>L</code>:</p><pre class="terminal"><code data-language="python">x = pow(7, L, N) * pow(c1, a, N)
+y = pow(3, L, N) * pow(c2, b, N)
+</code></pre><p>The important observation is what happens modulo each prime.</p><p>Modulo <code>p</code>, the first expression behaves as:</p><pre class="terminal"><code data-language="text">(2p + 3q)^L ≡ (3q)^L
+</code></pre><p>Multiplying by <code>7^L</code> gives:</p><pre class="terminal"><code data-language="text">x ≡ (21q)^L (mod p)
+</code></pre><p>For the second expression:</p><pre class="terminal"><code data-language="text">(5p + 7q)^L ≡ (7q)^L
+</code></pre><p>Multiplying by <code>3^L</code> gives:</p><pre class="terminal"><code data-language="text">y ≡ (21q)^L (mod p)
+</code></pre><p>Therefore:</p><pre class="terminal"><code data-language="text">x ≡ y (mod p)
+</code></pre><p>which means:</p><pre class="terminal"><code data-language="text">p | (x - y)
+</code></pre><p>So the greatest common divisor reveals the hidden prime:</p><pre class="terminal"><code data-language="python">p = gcd(N, x - y)
+</code></pre><p>This is the critical step of the attack.</p><p>If the result is neither <code>1</code> nor <code>N</code>, we have successfully recovered a factor of <code>N</code>.</p><p>The other prime is then simply:</p><pre class="terminal"><code data-language="python">q = N // p
+</code></pre><p>The complete solver is:</p><pre class="terminal"><code data-language="python">from math import gcd, lcm
+
+N = 14905562257842714057932724129575002825405393502650869767115942606408600343380327866258982402447992564988466588305174271674657844352454543958847568190372446723549627752274442789184236490768272313187410077124234699854724907039770193680822495470532218905083459730998003622926152590597710213127952141056029516116785229504645179830037937222022291571738973603920664929150436463632305664687903244972880062028301085749434688159905768052041207513149370212313943117665914802379158613359049957688563885391972151218676545972118494969247440489763431359679770422939441710783575668679693678435669541781490217731619224470152467768073
+
+e1 = 12886657667389660800780796462970504910193928992888518978200029826975978624718627799215564700096007849924866627154987365059524315097631111242449314835868137
+
+e2 = 12110586673991788415780355139635579057920926864887110308343229256046868242179445444897790171351302575188607117081580121488253540215781625598048021161675697
+
+c1 = 14010729418703228234352465883041270611113735889838753433295478495763409056136734155612156934673988344882629541204985909650433819205298939877837314145082403528055884752079219150739849992921393509593620449489882380176216648401057401569934043087087362272303101549800941212057354903559653373299153430753882035233354304783275982332995766778499425529570008008029401325668301144188970480975565215953953985078281395545902102245755862663621187438677596628109967066418993851632543137353041712721919291521767262678140115188735994447949166616101182806820741928292882642234238450207472914232596747755261325098225968268926580993051
+
+c2 = 14386997138637978860748278986945098648507142864584111124202580365103793165811666987664851210230009375267398957979494066880296418013345006977654742303441030008490816239306394492168516278328851513359596253775965916326353050138738183351643338294802012193721879700283088378587949921991198231956871429805847767716137817313612304833733918657887480468724409753522369325138502059408241232155633806496752350562284794715321835226991147547651155287812485862794935695241612676255374480132722940682140395725089329445356434489384831036205387293760789976615210436732813848937666608611803196199865435145094486231635966885932646519
+
+L = lcm(e1, e2)
+
+a = L // e1
+b = L // e2
+
+x = pow(7, L, N) * pow(c1, a, N)
+y = pow(3, L, N) * pow(c2, b, N)
+
+p = gcd(N, x - y)
+
+if p == 1 or p == N:
+    print(&quot;Attack failed&quot;)
+else:
+    q = N // p
+
+    print(&quot;p =&quot;, p)
+    print(&quot;q =&quot;, q)
+    print(&quot;check =&quot;, p * q == N)
+
+    print(f&quot;crypto{{{p},{q}}}&quot;)
+</code></pre><p>The attack does not factor <code>N</code> by brute force.</p><p>Instead, it constructs two values that are guaranteed to be equal modulo one of the secret primes. The difference therefore contains that prime as a factor.</p><h2 id="verification">Verification</h2><p>The recovered values are:</p><pre class="terminal"><code data-language="text">p =
+112274000169258486390262064441991200608556376127408952701514962644340921899196091557519382763356534106376906489445103255177593594898966250176773605432765983897105047795619470659157057093771407309168345670541418772427807148039207489900810013783673957984006269120652134007689272484517805398390277308001719431273
+</code></pre><p>and:</p><pre class="terminal"><code data-language="text">q =
+132760587806365301971479157072031448380135765794466787456948786731168095877956875295282661565488242190731593282663694728914945967253173047324353981530949360031535707374701705328450856944598803228299967009004598984671293494375599408764139743217465012770376728876547958852025425539298410751132782632817947101601
+</code></pre><p>We can verify that they reconstruct the public modulus:</p><pre class="terminal"><code data-language="python">p * q == N
+</code></pre><p>which returns:</p><pre class="terminal"><code data-language="text">True
+</code></pre><p>Thus the two hidden RSA primes have been successfully recovered.</p><h2 id="flag">Flag</h2><pre class="terminal"><code data-language="text">crypto{112274000169258486390262064441991200608556376127408952701514962644340921899196091557519382763356534106376906489445103255177593594898966250176773605432765983897105047795619470659157057093771407309168345670541418772427807148039207489900810013783673957984006269120652134007689272484517805398390277308001719431273,132760587806365301971479157072031448380135765794466787456948786731168095877956875295282661565488242190731593282663694728914945967253173047324353981530949360031535707374701705328450856944598803228299967009004598984671293494375599408764139743217465012770376728876547958852025425539298410751132782632817947101601}
+</code></pre><nav class="article-related" aria-label="Related writeups"><a href="/generated/writeups/cryptohack-Modular-Arithmetic/chall10-Adrien%27s-Signs.html">← PREVIOUS CHALLENGE</a><span>CHALLENGE 11 / 11</span><span>NEXT CHALLENGE →</span></nav></article>
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>CryptoHack</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>100</strong></li><li>DIFFICULTY <strong class="difficulty">★☆☆☆☆</strong></li></ul><h2>FLAG CAPTURED</h2><p class="ctf-flag">crypto{112274000169258486390262064441991200608556376127408952701514962644340921899196091557519382763356534106376906489445103255177593594898966250176773605432765983897105047795619470659157057093771407309168345670541418772427807148039207489900810013783673957984006269120652134007689272484517805398390277308001719431273,132760587806365301971479157072031448380135765794466787456948786731168095877956875295282661565488242190731593282663694728914945967253173047324353981530949360031535707374701705328450856944598803228299967009004598984671293494375599408764139743217465012770376728876547958852025425539298410751132782632817947101601}</p></section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># CRYPTO</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># RSA</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># MODULAR-ARITHMETIC</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># GCD</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># LCM</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># COMMON-MODULUS</a></nav></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
+    </main>
+  </body>
+</html>

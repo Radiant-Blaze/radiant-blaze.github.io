@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quadratic Residues · cryptohack-Modular Arithmetic · Radiant Blaze</title>
+    <meta name="description" content="Determine which integers are quadratic residues modulo a prime by checking whether they have square roots." />
+    <link rel="canonical" href="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall6-Quadratic-Residues.html" />
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content="Quadratic Residues · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta property="og:description" content="Determine which integers are quadratic residues modulo a prime by checking whether they have square roots." />
+    <meta property="og:url" content="https://radiant-blaze.github.io/generated/writeups/cryptohack-Modular-Arithmetic/chall6-Quadratic-Residues.html" />
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Quadratic Residues · cryptohack-Modular Arithmetic · Radiant Blaze" />
+    <meta name="twitter:description" content="Determine which integers are quadratic residues modulo a prime by checking whether they have square roots." />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <script src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/audio.js"></script>
+    <script type="module" src="/assets/js/static-article.js"></script>
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href="/"><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href="/pages/blog.html">BLOG</a><a href="/pages/ctf.html">CTFS</a><a href="/pages/search.html">SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>
+        </nav>
+      </header>
+    <p class="ctf-back quest-wrap"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic">← CRYPTOHACK-MODULAR ARITHMETIC</a></p>
+      <header class="article-header quest-wrap">
+        <p class="quest-number">CRYPTOHACK-MODULAR ARITHMETIC · CRYPTO</p>
+        <h1 class="quest-title">QUADRATIC RESIDUES</h1>
+        <div class="article-info"><span>POINTS: <b>100</b></span><span>DIFFICULTY: <b class="difficulty">★☆☆☆☆</b></span><span>BY <b>RADIANT BLAZE</b></span></div>
+      </header>
+      <div class="page-grid article-layout quest-wrap">
+        <article class="quest-article"><h2 id="the-capture">The Capture</h2><p>A <strong>Quadratic Residue (QR)</strong> modulo <code>p</code> is a number <code>x</code> for which there exists some integer <code>a</code> satisfying:</p><pre class="terminal"><code data-language="text">(a · a) % p = x
+</code></pre><p>If such an <code>a</code> exists, then <code>a</code> is a square root of <code>x</code> modulo <code>p</code>.</p><p>For this challenge, we use:</p><pre class="terminal"><code data-language="text">p = 29
+</code></pre><p>Since we&#x27;re working modulo <code>29</code>, we only need to check values from:</p><pre class="terminal"><code data-language="text">0, 1, 2, ..., 28
+</code></pre><p>After <code>p - 1</code>, the values repeat because of modular arithmetic.</p><h2 id="the-mistake">The Mistake</h2><p>We need to determine whether the following values are quadratic residues modulo <code>29</code>:</p><pre class="terminal"><code data-language="text">14, 6, 11
+</code></pre><p>We can simply test every possible value <code>a</code> from <code>0</code> to <code>28</code> and check whether:</p><pre class="terminal"><code data-language="text">(a · a) % 29 == x
+</code></pre><p>If we find a root, the value is a <strong>Quadratic Residue</strong>.</p><p>If we find no root, it is a <strong>Quadratic Non-Residue</strong>.</p><p>For a prime modulus, every non-zero quadratic residue has two roots:</p><pre class="terminal"><code data-language="text">a
+p - a
+</code></pre><p>because:</p><pre class="terminal"><code data-language="text">(-a)² ≡ a² mod p
+</code></pre><h2 id="recovery">Recovery</h2><p>The solution checks every possible value modulo <code>29</code>:</p><pre class="terminal"><code data-language="python">p = 29
+ints = [14, 6, 11]
+
+for x in ints:
+    roots = []
+
+    for a in range(p):
+        if (a * a) % p == x:
+            roots.append(a)
+
+    if roots:
+        print(f&quot;{x} is a Quadratic Residue having roots: &quot;, roots)
+    else:
+        print(f&quot;{x} is NOT a Quadratic Residue&quot;)
+</code></pre><p>The results show that <code>6</code> is a quadratic residue because:</p><pre class="terminal"><code data-language="text">8² % 29 = 6
+21² % 29 = 6
+</code></pre><p>Therefore, the roots are:</p><pre class="terminal"><code data-language="text">8 and 21
+</code></pre><p>The other values do not have a square root modulo <code>29</code>.</p><p>So:</p><pre class="terminal"><code data-language="text">14 → Quadratic Non-Residue
+6  → Quadratic Residue
+11 → Quadratic Non-Residue
+</code></pre><p>The challenge asks for the value associated with the quadratic residue.</p><h2 id="flag">Flag</h2><pre class="terminal"><code data-language="text">8
+</code></pre><nav class="article-related" aria-label="Related writeups"><a href="/generated/writeups/cryptohack-Modular-Arithmetic/chall5-Modular-Inverting.html">← PREVIOUS CHALLENGE</a><span>CHALLENGE 6 / 11</span><a href="/generated/writeups/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.html">NEXT CHALLENGE →</a></nav></article>
+        <aside class="sidebar">
+          <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+          <section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>CryptoHack</strong></li><li>CATEGORY <strong>CRYPTO</strong></li><li>POINTS <strong>100</strong></li><li>DIFFICULTY <strong class="difficulty">★☆☆☆☆</strong></li></ul><h2>FLAG CAPTURED</h2><p class="ctf-flag">8</p></section>
+          <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list"><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># CRYPTO</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># QUADRATIC-RESIDUES</a><a href="/pages/ctf.html?ctf=cryptohack-Modular-Arithmetic"># MODULAR-ARITHMETIC</a></nav></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" aria-label="Social links"><a class="social-link" href="https://github.com/radiant-blaze" target="_blank" rel="noopener" aria-label="GitHub"><span aria-hidden="true">GitHub</span></a><span class="social-link is-pending" title="X · coming soon" aria-label="X · coming soon"><span aria-hidden="true">X</span></span><span class="social-link is-pending" title="Email · coming soon" aria-label="Email · coming soon"><span aria-hidden="true">@Email</span></span></nav></div></footer>
+    </main>
+  </body>
+</html>

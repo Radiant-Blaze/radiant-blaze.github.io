@@ -64,11 +64,19 @@
             data-search
             id="search-database"
             type="search"
-            placeholder="Search Database..."
+            placeholder="Search posts, writeups, tools, tags..."
           /><button class="pixel-button start-button" type="submit">
             SCAN →
           </button>
         </form>
+        <div class="search-toolbar" aria-label="Search filters">
+          <div class="search-pills" data-search-filters>
+            <button type="button" class="filter-pill is-active" data-search-filter="all">ALL</button>
+            <button type="button" class="filter-pill" data-search-filter="posts">POSTS</button>
+            <button type="button" class="filter-pill" data-search-filter="writeups">WRITEUPS</button>
+          </div>
+          <div class="search-pills search-pills--topic" data-search-topics></div>
+        </div>
         <p class="record-count" data-record-count>LOADING RECORDS...</p>
       </section>
       <div class="page-grid search-results quest-wrap">
