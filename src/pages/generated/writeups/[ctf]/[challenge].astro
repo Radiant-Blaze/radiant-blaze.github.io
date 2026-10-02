@@ -1,0 +1,63 @@
+---
+import { getOrderedArticles, type OrderedWriteup, writeupRoute } from "../../../../lib/article-data";
+import { getWriteupPresentation } from "../../../../lib/article-metadata";
+import ArticleShell from "../../../../layouts/ArticleShell.astro";
+import { escapeHtml, formatDate, renderMarkdown } from "../../../../lib/markdown";
+
+export async function getStaticPaths() {
+  const { writeups } = await getOrderedArticles();
+  return writeups.map((writeup: OrderedWriteup, index: number) => ({
+    params: {
+      ctf: writeup.ctfId,
+      challenge: writeup.challengeFile.replace(/\.md$/i, ""),
+    },
+    props: {
+      ...writeup,
+      challengeIndex: index,
+      eventChallengeFiles: writeup.challengeFiles,
+    },
+  }));
+}
+
+const { ctfId, challengeFile, entry, event, challengeIndex, eventChallengeFiles } = Astro.props;
+const challenge = entry.data;
+const eventTitle = event.data.title;
+const {
+  title,
+  description,
+  category,
+  points: pointsText,
+  stars,
+  solves: solvesValue,
+  flag: flagValue,
+  tags: challengeTags,
+  author,
+} = getWriteupPresentation(challenge, challengeFile, eventTitle);
+const route = writeupRoute(ctfId, challengeFile);
+const challengeNumber = eventChallengeFiles.indexOf(challengeFile);
+const previous = eventChallengeFiles[challengeNumber - 1];
+const following = eventChallengeFiles[challengeNumber + 1];
+const eventQuery = new URLSearchParams({ ctf: ctfId }).toString();
+const challengeUrl = (file: string) => writeupRoute(ctfId, file);
+const pointsHtml = escapeHtml(pointsText);
+const solves = solvesValue ? `<li>SOLVES <strong>${escapeHtml(solvesValue)}</strong></li>` : "";
+const flag = flagValue ? `<h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(flagValue)}</p>` : "";
+const body = renderMarkdown(entry.body ?? "");
+const hasMath = /```math\b|\\\[|\\\(|\$\$/i.test(entry.body ?? "");
+const tagsForEvent = challengeTags
+  .map((tag) => `<a href="/pages/ctf.html?${eventQuery}"># ${escapeHtml(tag).toUpperCase()}</a>`)
+  .join("");
+const related = `${previous ? `<a href="${challengeUrl(previous)}">← PREVIOUS CHALLENGE</a>` : "<span>← PREVIOUS CHALLENGE</span>"}<span>CHALLENGE ${challengeNumber + 1} / ${eventChallengeFiles.length}</span>${following ? `<a href="${challengeUrl(following)}">NEXT CHALLENGE →</a>` : "<span>NEXT CHALLENGE →</span>"}`;
+const sidebar = hasMath ? "" : `<aside class="sidebar"><section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section><section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(event.data.event ?? eventTitle)}</strong></li><li>CATEGORY <strong>${escapeHtml(category)}</strong></li><li>POINTS <strong>${pointsHtml}</strong></li><li>DIFFICULTY <strong class="difficulty">${stars}</strong></li>${solves}</ul>${flag}</section><section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">${tagsForEvent}</nav></section></aside>`;
+---
+<ArticleShell title={`${title} · ${eventTitle} · Radiant Blaze`} description={description} canonical={`https://radiant-blaze.github.io${route}`} type="writeup">
+  <p class="ctf-back quest-wrap"><a href={`/pages/ctf.html?${eventQuery}`}>← {eventTitle.toUpperCase()}</a></p>
+  <header class="article-header quest-wrap">
+    <p class="quest-number">{eventTitle.toUpperCase()} · {category}</p>
+    <h1 class="quest-title">{title.toUpperCase()}</h1>
+    <div class="article-info"><span>POINTS: <b>{pointsText}</b></span><span>DIFFICULTY: <b class="difficulty">{stars}</b></span>{solvesValue && <span>SOLVES: <b>{solvesValue}</b></span>}<span>BY <b>{author.toUpperCase()}</b></span></div>
+  </header>
+  <div class={`page-grid article-layout${hasMath ? " article-layout--full-width" : ""} quest-wrap`}>
+    <article class="quest-article"><Fragment set:html={body} /><nav class="article-related" aria-label="Related writeups" set:html={related}></nav></article><Fragment set:html={sidebar} />
+  </div>
+</ArticleShell>

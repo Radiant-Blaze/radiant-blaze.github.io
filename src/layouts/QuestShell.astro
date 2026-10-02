@@ -1,0 +1,76 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  ogUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogType?: string;
+  viewport?: string;
+  currentPage?: "blog" | "ctf" | "search";
+  cssVersion?: string;
+  audio?: boolean;
+  spa?: boolean;
+  brandHref?: string;
+  pageLinkPrefix?: string;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  ogUrl = canonical,
+  ogTitle = title,
+  ogDescription = description,
+  ogType = "website",
+  viewport = "width=device-width,initial-scale=1.0",
+  currentPage,
+  cssVersion = "20260926-2",
+  audio = true,
+  spa = true,
+  brandHref = "../index.html",
+  pageLinkPrefix = "",
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en" class="dark-theme">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content={viewport} />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" content="#171329" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Radiant Blaze" />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
+    {ogUrl && <meta property="og:url" content={ogUrl} />}
+    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={ogDescription} />
+    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href={`/assets/css/style.css?v=${cssVersion}`} />
+    <script src="/assets/js/astro-controls.js" is:inline></script>
+    {spa && <script defer src="/assets/js/astro-navigation.js" is:inline></script>}
+    <slot name="headScripts" />
+  </head>
+  <body>
+    <main class="quest-screen">
+      <header class="quest-top quest-wrap">
+        <a class="quest-brand" href={brandHref}><span class="pixel-logo">RB</span>RADIANT BLAZE</a>
+        <nav class="quest-nav" aria-label="Blog navigation">
+          <a href={`${pageLinkPrefix}blog.html`} aria-current={currentPage === "blog" ? "page" : undefined}>BLOG</a><a href={`${pageLinkPrefix}ctf.html`} aria-current={currentPage === "ctf" ? "page" : undefined}>CTFS</a><a href={`${pageLinkPrefix}search.html`} aria-current={currentPage === "search" ? "page" : undefined}>SEARCH</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">☼</span></button>
+          {audio && <button class="theme-toggle audio-toggle" type="button" data-audio-toggle aria-pressed="false" aria-label="Play music"><span class="audio-icon" aria-hidden="true">♫</span></button>}
+        </nav>
+      </header>
+      <slot />
+    </main>
+    <slot name="pageScripts" />
+  </body>
+</html>

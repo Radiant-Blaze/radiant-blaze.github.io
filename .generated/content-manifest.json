@@ -1,0 +1,167 @@
+{
+  "manifest_version": 1,
+  "compiler": "radiant-blaze-content-build",
+  "sources": [
+    {
+      "source_path": "content/posts/linux/021-tiny-command-line-toolkit.md",
+      "sha256": "8777b6881a2e1f732332c727507d73cc88b13d73f3cf9c7a581e729f0d2295f9",
+      "generated_output": "generated/posts/linux/021-tiny-command-line-toolkit.html",
+      "compiler_version": "1.0.0",
+      "kind": "post"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall1-Great-Snakes.md",
+      "sha256": "1c4f21ed7be9beb00e97eb75a58081fe8148bc421a4092a78de130daf7cbe5fc",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall1-Great-Snakes.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall2-ASCII.md",
+      "sha256": "af899423f426195914ac64cbb19adb3e7e0f09e3c8022d49d351f023f542727d",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall2-ASCII.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall3-Hex.md",
+      "sha256": "05c3a91d607188dd9249da8199cd6a26901df82c304a5ba40deaa4a9a648a678",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall3-Hex.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall4-Base64.md",
+      "sha256": "cc4b36273a90949bd698d0eb01cac9620b8b259a3d22b11be07b0766f6d840af",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall4-Base64.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall5-Bytes-and-Big-Integers.md",
+      "sha256": "f5a193225ad0a70983ff1988ad197de39b0e40f6d439381f15d8b1c699fc247e",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall5-Bytes-and-Big-Integers.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall6-XOR-Starter.md",
+      "sha256": "a63f1fa9efd42170021c86c28c8452116f05c44349000dc42357d4ac4e90d3fd",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall6-XOR-Starter.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall7-XOR-Properties.md",
+      "sha256": "5724315fe6fff16a4d748a4029b9007e76c68e76abc2e4c16e56390ed414e68a",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall7-XOR-Properties.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall8-Favourite-byte.md",
+      "sha256": "16a9bf375c0b93702748d106f83306afc4ce162b04e4dcefe338122ec458eae2",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall8-Favourite-byte.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Introduction to CryptoHack/chall9-You-either-know-XOR-you-don't.md",
+      "sha256": "34e6756416cd5d5f186910ec1dfa9774655c47e5076b554a162ca04935ac1dea",
+      "generated_output": "generated/writeups/cryptohack-Introduction to CryptoHack/chall9-You-either-know-XOR-you-don't.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.md",
+      "sha256": "009260c676b268939c2d15b81bca48c93afe5e6d42788b951ef3e1bb88384c8f",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall2-Extended-GCD.md",
+      "sha256": "b341f2391f09f4962d2ac1615563fef9ad787541d04e48dcbc9d8215a5b61bb4",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall2-Extended-GCD.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall3-Modular-Arithmetic-1.md",
+      "sha256": "1a7d53feba92154c28cbd68c5fe62ca1aabf79fb32c2845f997f5f9253e0d6db",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall3-Modular-Arithmetic-1.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall4-Modular-Arithmetic-2.md",
+      "sha256": "ecc394acf315c1cae1d45eaf5a43356182f8b0fe8f4e1d052a95f9911da54265",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall4-Modular-Arithmetic-2.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall5-Modular-Inverting.md",
+      "sha256": "3852cb1fae539e3cfd120e314fd8088f67a5d9ac5ad3df182ac398b378915353",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall5-Modular-Inverting.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall6-Quadratic-Residues.md",
+      "sha256": "82d82dcfc81dbe45f04401004b2689975fc238804700ebac708f317103bf9cb4",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall6-Quadratic-Residues.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.md",
+      "sha256": "9ceb11f2f4cfcfb5bcfbcb66bc5b29cdedfe94e29e95b61c1fd7d482ca1035e2",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall8-Modular-Square-Root.md",
+      "sha256": "7d8dced667213fc93b54cc4fb93372afd74c92c6acd3aaf19cd93024371e95b2",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall8-Modular-Square-Root.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall9-Chinese-Remainder-Theorem.md",
+      "sha256": "a069abb5633be24c00eb59d43589ebaf3c16d231928f3b6e1cdc467177cf268d",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall9-Chinese-Remainder-Theorem.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall10-Adrien's-Signs.md",
+      "sha256": "b453adf3a098491e4cdf1f1eee6f797b644c28501caca53de4f7af895bbcf8ad",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall10-Adrien's-Signs.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/cryptohack-Modular-Arithmetic/chall11-Modular-Binomials.md",
+      "sha256": "33e306679ec13d8fcff7634cb147ef4e643035cd2586e397907da1db309ae49f",
+      "generated_output": "generated/writeups/cryptohack-Modular-Arithmetic/chall11-Modular-Binomials.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/ASIS-CTF-2026/Hackel.md",
+      "sha256": "8f89ee1a2e8943824f35a1f28025f3a8f8d57620e7d19b19ce70e956b1b73a71",
+      "generated_output": "generated/writeups/ASIS-CTF-2026/Hackel.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    },
+    {
+      "source_path": "content/ctfs/ASIS-CTF-2026/Headache.md",
+      "sha256": "7a912fbcf67f5344a10d928c4e98a8fc25944a954e7f0eb09a760906ef6ae16d",
+      "generated_output": "generated/writeups/ASIS-CTF-2026/Headache.html",
+      "compiler_version": "1.0.0",
+      "kind": "writeup"
+    }
+  ]
+}

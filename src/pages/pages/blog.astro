@@ -1,0 +1,62 @@
+---
+import { getRuntimeReadModel } from "../../lib/runtime-read-model";
+import { postCardHtml, socialLinksHtml } from "../../lib/listing-html";
+import QuestShell from "../../layouts/QuestShell.astro";
+
+const { posts, site } = await getRuntimeReadModel();
+const pageSize = 5;
+const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+const categories = [...new Set(posts.map((post) => post.category).filter(Boolean))].sort();
+const yearCounts = posts.reduce((counts, post) => {
+  const year = new Date(`${post.date}T00:00:00`).getFullYear();
+  counts.set(year, (counts.get(year) || 0) + 1);
+  return counts;
+}, new Map<number, number>());
+const postCards = posts.slice(0, pageSize).map(postCardHtml).join("");
+const pagination = Array.from({ length: totalPages }, (_, index) => {
+  const page = index + 1;
+  return `<a class="pixel-button start-button" href="${page === 1 ? "blog.html" : `blog.html?pg=${page}`}"${page === 1 ? ' aria-current="page"' : ""}>${page}</a>`;
+}).join("");
+---
+<QuestShell
+  title="MY Blogs · Radiant Blaze"
+  description="Dev posts on programming, Linux, security, and side projects."
+  canonical="https://radiant-blaze.github.io/pages/blog.html"
+  ogTitle="Quest Log · Radiant Blaze"
+  currentPage="blog"
+>
+  <section class="quest-hero quest-wrap">
+    <p class="eyebrow">PLAYER JOURNAL · ONLINE</p>
+    <h1 class="quest-title" data-category-title>My Blogs</h1>
+    <p class="quest-intro" data-category-intro>Field notes, build logs, and side missions collected along the Radiant Blaze adventure.</p>
+    <form class="search-form blog-search-form" action="blog.html" method="get" data-blog-search>
+      <input type="hidden" name="category" data-blog-search-category />
+      <label class="sr-only" for="blog-search">Search blog posts</label>
+      <input id="blog-search" type="search" name="q" placeholder="SEARCH BLOG POSTS" data-blog-search-input />
+      <button class="pixel-button start-button" type="submit">SEARCH</button>
+    </form>
+    <p class="record-count" data-blog-count>{posts.length} POST{posts.length === 1 ? "" : "S"} · PAGE 1 OF {totalPages}</p>
+  </section>
+  <div class="page-grid quest-wrap">
+    <section>
+      <div class="quest-list" data-quest-list data-category-dynamic aria-label="Available posts" set:html={postCards}></div>
+      <nav class="blog-pagination" data-blog-pagination aria-label="Blog post pages" set:html={pagination}></nav>
+    </section>
+    <aside class="sidebar">
+      <section class="pixel-panel">
+        <h2>PLAYER STATS</h2>
+        <ul class="stat-list"><li>LEVEL <strong>12</strong></li><li>QUESTS WRITTEN <strong>21</strong></li><li>XP EARNED <strong>8,750</strong></li><li>CURRENT STREAK <strong>7 DAYS</strong></li><li>COFFEE <strong>248</strong></li><li>GIT COMMITS <strong>1,604</strong></li><li>LANGUAGES <strong>7</strong></li></ul>
+      </section>
+      <section class="pixel-panel"><h2>SAVE FILES</h2><ul class="save-list" data-save-list>{[...yearCounts].sort(([left], [right]) => right - left).map(([year, count]) => <li><a href={`search.html?year=${year}`}>{year} <small>{count}</small></a></li>)}</ul></section>
+      <section class="pixel-panel"><h2>CATEGORIES</h2><nav class="region-list" data-category-list>{categories.map((name) => <a href={`blog.html?category=${encodeURIComponent(name)}`}>{name.toUpperCase()}</a>)}</nav></section>
+    </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="quest-wrap">
+      <p class="section-heading">PLAYER STATUS</p>
+      <div class="footer-stats"><span><b>LEVEL 12</b>PLAYER</span><span><b>8,750</b>XP</span><span><b>21</b>QUESTS COMPLETED</span><span><b>01,284</b>VISITORS</span><span><b>v1.0.0</b>CURRENT BUILD</span></div>
+      <nav class="social-links" data-social aria-label="Social links" set:html={socialLinksHtml(site.social)}></nav>
+    </div>
+  </footer>
+</QuestShell>
+<script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261002-1" is:inline></script>

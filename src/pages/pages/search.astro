@@ -1,0 +1,35 @@
+---
+import QuestShell from "../../layouts/QuestShell.astro";
+---
+<QuestShell
+  title="Search Database · Radiant Blaze"
+  description="Search the complete Radiant Blaze archive, including blog posts and CTF writeups."
+  canonical="https://radiant-blaze.github.io/pages/search.html"
+  ogTitle="Search · Radiant Blaze"
+  currentPage="search"
+>
+  <section class="quest-hero quest-wrap">
+    <p class="eyebrow">COMPLETE ARCHIVE · READY</p>
+    <h1 class="quest-title">SEARCH RECORDS</h1>
+    <form class="search-form" role="search">
+      <label class="sr-only" for="search-database">Search quest records</label>
+      <input data-search id="search-database" type="search" placeholder="Search posts, writeups, tools, tags..." />
+      <button class="pixel-button start-button" type="submit">SCAN →</button>
+    </form>
+    <div class="search-toolbar" aria-label="Search filters">
+      <div class="search-pills" data-search-filters>
+        <button type="button" class="filter-pill is-active" data-search-filter="all">ALL</button>
+        <button type="button" class="filter-pill" data-search-filter="posts">POSTS</button>
+        <button type="button" class="filter-pill" data-search-filter="writeups">WRITEUPS</button>
+      </div>
+      <div class="search-pills search-pills--topic" data-search-topics></div>
+    </div>
+    <p class="record-count" data-record-count>LOADING RECORDS...</p>
+  </section>
+  <div class="page-grid search-results quest-wrap">
+    <section class="quest-list" data-quest-list aria-live="polite"></section>
+    <nav class="search-pagination" data-search-pagination aria-label="Search result pages"></nav>
+  </div>
+  <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" data-social aria-label="Social links"></nav></div></footer>
+</QuestShell>
+<script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261002-1" is:inline></script>

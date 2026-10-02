@@ -1,0 +1,46 @@
+---
+import { getRuntimeReadModel } from "../../lib/runtime-read-model";
+import { ctfCardHtml, socialLinksHtml } from "../../lib/listing-html";
+import QuestShell from "../../layouts/QuestShell.astro";
+
+const { ctfs, site } = await getRuntimeReadModel();
+const pageSize = 5;
+const totalPages = Math.max(1, Math.ceil(ctfs.length / pageSize));
+const writeupCount = ctfs.reduce((total, ctf) => total + ctf.challengeCount, 0);
+const eventCards = ctfs.slice(0, pageSize).map(ctfCardHtml).join("");
+const pagination = Array.from({ length: totalPages }, (_, index) => {
+  const page = index + 1;
+  return `<a class="pixel-button start-button" href="${page === 1 ? "ctf.html" : `ctf.html?pg=${page}`}"${page === 1 ? ' aria-current="page"' : ""}>${page}</a>`;
+}).join("");
+const arenaSidebar = `<section class="pixel-panel"><h2>ARENA STATS</h2><ul class="stat-list"><li>EVENTS <strong>${ctfs.length}</strong></li><li>WRITEUPS <strong>${writeupCount}</strong></li></ul></section>`;
+---
+<QuestShell
+  title="CTF Arena · Radiant Blaze"
+  description="Capture-the-flag write-ups grouped by event — browse solved challenges from each competition."
+  canonical="https://radiant-blaze.github.io/pages/ctf.html"
+  ogTitle="CTF Arena · Radiant Blaze"
+  currentPage="ctf"
+>
+  <section class="quest-hero quest-wrap">
+    <p class="ctf-back" data-ctf-back></p>
+    <p class="eyebrow">CAPTURE LOG · ONLINE</p>
+    <h1 class="quest-title" data-ctf-title>CTF ARENA</h1>
+    <p class="quest-intro" data-ctf-intro>Capture-the-flag write-ups, grouped by event. Pick a competition to browse the challenges I cracked.</p>
+    <form class="search-form ctf-search-form" action="ctf.html" method="get" data-ctf-search>
+      <input type="hidden" name="ctf" data-ctf-search-scope />
+      <label class="sr-only" for="ctf-search">Search CTFs and challenges</label>
+      <input id="ctf-search" type="search" name="q" placeholder="SEARCH CTFS OR CHALLENGES" data-ctf-search-input />
+      <button class="pixel-button start-button" type="submit">SEARCH</button>
+    </form>
+    <p class="record-count" data-ctf-count>{ctfs.length} EVENT{ctfs.length === 1 ? "" : "S"} · {writeupCount} WRITEUP{writeupCount === 1 ? "" : "S"} · PAGE 1 OF {totalPages}</p>
+  </section>
+  <div class="page-grid quest-wrap">
+    <section>
+      <div class="quest-list" data-ctf-list aria-live="polite" set:html={eventCards}></div>
+      <nav class="ctf-pagination" data-ctf-pagination aria-label="CTF list pages" set:html={pagination}></nav>
+    </section>
+    <aside class="sidebar" data-ctf-aside set:html={arenaSidebar}></aside>
+  </div>
+  <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" data-social aria-label="Social links" set:html={socialLinksHtml(site.social)}></nav></div></footer>
+</QuestShell>
+<script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261002-1" is:inline></script>

@@ -207,12 +207,24 @@ const fetchText = async (url) => {
   return response.text();
 };
 
+const runtimeReadModels = new Map();
+const fetchRuntimeReadModel = (base) => {
+  const url = new URL(`${base}runtime-read-model.json`, location.href).href;
+  if (!runtimeReadModels.has(url)) {
+    runtimeReadModels.set(
+      url,
+      fetchJson(url).catch(() => null),
+    );
+  }
+  return runtimeReadModels.get(url);
+};
+
 // `base` is the relative path to the content/ directory for the calling page
 // (e.g. "content/" from the site root, "../content/" from pages/).
 //
 // `files` narrows the load to specific post bodies. Post bodies dwarf the rest
 // of the payload, so a page that renders one post should always pass it.
-export const loadData = async (base, files) => {
+const loadDataFromSources = async (base, files) => {
   const [site, index] = await Promise.all([
     fetchJson(`${base}site.json`),
     fetchJson(`${base}posts/index.json`),
@@ -225,6 +237,23 @@ export const loadData = async (base, files) => {
   return { site, posts };
 };
 
+export const loadData = async (base, files) => {
+  const model = await fetchRuntimeReadModel(base);
+  if (!model || !Array.isArray(model.posts) || !model.site) {
+    return loadDataFromSources(base, files);
+  }
+
+  const byFile = new Map(model.posts.map((post) => [post.file, post]));
+  const requestedFiles = files || model.posts.map((post) => post.file);
+  const posts = await Promise.all(
+    requestedFiles.map(async (file) => {
+      const post = byFile.get(file);
+      return post || parsePost(await fetchText(`${base}posts/${file}`), file);
+    }),
+  );
+  return { site: model.site, posts };
+};
+
 // Loads the CTF archive: site metadata plus events and their parsed challenge
 // writeups. Mirrors loadData's shape ({ site, ... }).
 //
@@ -233,7 +262,7 @@ export const loadData = async (base, files) => {
 // archive is every writeup body on the site, so pages that render one writeup
 // or one event must narrow. A missing event or challenge file is dropped rather
 // than fatal — callers render their own not-found state from the gap.
-export const loadCtfs = async (
+const loadCtfsFromSources = async (
   base,
   { events, challenges, challengePage, loadChallengeBodies = true } = {},
 ) => {
@@ -280,6 +309,52 @@ export const loadCtfs = async (
     .filter((result) => result.status === "fulfilled")
     .map((result) => result.value);
   return { site, ctfs };
+};
+
+export const loadCtfs = async (
+  base,
+  { events, challenges, challengePage, loadChallengeBodies = true } = {},
+) => {
+  const model = await fetchRuntimeReadModel(base);
+  if (!model || !Array.isArray(model.ctfs) || !model.site) {
+    return loadCtfsFromSources(base, { events, challenges, challengePage, loadChallengeBodies });
+  }
+
+  const byId = new Map(model.ctfs.map((ctf) => [ctf.id, ctf]));
+  const ids = events || model.ctfs.map((ctf) => ctf.id);
+  const requestedEvents = ids.map((id) => byId.get(id)).filter(Boolean);
+  if (
+    challenges &&
+    requestedEvents.some((ctf) => challenges.some((file) => !ctf.challengeFiles.includes(file)))
+  ) {
+    return loadCtfsFromSources(base, { events, challenges, challengePage, loadChallengeBodies });
+  }
+
+  const ctfs = requestedEvents.map((ctf) => {
+    const selectedChallenges = challenges || ctf.challengeFiles;
+    const pageSize =
+      challengePage && Math.max(1, challengePage.end - challengePage.start);
+    const pageStart =
+      challengePage && selectedChallenges.length
+        ? Math.min(
+            challengePage.start,
+            Math.floor((selectedChallenges.length - 1) / pageSize) * pageSize,
+          )
+        : challengePage?.start;
+    const pagedChallenges = challengePage
+      ? selectedChallenges.slice(pageStart, pageStart + pageSize)
+      : selectedChallenges;
+    const challengeByFile = new Map(ctf.challenges.map((challenge) => [challenge.file, challenge]));
+
+    return {
+      ...ctf,
+      challenges: loadChallengeBodies
+        ? pagedChallenges.map((file) => challengeByFile.get(file)).filter(Boolean)
+        : [],
+    };
+  });
+
+  return { site: model.site, ctfs };
 };
 
 const MATHJAX_SRC =

@@ -1,0 +1,27 @@
+{
+  "name": "radiant-blaze-astro-migration",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "parity": "python astro-tools/compare_output.py",
+    "check:phase3a": "python astro-tools/check_phase3a.py",
+    "check:json-compat": "python astro-tools/check_json_compat.py",
+    "check:json-compat:preview": "python astro-tools/check_json_compat.py --astro-url http://127.0.0.1:4322",
+    "test:renderer": "node --experimental-strip-types astro-tools/test-renderer.mjs",
+    "check:blog-projection": "node astro-tools/check_blog_projection.mjs",
+    "check:search-projection": "node astro-tools/check_search_projection.mjs",
+    "check:ctf-projection": "node astro-tools/check_ctf_projection.mjs",
+    "check:phase5h": "node astro-tools/check_phase5h.mjs",
+    "check:phase5i": "node astro-tools/check_phase5i.mjs",
+    "check:phase5j": "node astro-tools/check_phase5j.mjs",
+    "content": "python scripts/content-build.py",
+    "content:check": "python scripts/content-build.py --check",
+    "content:clean": "python scripts/content-build.py --clean"
+  },
+  "dependencies": {
+    "astro": "^7.3.5"
+  }
+}

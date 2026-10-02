@@ -1,0 +1,26 @@
+---
+import QuestShell from "../../layouts/QuestShell.astro";
+---
+<QuestShell
+  title="Search Records · Radiant Blaze"
+  description="The Radiant Blaze archive is now part of Search Records."
+  canonical="https://radiant-blaze.github.io/pages/search.html"
+  ogTitle="Archive · Radiant Blaze"
+  ogDescription="Browse every Radiant Blaze post by year and month."
+  currentPage="search"
+  audio={false}
+  spa={false}
+>
+  <meta slot="headScripts" http-equiv="refresh" content="0; url=search.html" />
+  <script slot="headScripts" is:inline>location.replace(`search.html${location.search}`);</script>
+  <section class="quest-hero quest-wrap">
+    <p class="eyebrow">SAVE HISTORY</p>
+    <h1 class="quest-title" data-archive-title>ARCHIVE</h1>
+    <p class="quest-intro" data-archive-intro>Every logged expedition, sorted by the month it was completed.</p>
+  </section>
+  <div class="page-grid quest-wrap">
+    <section class="quest-list" data-archive-list></section>
+    <aside class="sidebar"><section class="pixel-panel"><h2>ALL CATEGORIES</h2><nav class="region-list" data-category-list></nav></section></aside>
+  </div>
+  <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" data-social aria-label="Social links"></nav></div></footer>
+</QuestShell>

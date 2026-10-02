@@ -1,0 +1,43 @@
+---
+import { getOrderedArticles, postRoute } from "../../../lib/article-data";
+import { getPostPresentation } from "../../../lib/article-metadata";
+import ArticleShell from "../../../layouts/ArticleShell.astro";
+import { encodePath, escapeHtml, formatDate, renderMarkdown } from "../../../lib/markdown";
+
+export async function getStaticPaths() {
+  const { posts } = await getOrderedArticles();
+  return posts.map(({ entry }) => ({
+    params: { path: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const post = entry.data;
+const { title, description, category, tags, author, estimatedPlayTime } = getPostPresentation(post);
+const route = postRoute(entry.id);
+const body = renderMarkdown(entry.body ?? "");
+const related = [
+  `<a href="/pages/blog.html?category=${encodePath(category)}">MORE ${escapeHtml(category).toUpperCase()} POSTS</a>`,
+  ...tags.slice(0, 2).map((tag) =>
+    `<a href="/pages/search.html?topic=${encodePath(tag.toLowerCase())}">MORE ${escapeHtml(tag).toUpperCase()}</a>`,
+  ),
+].join("");
+const tagsHtml = tags
+  .map((tag) => `<a href="/pages/search.html?topic=${encodePath(tag.toLowerCase())}"># ${escapeHtml(tag).toUpperCase()}</a>`)
+  .join("");
+---
+<ArticleShell title={`${title} · Radiant Blaze`} description={description} canonical={`https://radiant-blaze.github.io${route}`} type="post">
+  <header class="article-header quest-wrap">
+    <p class="quest-number">POST · {category.toUpperCase()}</p>
+    <h1 class="quest-title">{title.toUpperCase()}</h1>
+    <div class="article-info"><span>READ TIME: <b>{estimatedPlayTime.toUpperCase()}</b></span><span>{formatDate(post.date)}</span><span>BY <b>{author.toUpperCase()}</b></span></div>
+  </header>
+  <div class="page-grid article-layout quest-wrap">
+    <article class="quest-article"><Fragment set:html={body} /><nav class="article-related" aria-label="Related content" set:html={related}></nav></article>
+    <aside class="sidebar">
+      <section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>ARTICLE</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section>
+      <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list" set:html={tagsHtml}></nav></section>
+    </aside>
+  </div>
+</ArticleShell>
