@@ -24,7 +24,9 @@
   const navigate = async (url, { push = true, scrollY = 0 } = {}) => {
     if (navigating) return;
     navigating = true;
+    window.RadiantBlazePageLoader?.show();
     document.documentElement.classList.add("is-navigating");
+    let fullNavigation = false;
 
     try {
       const response = await fetch(url.href, { headers: { "X-Requested-With": "spa" } });
@@ -45,10 +47,12 @@
       if (url.hash && !scrollY) document.querySelector(url.hash)?.scrollIntoView();
     } catch (error) {
       // Fall back to a normal navigation if a page cannot be swapped safely.
+      fullNavigation = true;
       location.href = url.href;
     } finally {
       navigating = false;
       document.documentElement.classList.remove("is-navigating");
+      if (!fullNavigation) window.RadiantBlazePageLoader?.hide();
     }
   };
 

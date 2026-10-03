@@ -1,0 +1,2 @@
+npm run dev                 -> start server     (take min or so)
+npm exec astro dev stop     -> stop the server  (take min or so)

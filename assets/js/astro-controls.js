@@ -11,16 +11,14 @@
     root.classList.toggle("light-theme", light);
     root.classList.toggle("dark-theme", !light);
     document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
-      const icon = button.querySelector(".theme-icon");
-      if (icon) icon.textContent = light ? "\u263e" : "\u263c";
-      button.setAttribute("aria-pressed", String(light));
+      button.checked = light;
       button.setAttribute("aria-label", `Switch to ${light ? "dark" : "light"} theme`);
     });
   };
 
   const updateAudioButtons = () => {
     document.querySelectorAll("[data-audio-toggle]").forEach((button) => {
-      button.setAttribute("aria-pressed", String(isPlaying));
+      button.checked = isPlaying;
       button.setAttribute("aria-label", isPlaying ? "Pause music" : "Play music");
     });
   };
@@ -61,15 +59,17 @@
       updateAudioButtons();
     });
 
-    document.addEventListener("click", async (event) => {
-      if (event.target.closest("[data-theme-toggle]")) {
-        const next = root.classList.contains("light-theme") ? "dark" : "light";
+    document.addEventListener("change", async (event) => {
+      const themeToggle = event.target.closest("[data-theme-toggle]");
+      if (themeToggle) {
+        const next = themeToggle.checked ? "light" : "dark";
         localStorage.setItem(THEME_KEY, next);
         applyTheme(next);
         return;
       }
-      if (!event.target.closest("[data-audio-toggle]")) return;
-      if (isPlaying) {
+      const toggle = event.target.closest("[data-audio-toggle]");
+      if (!toggle) return;
+      if (!toggle.checked) {
         window.clearInterval(loopId);
         isPlaying = false;
         localStorage.setItem(MUSIC_KEY, "false");

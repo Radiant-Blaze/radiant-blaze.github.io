@@ -34,16 +34,17 @@
   addEventListener("DOMContentLoaded", () => {
     const updateButtons = () => {
       document.querySelectorAll("[data-audio-toggle]").forEach((button) => {
-        button.setAttribute("aria-pressed", String(isPlaying));
+        button.checked = isPlaying;
         button.setAttribute("aria-label", isPlaying ? "Pause music" : "Play music");
       });
     };
 
     addEventListener("radiantblaze:contentchange", updateButtons);
 
-    document.addEventListener("click", async (event) => {
-      if (!event.target.closest("[data-audio-toggle]")) return;
-      if (isPlaying) {
+    document.addEventListener("change", async (event) => {
+      const toggle = event.target.closest("[data-audio-toggle]");
+      if (!toggle) return;
+      if (!toggle.checked) {
         window.clearInterval(loopId);
         isPlaying = false;
         localStorage.setItem(KEY, "false");

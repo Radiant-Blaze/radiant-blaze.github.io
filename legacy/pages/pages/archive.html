@@ -26,7 +26,8 @@
       type="font/woff2"
       crossorigin
     />
-    <link rel="stylesheet" href="../assets/css/style.css?v=20260926-2" />
+    <link rel="stylesheet" href="../assets/css/style.css?v=20261002-15" />
+    <script defer src="../assets/js/page-loader.js"></script>
     <script src="../assets/js/theme.js"></script>
     <script>
       location.replace(`search.html${location.search}`);
@@ -34,25 +35,17 @@
   </head>
   <body>
     <main class="quest-screen">
-      <header class="quest-top quest-wrap">
-        <a class="quest-brand" href="../index.html"
-          ><span class="pixel-logo">RB</span>RADIANT BLAZE</a
-        >
-        <nav class="quest-nav" aria-label="Blog navigation">
-          <a href="blog.html">BLOG</a
-          ><a href="ctf.html">CTFS</a
-          ><a aria-current="page" href="search.html">SEARCH</a>
-          <button
-            class="theme-toggle"
-            type="button"
-            data-theme-toggle
-            aria-pressed="false"
-            aria-label="Switch to light theme"
-          >
-            <span class="theme-icon" aria-hidden="true">☼</span>
-          </button>
-        </nav>
-      </header>
+      <header class="quest-top quest-wrap site-header">
+        <a class="quest-brand" href="../index.html"><span class="pixel-logo">RB</span><span class="brand-copy"><span class="brand-title">RADIANT BLAZE</span><span class="brand-caption">QUEST LOG / FIELD HQ</span></span></a>
+        <div class="quest-nav-group">
+        <nav class="quest-nav" id="primary-site-nav" aria-label="Blog navigation">
+          <a href="blog.html" data-nav-index="01">BLOG</a><a href="ctf.html" data-nav-index="02">CTFS</a><a aria-current="page" href="search.html" data-nav-index="03">SEARCH</a>
+
+</nav>
+        <div class="top-controls quest-nav-tools"><input class="theme-checkbox" id="theme-toggle-checkbox" type="checkbox" data-theme-toggle aria-label="Switch to light theme" />
+          <label class="theme-switch" for="theme-toggle-checkbox" aria-hidden="true"><span class="theme-switch-thumb"><svg class="sun-icon" viewBox="0 0 16 16"><path d="M7 0h2v3H7zM7 13h2v3H7zM0 7h3v2H0zM13 7h3v2h-3zM2 2h2v2H2zM12 2h2v2h-2zM2 12h2v2H2zM12 12h2v2h-2zM5 5h6v6H5z" /></svg><svg class="moon-icon" viewBox="0 0 24 24"><path d="M19.8 15.1A9.4 9.4 0 0 1 8.9 4.2 9.6 9.6 0 1 0 19.8 15.1Z" /><path d="M17 3v4M15 5h4M6 2v3M4.5 3.5h3M20 9v3M18.5 10.5h3" /></svg></span></label><button class="mobile-menu-toggle" data-mobile-menu-toggle type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="primary-site-nav"><span class="menu-wrapper" aria-hidden="true"><span class="menu-row menu-row-top"><span class="menu-dot"></span><span class="menu-dot"></span></span><span class="menu-row menu-row-bottom"><span class="menu-dot"></span><span class="menu-dot"></span></span><span class="menu-row menu-row-horizontal"><span class="menu-dot"></span><span class="menu-dot menu-dot-horizontal"></span><span class="menu-dot"></span></span><span class="menu-row menu-row-vertical"><span class="menu-dot"></span><span class="menu-dot menu-dot-vertical"></span><span class="menu-dot"></span></span></span></button></div>
+        </div>
+</header>
       <section class="quest-hero quest-wrap">
         <p class="eyebrow">SAVE HISTORY</p>
         <h1 class="quest-title" data-archive-title>ARCHIVE</h1>

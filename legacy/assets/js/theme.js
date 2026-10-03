@@ -9,9 +9,7 @@
     root.classList.toggle("light-theme", light);
     root.classList.toggle("dark-theme", !light);
     document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
-      const icon = button.querySelector(".theme-icon");
-      if (icon) icon.textContent = light ? "\u263e" : "\u263c";
-      button.setAttribute("aria-pressed", String(light));
+      button.checked = light;
       button.setAttribute(
         "aria-label",
         `Switch to ${light ? "dark" : "light"} theme`,
@@ -27,9 +25,10 @@
     addEventListener("radiantblaze:contentchange", () =>
       apply(root.classList.contains("light-theme") ? "light" : "dark"),
     );
-    document.addEventListener("click", (event) => {
-      if (!event.target.closest("[data-theme-toggle]")) return;
-      const next = root.classList.contains("light-theme") ? "dark" : "light";
+    document.addEventListener("change", (event) => {
+      const toggle = event.target.closest("[data-theme-toggle]");
+      if (!toggle) return;
+      const next = toggle.checked ? "light" : "dark";
       localStorage.setItem(KEY, next);
       apply(next);
     });
