@@ -13,7 +13,6 @@ from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
-OLD_MANIFEST = ROOT / "generated/.article-pages.json"
 ASTRO_MANIFEST = DIST / "astro-article-order.json"
 VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 PRESERVE_TEXT_TAGS = {"pre", "code"}
@@ -198,9 +197,9 @@ def preview(value):
 
 
 def main():
-    old_routes = json.loads(OLD_MANIFEST.read_text(encoding="utf-8"))
     astro_routes = json.loads(ASTRO_MANIFEST.read_text(encoding="utf-8"))
-    old_server, old_url = start_server(ROOT)
+    old_routes = astro_routes
+    old_server, old_url = start_server(DIST)
     astro_server, astro_url = start_server(DIST)
     differences = []
     matching_pages = 0

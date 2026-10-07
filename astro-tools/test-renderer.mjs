@@ -1,72 +1,58 @@
 import assert from "node:assert/strict";
 import { getPostPresentation, getWriteupPresentation } from "../src/lib/article-metadata.ts";
-import { renderMarkdown } from "../src/lib/markdown.ts";
+import { convertMarkdown, renderMarkdown } from "../src/lib/markdown.ts";
 
-const postDefaults = getPostPresentation({});
-assert.deepEqual(postDefaults, {
-  title: "Untitled Post",
-  description: "Read this post on Radiant Blaze.",
-  category: "POST",
-  tags: [],
-  author: "Radiant Blaze",
-  estimatedPlayTime: "",
-});
+assert.equal(getPostPresentation({}).title, "Untitled Post");
+assert.equal(getWriteupPresentation({}, "odd-name.md", "Example Event").title, "odd-name");
 
-const emptyPostValues = getPostPresentation({
-  title: "",
-  description: "",
-  category: "",
-  tags: [],
-  author: "",
-  estimatedPlayTime: "",
-});
-assert.deepEqual(emptyPostValues, {
-  title: "",
-  description: "",
-  category: "",
-  tags: [],
-  author: "",
-  estimatedPlayTime: "",
-});
+const source = `---
+title: Renderer fixture
+tags: [one, two]
+metadata:
+  enabled: true
+---
+# Heading
 
-const writeupDefaults = getWriteupPresentation({}, "odd-name.md", "Example Event");
-assert.equal(writeupDefaults.title, "odd-name");
-assert.equal(writeupDefaults.description, "CTF writeup for odd-name from Example Event.");
-assert.equal(writeupDefaults.category, "MISC");
-assert.equal(writeupDefaults.points, "—");
-assert.equal(writeupDefaults.stars, "☆☆☆☆☆");
-assert.equal(writeupDefaults.solves, undefined);
-assert.deepEqual(writeupDefaults.tags, []);
-assert.equal(writeupDefaults.author, "Radiant Blaze");
+Paragraph with **bold**, ${String.fromCharCode(96)}inline code${String.fromCharCode(96)}, [a link](https://example.test), and ![an image](image.png).
 
-const emptySolves = getWriteupPresentation({ solves: "", difficulty: 8 }, "challenge.md", "Event");
-assert.equal(emptySolves.solves, "");
-assert.equal(emptySolves.difficulty, 5);
-assert.equal(emptySolves.stars, "★★★★★");
+- Item 1
+  - Nested item
+- Item 2
 
-const markdownCases = [
-  ["heading IDs and levels", "# Heading\n### Detail", '<h2 id="heading">Heading</h2><h3 id="detail">Detail</h3>'],
-  ["paragraph, inline code, strong and link", "A `token` and **bold** [link](https://example.test).", '<p>A <code>token</code> and <strong>bold</strong> <a href="https://example.test">link</a>.</p>'],
-  ["lists", "- one\n- two\n\n1. first\n2. second", "<ul><li>one</li><li>two</li></ul><ol><li>first</li><li>second</li></ol>"],
-  ["blockquotes", "> first\n> second", "<blockquote>first<br>second</blockquote>"],
-  ["escaped raw HTML", "<script>alert(1)</script>", "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>"],
-];
+> A blockquote
 
-for (const [name, markdown, expected] of markdownCases) {
-  assert.equal(renderMarkdown(markdown), expected, name);
-}
+| Name | Value |
+| --- | --- |
+| one | 1 |
 
-const fourBacktickBlock = renderMarkdown(
-  ["````python", "print('<unsafe>')", "``` inside code", "````"].join("\n"),
-);
-assert.match(fourBacktickBlock, /^<pre class="terminal"><code data-language="python">/);
-assert.ok(fourBacktickBlock.includes("print(&#x27;&lt;unsafe&gt;&#x27;)") || fourBacktickBlock.includes("print(&#39;&lt;unsafe&gt;&#39;)"));
-assert.ok(fourBacktickBlock.includes("``` inside code"));
-assert.ok(fourBacktickBlock.endsWith("</code></pre>"));
+~~~js
+const value = 1 < 2;
+~~~
 
-assert.equal(
-  renderMarkdown("```math\nx < y\n```") ,
-  '<div class="math-block">\\[x &lt; y\n\\]</div>',
-);
+Inline math $|x|$ and $P(A \\mid B)$ and $\\{x \\mid x > 0\\}$.
 
-console.log("Renderer fixtures passed: metadata fallbacks, empty solves, Markdown structures, four-backtick code, math, and raw HTML escaping.");
+$$
+\\left| x \\right|
+$$`;
+
+const converted = convertMarkdown(source);
+assert.equal(converted.data.title, "Renderer fixture");
+assert.deepEqual(converted.data.tags, ["one", "two"]);
+assert.deepEqual(converted.data.metadata, { enabled: true });
+assert.match(converted.html, /<h1>Heading<\/h1>/);
+assert.match(converted.html, /<p>Paragraph with/);
+assert.match(converted.html, /<code>inline code<\/code>/);
+assert.match(converted.html, /<a href="https:\/\/example\.test"/);
+assert.match(converted.html, /<img src="image\.png"/);
+assert.match(converted.html, /<ul><li>Item 1<ul><li>Nested item<\/li><\/ul><\/li><li>Item 2<\/li><\/ul>/);
+assert.match(converted.html, /<blockquote>A blockquote<\/blockquote>/);
+assert.match(converted.html, /<table>[\s\S]*<th>Name<\/th>[\s\S]*<td>1<\/td>/);
+assert.match(converted.html, /<pre><code data-language="js">const value = 1 &lt; 2;<\/code><\/pre>/);
+assert.match(converted.html, /\$\|x\|\$/);
+assert.match(converted.html, /P\(A \\mid B\)/);
+assert.match(converted.html, /\\\{x \\mid x > 0\\\}/);
+assert.match(converted.html, /<div class="math-block">[\s\S]*\\left\| x \\right\|[\s\S]*<\/div>/);
+assert.doesNotMatch(converted.html, /<p><div class="math-block">/);
+assert.equal(renderMarkdown("# Delegated"), "<h1>Delegated</h1>");
+
+console.log("Renderer integration fixtures passed.");

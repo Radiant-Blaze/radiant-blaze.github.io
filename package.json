@@ -7,21 +7,25 @@
     "build": "astro build",
     "preview": "astro preview",
     "parity": "python astro-tools/compare_output.py",
-    "check:phase3a": "python astro-tools/check_phase3a.py",
     "check:json-compat": "python astro-tools/check_json_compat.py",
     "check:json-compat:preview": "python astro-tools/check_json_compat.py --astro-url http://127.0.0.1:4322",
     "test:renderer": "node --experimental-strip-types astro-tools/test-renderer.mjs",
+    "test:converter": "node --experimental-strip-types astro-tools/test-markdown-converter.mjs",
+    "test:real-content": "node --experimental-strip-types astro-tools/test-real-content.mjs",
     "check:blog-projection": "node astro-tools/check_blog_projection.mjs",
     "check:search-projection": "node astro-tools/check_search_projection.mjs",
     "check:ctf-projection": "node astro-tools/check_ctf_projection.mjs",
     "check:phase5h": "node astro-tools/check_phase5h.mjs",
     "check:phase5i": "node astro-tools/check_phase5i.mjs",
     "check:phase5j": "node astro-tools/check_phase5j.mjs",
-    "content": "python scripts/content-build.py",
-    "content:check": "python scripts/content-build.py --check",
-    "content:clean": "python scripts/content-build.py --clean"
+    "content:sync": "node astro-tools/content-sync/index.mjs",
+    "content:check": "node astro-tools/content-sync/index.mjs --check",
+    "test:content-sync": "node astro-tools/content-sync/test.mjs"
+    ,"test:astro-route-parity": "node astro-tools/test-astro-route-parity.mjs",
+    "test:compatibility-assets": "node astro-tools/test-compatibility-assets.mjs"
   },
   "dependencies": {
-    "astro": "^7.3.5"
+    "astro": "^7.3.5",
+    "js-yaml": "^4.3.2"
   }
 }

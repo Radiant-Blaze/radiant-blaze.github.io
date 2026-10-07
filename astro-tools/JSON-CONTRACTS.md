@@ -38,9 +38,9 @@ These semantics remain owned by the existing JavaScript. Astro-generated page HT
 
 | Artifact | Producer | Consumer | Current status |
 |---|---|---|---|
-| `generated/.article-pages.json`: ordered `string[]` of generated paths relative to repository root. | `generate_sitemap.py`. | The Python generator removes stale output paths listed here; `compare_output.py` uses it as the baseline route/order manifest. No browser JS fetches it. | Keep with the fallback generator and parity tests. |
-| `sitemap.xml`: XML `<urlset>` of homepage, archive shells, article URLs, and event-query URLs. | `generate_sitemap.py`. | `robots.txt`, search crawlers, and the current static deployment. | Astro now generates a byte-identical `dist/sitemap.xml`; the checked-in legacy file remains untouched. |
-| `dist/astro-article-order.json`: ordered route `string[]`. | Astro endpoint from the collections plus legacy order indexes. | `compare_output.py` compares it to `.article-pages.json`. | Test-only Astro output; not fetched by the browser. It can be retired after route-order parity no longer needs this endpoint. |
+| `generated/.article-pages.json`: retired legacy route manifest. | None in the Astro workflow. | Historical artifact only; Astro uses `dist/astro-article-order.json`. | Retired with the Python compiler. |
+| `sitemap.xml`: XML `<urlset>` of homepage, archive shells, article URLs, and event-query URLs. | `src/pages/sitemap.xml.ts`. | `robots.txt` and search crawlers consume the deployed `/sitemap.xml`. | Astro owns the generated sitemap; no checked-in source copy is required. |
+| `dist/astro-article-order.json`: ordered route `string[]`. | Astro endpoint from the collections and content indexes. | Route parity tooling and future deployment checks. | Current authoritative article/writeup order metadata. |
 
 ## Runtime Contract and Replacement Boundary
 

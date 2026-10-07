@@ -32,7 +32,7 @@ const resolveSource = (pathname) => {
   const legacyJsPrefix = "/legacy/assets/js/";
   if (pathname.startsWith(legacyJsPrefix)) {
     const filename = pathname.slice(legacyJsPrefix.length);
-    if (legacyFallbackFiles.includes(filename)) return path.join(root, "legacy", "assets", "js", filename);
+    if (legacyFallbackFiles.includes(filename)) return path.join(root, "compat", "legacy-assets", "js", filename);
     if (filename === "list-utils.js") return path.join(root, "assets", "js", filename);
     return null;
   }
@@ -97,7 +97,7 @@ export function sourceAssetsIntegration() {
         await mkdir(legacyJsOutput, { recursive: true });
         await Promise.all([
           ...legacyFallbackFiles.map((file) =>
-            copyFile(path.join(root, "legacy", "assets", "js", file), path.join(legacyJsOutput, file)),
+            copyFile(path.join(root, "compat", "legacy-assets", "js", file), path.join(legacyJsOutput, file)),
           ),
           copyFile(path.join(root, "assets", "js", "list-utils.js"), path.join(legacyJsOutput, "list-utils.js")),
         ]);
