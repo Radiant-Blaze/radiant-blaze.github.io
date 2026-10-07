@@ -1,0 +1,14 @@
+
+> dev
+> astro dev --host 127.0.0.1
+
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"Generated 1ms","label":"types","level":"info"}
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"require is not defined","label":"content","level":"error"}
+{"message":"Content config not loaded","label":"content","level":"warn"}
+{"message":"Re-optimizing dependencies because vite config has changed","label":"vite","level":"info"}
+{"message":" astro  v7.3.5 ready in 4479 ms\n┃ Local    http://127.0.0.1:4321/","label":"SKIP_FORMAT","level":"info"}
+{"message":"watching for file changes...","label":null,"level":"info"}
+{"message":"Failed to create the dev server app: require is not defined","label":null,"level":"error"}
+^CTerminate batch job (Y/N)? 

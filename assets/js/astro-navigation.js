@@ -11,7 +11,7 @@
     !(url.pathname === location.pathname && url.search === location.search);
 
   const runPageModules = async (documentToRead, pageUrl) => {
-    const modules = [...documentToRead.querySelectorAll('body script[type="module"][src]')];
+    const modules = [...documentToRead.querySelectorAll('script[type="module"][src]')];
     for (const module of modules) {
       const source = new URL(module.getAttribute("src"), pageUrl);
       source.searchParams.set("spa", Date.now().toString());
@@ -33,6 +33,9 @@
       const nextMain = nextDocument.querySelector("main");
       const currentMain = document.querySelector("main");
       if (!nextMain || !currentMain) throw new Error("Page content is missing");
+
+      const currentArticle = currentMain.querySelector(".quest-article, [data-writeup], [data-markdown-post]");
+      if (currentArticle) window.MathJax?.typesetClear?.([currentArticle]);
 
       if (push) history.replaceState({ scrollY: window.scrollY }, "", location.href);
       currentMain.replaceWith(nextMain);

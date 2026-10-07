@@ -266,7 +266,7 @@ const renderPostArticle = (article, post) => {
   if (header) header.innerHTML = `<p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h1 class="quest-title">${escapeHtml(post.title).toUpperCase()}</h1><div class="article-info"><span>READ TIME: <b>${escapeHtml(post.estimatedPlayTime).toUpperCase()}</b></span><span>${formatDate(post.date)}</span><span>BY <b>${escapeHtml(post.author).toUpperCase()}</b></span></div>`;
   const tags = document.querySelector("[data-post-tags]");
   if (tags) tags.innerHTML = (post.tags || []).map((tag) => `<a href="search.html?topic=${encodeURIComponent(tag.toLowerCase())}"># ${escapeHtml(tag).toUpperCase()}</a>`).join("");
-  typesetMath();
+  typesetMath(article);
 };
 
 const clampDifficulty = (value) => Math.max(0, Math.min(5, parseInt(value, 10) || 0));
@@ -422,7 +422,7 @@ const renderWriteup = (ctf, challengeFile) => {
     layout.insertAdjacentHTML("beforeend", `<aside class="sidebar"><section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section><section class="pixel-panel">${challengeMeta(ctf, challenge)}</section><section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">${tags}</nav></section></aside>`);
     initReadingProgress();
   }
-  typesetMath();
+  typesetMath(article);
 };
 
 const renderCtf = (model) => {

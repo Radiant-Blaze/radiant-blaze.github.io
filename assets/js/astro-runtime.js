@@ -160,8 +160,8 @@ export const markdownToHtml = (markdown) => {
 const MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
 let mathJaxReady;
 
-export const typesetMath = () => {
-  if (!document.querySelector(".math-block") && !/\$[^\n$]+\$|\\\([^\n]+\\\)/.test(document.body.textContent)) return Promise.resolve();
+export const typesetMath = (root = document.querySelector(".quest-article, [data-writeup], [data-markdown-post]")) => {
+  if (!root || (!root.querySelector(".math-block") && !/\$[^\n$]+\$|\\\([^\n]+\\\)/.test(root.textContent || ""))) return Promise.resolve();
   if (!mathJaxReady) {
     window.MathJax = {
       tex: { inlineMath: [["$", "$"], ["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
@@ -176,7 +176,7 @@ export const typesetMath = () => {
     });
   }
   return mathJaxReady
-    .then(() => window.MathJax?.typesetPromise?.([document.body]))
+    .then(() => window.MathJax?.typesetPromise?.([root]))
     .catch(() => {});
 };
 
