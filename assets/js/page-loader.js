@@ -30,6 +30,10 @@
 
   window.RadiantBlazePageLoader = Object.freeze({ show, hide });
 
+  // Keep the initial document behind the same loader used for navigation.
+  // Article pages remove it only after their page module has finished setup.
+  show();
+
   const setMenuOpen = (button, open) => {
     const header = button.closest(".site-header");
     const menu = document.getElementById(button.getAttribute("aria-controls"));
@@ -104,5 +108,10 @@
     show();
   });
 
-  addEventListener("pageshow", hide);
+  addEventListener("pageshow", () => {
+    // Article initialization owns the reveal because it may need to await
+    // MathJax. All other pages are ready once the browser has restored them.
+    if (document.querySelector('script[src*="/assets/js/astro-article.js"]')) return;
+    hide();
+  });
 })();

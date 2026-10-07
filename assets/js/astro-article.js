@@ -1,4 +1,8 @@
 import { initReadingProgress, typesetMath } from "./astro-runtime.js";
 
 initReadingProgress();
-typesetMath();
+try {
+  await typesetMath();
+} finally {
+  window.RadiantBlazePageLoader?.hide();
+}

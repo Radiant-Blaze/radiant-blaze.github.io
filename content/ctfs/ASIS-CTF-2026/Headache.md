@@ -24,11 +24,7 @@ The secrets are regenerated for every round.
 
 We are given an `eval` oracle that evaluates the hidden function on attacker-controlled matrices and a `challenge` command that provides six unknown test sequences.
 
-To authenticate a round, we must submit predictions for those six sequences with an error smaller than:
-
-```text
-1e-6
-```
+To authenticate a round, we must submit predictions for those six sequences with an error smaller than $1 \times 10^{-6}$.
 
 There are seven rounds in total.
 
@@ -523,11 +519,7 @@ cost=...
 maxerr=1.7764e-15
 ```
 
-which is effectively exact compared with the server's tolerance of:
-
-```text
-1e-6
-```
+which is effectively exact compared with the server's tolerance of $1 \times 10^{-6}$.
 
 ---
 

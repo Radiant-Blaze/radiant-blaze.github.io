@@ -53,6 +53,13 @@ assert.match(converted.html, /P\(A \\mid B\)/);
 assert.match(converted.html, /\\\{x \\mid x > 0\\\}/);
 assert.match(converted.html, /<div class="math-block">[\s\S]*\\left\| x \\right\|[\s\S]*<\/div>/);
 assert.doesNotMatch(converted.html, /<p><div class="math-block">/);
+
+const fencedMath = convertMarkdown("```math\np_i = \\frac{e^{z_i}}{\\sum_j e^{z_j}}\n```");
+assert.match(fencedMath.html, /<div class="math-block">[\s\S]*\\\[p_i = \\frac\{e\^\{z_i\}\}\{\\sum_j e\^\{z_j\}\}[\s\S]*\\\]<\/div>/);
+assert.doesNotMatch(fencedMath.html, /<p><div class="math-block">/);
+assert.match(convertMarkdown("The error is 1e-6.").html, /\$1 \\times 10\^{-6\}\$/);
+assert.equal(convertMarkdown("```text\n1e-6\n```").html, '<pre><code data-language="text">1e-6</code></pre>');
+assert.equal(convertMarkdown("Existing $1e-6$ stays math.").html, '<p>Existing <span class="math-inline">$1e-6$</span> stays math.</p>');
 assert.equal(renderMarkdown("# Delegated"), "<h1>Delegated</h1>");
 
 console.log("Renderer integration fixtures passed.");

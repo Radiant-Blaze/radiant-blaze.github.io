@@ -18,7 +18,13 @@ export function convertMarkdown(source: string): ConvertedMarkdown {
       const marker = fence[2][0], size = fence[2].length, lang = fence[3].trim(); i++;
       const code: string[] = [];
       while (i < lines.length && !new RegExp(`^\\s*${marker}{${size},}\\s*$`).test(lines[i])) code.push(lines[i++]);
-      i++; output.push(`<pre><code${lang ? ` data-language="${escapeHtml(lang)}"` : ""}>${code.join("\n")}</code></pre>`); continue;
+      i++;
+      if (lang.toLowerCase() === "math") {
+        output.push(`<div class="math-block">\\[${code.join("\n")}\\]</div>`);
+      } else {
+        output.push(`<pre><code${lang ? ` data-language="${escapeHtml(lang)}"` : ""}>${code.join("\n")}</code></pre>`);
+      }
+      continue;
     }
     const heading = /^(#{1,6})\s+(.+)$/.exec(line);
     if (heading) { const text = inline(heading[2]); output.push(`<h${heading[1].length}>${text}</h${heading[1].length}>`); i++; continue; }
@@ -31,7 +37,17 @@ export function convertMarkdown(source: string): ConvertedMarkdown {
 }
 
 function inline(value: string) {
-  return value.replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/!\[([^\]]*)\]\((\S+?)(?:\s+['\"]([^'\"]*)['\"])?\)/g, '<img src="$2" alt="$1"$3 title="$3" />').replace(/\[([^\]]+)\]\((\S+?)(?:\s+['\"]([^'\"]*)['\"])?\)/g, '<a href="$2"$3 title="$3">$1</a>').replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
+  const protectedValues: string[] = [];
+  const protect = (html: string) => `\u0000INLINE${protectedValues.push(html) - 1}\u0000`;
+  const protectedValue = value
+    .replace(/`([^`\n]+)`/g, (_, code) => protect(`<code>${code}</code>`))
+    .replace(/!\[([^\]]*)\]\((\S+?)(?:\s+['\"]([^'\"]*)['\"])?\)/g, (_, alt, href, title) => protect(`<img src="${href}" alt="${alt}"${title ? ` title="${title}"` : ""} />`))
+    .replace(/\[([^\]]+)\]\((\S+?)(?:\s+['\"]([^'\"]*)['\"])?\)/g, (_, text, href, title) => protect(`<a href="${href}"${title ? ` title="${title}"` : ""}>${text}</a>`));
+  return protectedValue
+    .replace(/(?<![\w.])([+-]?\d+(?:\.\d+)?)[eE]([+-]?\d+)(?![\w])/g, (_, coefficient, exponent) => `$${coefficient} \\times 10^{${exponent}}$`)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>")
+    .replace(/\u0000INLINE(\d+)\u0000/g, (_, index) => protectedValues[Number(index)]);
 }
 
 function indentation(line: string) { return (line.match(/^\s*/)![0].replace(/\t/g, "  ").length); }

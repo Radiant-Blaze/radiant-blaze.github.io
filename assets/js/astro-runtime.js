@@ -161,7 +161,7 @@ const MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 let mathJaxReady;
 
 export const typesetMath = () => {
-  if (!document.querySelector(".math-block") && !/\$[^\n$]+\$|\\\([^\n]+\\\)/.test(document.body.textContent)) return;
+  if (!document.querySelector(".math-block") && !/\$[^\n$]+\$|\\\([^\n]+\\\)/.test(document.body.textContent)) return Promise.resolve();
   if (!mathJaxReady) {
     window.MathJax = {
       tex: { inlineMath: [["$", "$"], ["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
@@ -175,7 +175,9 @@ export const typesetMath = () => {
       document.head.append(script);
     });
   }
-  mathJaxReady.then(() => window.MathJax?.typesetPromise?.([document.body])).catch(() => {});
+  return mathJaxReady
+    .then(() => window.MathJax?.typesetPromise?.([document.body]))
+    .catch(() => {});
 };
 
 export const initReadingProgress = () => {
