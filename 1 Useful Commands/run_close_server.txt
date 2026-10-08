@@ -5,6 +5,6 @@ npm exec astro dev stop     -> stop the server  (take min or so)
 npm run preview             -> immediately start a server (use this after building site)
 
 
-The following line of code must be run after changing anything in parent directory
+The following line of code must be run after changing anything in parent directory or adding anything in content
 npm run content:sync
 npm run build

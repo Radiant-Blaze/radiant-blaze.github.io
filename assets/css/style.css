@@ -1174,7 +1174,7 @@ footer {
     box-shadow 0.14s steps(2);
 }
 .quest-card:hover {
-  transform: translateY(-3px) scale(1.005);
+  transform: translateY(-3px);
   box-shadow: 10px 11px 0 var(--shadow);
 }
 .quest-thumb {
@@ -1338,7 +1338,8 @@ footer {
 }
 .filter-pill:hover,
 .filter-pill:focus-visible {
-  transform: translateY(-1px);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--accent-pink);
   outline: none;
 }
 .filter-pill:focus-visible {
@@ -1346,8 +1347,51 @@ footer {
 }
 .filter-pill.is-active {
   background: var(--accent-cyan);
-  color: var(--dark-shadow);
+  color: var(--shadow);
+  border-color: var(--shadow);
 }
+
+/* Desktop-only pixel scrollbar. Mobile keeps the platform-native scroll UI. */
+@media (min-width: 768px) and (pointer: fine) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-cyan) var(--ink);
+  }
+  html::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  html::-webkit-scrollbar-track {
+    background: var(--ink);
+    border-left: 1px solid var(--shadow);
+  }
+  html::-webkit-scrollbar-thumb {
+    min-height: 34px;
+    background: var(--accent-cyan);
+    border: 2px solid var(--shadow);
+  }
+  html::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-orange);
+  }
+  html::-webkit-scrollbar-corner {
+    background: var(--ink);
+  }
+}
+.tag-database { margin-top: 16px; border: 4px solid var(--text); background: var(--panel); box-shadow: 4px 4px 0 var(--shadow); }
+.top-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.top-tags::before { content: "TOP TAGS"; align-self: center; color: var(--accent-orange); font-size: 7px; margin-right: 3px; }
+.tag-database summary { cursor: pointer; padding: 11px 13px; color: var(--accent-cyan); font-size: 8px; list-style: none; }
+.tag-database summary::-webkit-details-marker { display: none; }
+.tag-database summary span { float: right; color: var(--accent-orange); }
+.tag-database[open] summary { border-bottom: 2px dashed #4b416b; }
+.tag-filter { width: calc(100% - 24px); margin: 12px; }
+.tag-filter { box-sizing: border-box; border: 3px solid var(--text); background: var(--shadow); color: var(--text); font: 8px "Press Start 2P", monospace; padding: 10px; }
+.filter-pill small { color: var(--accent-orange); font-size: 6px; }
+.archive-empty--404 { border: 4px solid var(--accent-pink); box-shadow: 7px 7px 0 var(--shadow); padding: 30px 22px; color: var(--muted); display: grid; gap: 12px; text-align: center; }
+.archive-empty--404 strong { color: var(--accent-pink); font-size: 30px; }
+.archive-empty--404 span { color: var(--text); font-size: 10px; }
+.archive-empty--404 small { font-size: 7px; }
+.tag-database .search-pills { padding: 0 12px 12px; max-height: 170px; overflow-y: auto; }
 .search-form input {
   min-width: 0;
   flex: 1;
@@ -1365,22 +1409,29 @@ footer {
 .search-form input::placeholder {
   color: var(--muted);
 }
-.search-pagination,
 .ctf-pagination,
 .blog-pagination {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-top: 24px;
 }
-.ctf-pagination,
-.blog-pagination {
+.search-pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 24px;
 }
 .ctf-pagination a[aria-current="page"],
-.blog-pagination a[aria-current="page"] {
+.blog-pagination a[aria-current="page"],
+.search-pagination button[aria-current="page"] {
   background: var(--accent-cyan);
 }
+.search-pagination button:disabled,
+.blog-pagination a[aria-disabled="true"],
+.ctf-pagination a[aria-disabled="true"] { opacity: .4; pointer-events: none; }
 .search-results {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -1453,6 +1504,16 @@ footer {
   /* Keep long unbroken tokens (URLs, hashes) inside the column. */
   overflow-wrap: break-word;
 }
+.listing-entry { display: flex; grid-template-columns: none; gap: 18px; align-items: end; padding: 20px 22px; border-left: 8px solid var(--accent-cyan); }
+.listing-entry--writeup { border-left-color: var(--accent-orange); }
+.listing-entry--event { border-left-color: var(--accent-pink); }
+.listing-entry__main { min-width: 0; flex: 1; }
+.listing-entry h2 { margin-bottom: 9px; }
+.listing-event { color: var(--accent-orange) !important; font-size: 8px !important; margin: 0 0 9px !important; letter-spacing: .05em; }
+.listing-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 15px; }
+.listing-tag { border: 2px solid #4b416b; color: var(--accent-cyan); font-size: 6px; padding: 5px 6px; }
+.listing-entry__action { flex: 0 0 auto; white-space: nowrap; }
+.listing-entry .quest-meta { margin: 0; }
 .quest-article > :first-child {
   margin-top: 0;
 }
@@ -1678,27 +1739,34 @@ footer {
 .social-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 .site-footer .social-links {
   margin-top: 18px;
 }
 .social-link {
   display: grid;
-  place-items: center;
-  min-width: 34px;
-  height: 34px;
-  padding: 0 9px;
-  border: 3px solid currentColor;
-  background: var(--accent-cyan);
-  color: var(--dark-shadow);
-  box-shadow: 3px 3px 0 var(--accent-pink);
+  grid-template-columns: 34px minmax(74px, 1fr) auto;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  min-width: 170px;
+  min-height: 50px;
+  padding: 5px 9px 5px 5px;
+  border: 3px solid var(--text);
+  background: transparent;
+  color: var(--text);
+  box-shadow: 4px 4px 0 var(--accent-pink);
   font-size: 8px;
   text-decoration: none;
   transition:
-    transform 0.1s,
-    box-shadow 0.1s;
+    transform 0.12s,
+    box-shadow 0.12s,
+    background-color 0.12s;
 }
+.social-icon { grid-row: 1 / -1; display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--accent-cyan); background: var(--accent-cyan); color: var(--dark-shadow); }
+.social-icon svg { width: 22px; height: 22px; fill: currentColor; shape-rendering: crispEdges; }
+.social-label { align-self: end; letter-spacing: .04em; }
+.social-kind { align-self: start; color: var(--muted); font-size: 6px; letter-spacing: .04em; }
 /* Placeholder entries render as badges, not links, so they must not respond to
    hover the way a real destination does. */
 .social-link.is-pending {
@@ -1708,12 +1776,27 @@ footer {
 .social-link:not(.is-pending):focus-visible {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 var(--accent-pink);
+  background: var(--accent-cyan);
+  color: var(--dark-shadow);
   outline: none;
 }
+.social-link:not(.is-pending):hover .social-icon,
+.social-link:not(.is-pending):focus-visible .social-icon { background: var(--dark-shadow); color: var(--accent-cyan); }
 .social-link:focus-visible {
   outline: 3px solid var(--accent-cyan);
   outline-offset: 3px;
 }
+.social-link:active { transform: translate(4px, 4px); box-shadow: none; }
+@media (max-width: 540px) {
+  .listing-entry { display: block; padding: 16px; }
+  .listing-entry__action { margin-top: 18px; }
+  .social-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .social-link { min-width: 0; grid-template-columns: 34px minmax(0, 1fr); }
+  .social-kind { display: none; }
+  .social-icon { width: 28px; height: 28px; }
+  .social-icon svg { width: 20px; height: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .social-link { transition: none; } }
 .footer-meta {
   display: flex;
   flex-wrap: wrap;

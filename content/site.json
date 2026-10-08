@@ -1,6 +1,7 @@
 {
   "social":
   [
+    { "label": "LinkedIn", "icon": "LinkedIn", "url": "https://www.linkedin.com/in/talha-ahmed-0942b927b/" },
     { "label": "GitHub", "icon": "GitHub", "url": "https://github.com/radiant-blaze" },
     { "label": "X", "icon": "X", "url": "coming soon" },
     { "label": "Email", "icon": "@Email", "url": "Coming Soon" }

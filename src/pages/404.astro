@@ -1,4 +1,5 @@
 ---
+import Footer from "../components/Footer.astro";
 ---
 <!doctype html>
 <html lang="en" class="dark-theme">
@@ -28,8 +29,7 @@
         <p class="hero-copy">This quest doesn't exist —<br />the page wandered off the map.</p>
         <a class="pixel-button cta-button" href="/">RETURN HOME <span aria-hidden="true">→</span></a>
       </section>
-      <footer><span>© <span id="year"></span> RADIANT BLAZE</span><span>MADE WITH ♥ + PIXELS</span></footer>
+      <Footer simple />
     </main>
-    <script is:inline>document.getElementById("year").textContent = new Date().getFullYear();</script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 ---
-import site from "../../content/site.json";
 import { formatHomeDate, getHomepageProjection } from "../lib/home-data";
+import Footer from "../components/Footer.astro";
 
 const { latestWriteup, latestPost } = await getHomepageProjection();
 const feature = latestWriteup ?? latestPost ?? {
@@ -12,12 +12,6 @@ const feature = latestWriteup ?? latestPost ?? {
   category: "CRYPTO",
 };
 const featureDate = "dateLabel" in feature ? feature.dateLabel : formatHomeDate(feature.date);
-const currentYear = new Date().getFullYear();
-const socialLinks = site.social.map((item) => {
-  const valid = /^(https?:|mailto:)/i.test(item.url || "");
-  const external = valid && !item.url.startsWith("mailto:");
-  return { ...item, valid, external };
-});
 ---
 <!doctype html>
 <html lang="en" class="dark-theme">
@@ -81,16 +75,9 @@ const socialLinks = site.social.map((item) => {
           <a class="feature-tile" href="pages/search.html" aria-label="Search the archive"><p class="quest-number">SEARCH ARCHIVE</p><h3>Search the archive</h3><p>Browse every post, writeup, and tag in one place to find the exact material you need.</p><div class="quest-meta"><span>NOW</span><span><b>DISCOVER</b></span></div></a>
         </div>
       </section>
-      <footer><nav class="social-links" data-social aria-label="Social links">{socialLinks.map((item) => {
-        const icon = <span aria-hidden="true">{item.icon}</span>;
-        return item.valid
-          ? <a class="social-link" href={item.url} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener" : undefined} aria-label={item.label}>{icon}</a>
-          : <span class="social-link is-pending" title={`${item.label} · coming soon`} aria-label={`${item.label} · coming soon`}>{icon}</span>;
-      })}</nav><div class="footer-meta"><span>© <span id="year">{currentYear}</span> RADIANT BLAZE</span><span>MADE WITH ♥ + PIXELS</span></div></footer>
+      <Footer home />
     </main>
     <script>
-      const yearElement = document.querySelector("#year");
-      if (yearElement) yearElement.textContent = String(new Date().getFullYear());
     </script>
   </body>
 </html>

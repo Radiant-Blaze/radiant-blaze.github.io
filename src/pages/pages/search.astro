@@ -1,5 +1,6 @@
 ---
 import QuestShell from "../../layouts/QuestShell.astro";
+import Footer from "../../components/Footer.astro";
 ---
 <QuestShell
   title="Search Database · Radiant Blaze"
@@ -22,7 +23,13 @@ import QuestShell from "../../layouts/QuestShell.astro";
         <button type="button" class="filter-pill" data-search-filter="posts">POSTS</button>
         <button type="button" class="filter-pill" data-search-filter="writeups">WRITEUPS</button>
       </div>
-      <div class="search-pills search-pills--topic" data-search-topics></div>
+      <div class="top-tags" data-top-tags aria-label="Top tags"></div>
+      <details class="tag-database">
+        <summary>TAG DATABASE <span aria-hidden="true">+</span></summary>
+        <label class="sr-only" for="tag-filter">Search tags</label>
+        <input id="tag-filter" class="tag-filter" type="search" placeholder="SEARCH TAGS" data-tag-filter />
+        <div class="search-pills search-pills--topic" data-search-topics></div>
+      </details>
     </div>
     <p class="record-count" data-record-count>LOADING RECORDS...</p>
   </section>
@@ -30,6 +37,6 @@ import QuestShell from "../../layouts/QuestShell.astro";
     <section class="quest-list" data-quest-list aria-live="polite"></section>
     <nav class="search-pagination" data-search-pagination aria-label="Search result pages"></nav>
   </div>
-  <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" data-social aria-label="Social links"></nav></div></footer>
+  <Footer />
 </QuestShell>
 <script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261002-1" is:inline></script>

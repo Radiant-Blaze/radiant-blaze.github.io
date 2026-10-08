@@ -1,9 +1,10 @@
 ---
 import { getRuntimeReadModel } from "../../lib/runtime-read-model";
-import { postCardHtml, socialLinksHtml } from "../../lib/listing-html";
+import { postCardHtml } from "../../lib/listing-html";
+import Footer from "../../components/Footer.astro";
 import QuestShell from "../../layouts/QuestShell.astro";
 
-const { posts, site } = await getRuntimeReadModel();
+const { posts } = await getRuntimeReadModel();
 const pageSize = 5;
 const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
 const categories = [...new Set(posts.map((post) => post.category).filter(Boolean))].sort();
@@ -17,6 +18,9 @@ const pagination = Array.from({ length: totalPages }, (_, index) => {
   const page = index + 1;
   return `<a class="pixel-button start-button" href="${page === 1 ? "blog.html" : `blog.html?pg=${page}`}"${page === 1 ? ' aria-current="page"' : ""}>${page}</a>`;
 }).join("");
+const paginationWithControls = totalPages > 1
+  ? `<a class="pixel-button start-button" href="${totalPages > 1 ? "blog.html" : "#"}" aria-label="Previous page" aria-disabled="true" tabindex="-1">‹</a>${pagination}<a class="pixel-button start-button" href="blog.html?pg=2" aria-label="Next page">›</a>`
+  : "";
 ---
 <QuestShell
   title="MY Blogs · Radiant Blaze"
@@ -40,7 +44,7 @@ const pagination = Array.from({ length: totalPages }, (_, index) => {
   <div class="page-grid quest-wrap">
     <section>
       <div class="quest-list" data-quest-list data-category-dynamic aria-label="Available posts" set:html={postCards}></div>
-      <nav class="blog-pagination" data-blog-pagination aria-label="Blog post pages" set:html={pagination}></nav>
+      <nav class="blog-pagination" data-blog-pagination aria-label="Blog post pages" set:html={paginationWithControls}></nav>
     </section>
     <aside class="sidebar">
       <section class="pixel-panel">
@@ -51,12 +55,6 @@ const pagination = Array.from({ length: totalPages }, (_, index) => {
       <section class="pixel-panel"><h2>CATEGORIES</h2><nav class="region-list" data-category-list>{categories.map((name) => <a href={`blog.html?category=${encodeURIComponent(name)}`}>{name.toUpperCase()}</a>)}</nav></section>
     </aside>
   </div>
-  <footer class="site-footer">
-    <div class="quest-wrap">
-      <p class="section-heading">PLAYER STATUS</p>
-      <div class="footer-stats"><span><b>LEVEL 12</b>PLAYER</span><span><b>8,750</b>XP</span><span><b>21</b>QUESTS COMPLETED</span><span><b>01,284</b>VISITORS</span><span><b>v1.0.0</b>CURRENT BUILD</span></div>
-      <nav class="social-links" data-social aria-label="Social links" set:html={socialLinksHtml(site.social)}></nav>
-    </div>
-  </footer>
+  <Footer />
 </QuestShell>
 <script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261002-1" is:inline></script>

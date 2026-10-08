@@ -1,4 +1,4 @@
-import { searchableText } from "./list-utils.js";
+import { normalizeTopic, recordTopics, searchableText } from "./list-utils.js";
 
 export const matchesBlogPost = (post, term) =>
   searchableText(
@@ -37,8 +37,8 @@ export const filterGlobalRecords = (
     const matchesQuery = !term || searchable.includes(term);
     const matchesYear = !selectedYear || new Date(`${record.date}T00:00:00`).getFullYear() === Number(selectedYear);
     const matchesType = type === "all" || (type === "posts" && record.type === "post") || (type === "writeups" && record.type === "writeup");
-    const topicText = [(item.category || ""), ...(item.tags || []), (ctf?.title || "")].join(" ").toLowerCase();
-    const matchesTopic = topic === "all" || topicText.includes(topic.toLowerCase());
+    const topics = recordTopics(item, ctf);
+    const matchesTopic = topic === "all" || topics.some((value) => value.includes(normalizeTopic(topic)));
     return matchesQuery && matchesYear && matchesType && matchesTopic;
   });
 };

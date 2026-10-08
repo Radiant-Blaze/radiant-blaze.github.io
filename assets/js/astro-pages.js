@@ -18,9 +18,12 @@ import {
 } from "./astro-query-model.js";
 import {
   DEFAULT_PAGE_SIZE,
+  difficultyStars,
+  normalizeTopic,
   pageMeta,
   pageSlice,
   paginationHtml,
+  recordTopics,
   syncSearchForm,
 } from "./list-utils.js";
 
@@ -31,18 +34,19 @@ const fallbackToLegacy = async (moduleName) => {
   await import(moduleUrl.href);
 };
 
+const listingTags = (tags = []) => tags.map((tag) => `<span class="listing-tag">#${escapeHtml(tag).toUpperCase()}</span>`).join("");
 const postCard = (post) =>
-  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art thumbnail for ${escapeHtml(post.title)}"></div><div><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="quest-meta"><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span>${formatDate(post.date)}</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="${postPageUrl(post.file)}">READ POST →</a></div></article>`;
+  `<article class="quest-card listing-entry listing-entry--post"><div class="listing-entry__main"><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="listing-tags">${listingTags(post.tags)}</div><div class="quest-meta"><span>${formatDate(post.date)}</span><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div></div><a class="listing-entry__action pixel-button start-button" href="${postPageUrl(post.file)}">READ POST →</a></article>`;
 
 const writeupCard = (ctf, challenge) =>
-  `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(challenge.title)}"></div><div><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(ctf.title).toUpperCase()}</b></span></div><a class="pixel-button start-button" href="${writeupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></div></article>`;
+  `<article class="quest-card listing-entry listing-entry--writeup"><div class="listing-entry__main"><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><p class="listing-event">${escapeHtml(ctf.title).toUpperCase()}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="listing-tags">${listingTags(challenge.tags)}</div><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(challenge.points || "—")}</b> PTS</span><span class="difficulty" title="Difficulty">${difficultyStars(challenge.difficulty)}</span></div></div><a class="listing-entry__action pixel-button start-button" href="${writeupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></article>`;
 
 const ctfCard = (ctf) => {
   const challengeCount = ctf.challengeCount ?? ctf.challenges.length;
   const difficulty = Math.max(0, Math.min(5, parseInt(ctf.difficulty, 10) || 0));
-  const stars = "★".repeat(difficulty) + "☆".repeat(5 - difficulty);
+  const stars = difficultyStars(difficulty);
   const year = new Date(`${ctf.date}T00:00:00`).getFullYear();
-  return `<article class="quest-card"><div class="quest-thumb" role="img" aria-label="Pixel art badge for ${escapeHtml(ctf.title)}"></div><div><p class="quest-number">CTF · ${year}</p><h2>${escapeHtml(ctf.title)}</h2><p>${escapeHtml(ctf.description || "")}</p><div class="quest-meta"><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span>${formatDate(ctf.date)}</span><span class="difficulty" title="Difficulty">${stars}</span></div><a class="pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT →</a></div></article>`;
+  return `<article class="quest-card listing-entry listing-entry--event"><div class="listing-entry__main"><p class="quest-number">CTF EVENT · ${year}</p><h2>${escapeHtml(ctf.title)}</h2><p>${escapeHtml(ctf.description || "")}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span class="difficulty" title="Difficulty">${stars}</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT →</a></article>`;
 };
 
 const emptyMessage = (value) => `<p class="quest-intro">${value}</p>`;
@@ -169,19 +173,38 @@ const renderGlobalSearch = (posts, ctfs) => {
   const selectedYear = params.get("year") || "";
   let currentPage = 0;
   let activeFilter = "all";
-  let activeTopic = (params.get("topic") || "all").toLowerCase();
+  const activeTopics = new Set((params.get("topic") || "all").toLowerCase().split(",").filter((topic) => topic && topic !== "all"));
   const topicSet = new Set(
     [...posts, ...writeups.map(({ challenge }) => challenge)]
       .flatMap((item) => [item.category, ...(item.tags || [])])
       .filter(Boolean),
   );
-  const topicOptions = [...topicSet].sort((left, right) => left.localeCompare(right));
+  const topicOptions = [...new Set([...topicSet].map(normalizeTopic))].sort((left, right) => left.localeCompare(right));
+  const topicCounts = new Map(topicOptions.map((topic) => [topic.toLowerCase(), 0]));
+  [...posts, ...writeups.map(({ challenge }) => challenge)].forEach((item) => {
+    [item.category, ...(item.tags || [])].filter(Boolean).forEach((topic) => topicCounts.set(normalizeTopic(topic), (topicCounts.get(normalizeTopic(topic)) || 0) + 1));
+  });
+  const topTags = document.querySelector("[data-top-tags]");
+  if (topTags) {
+    topTags.innerHTML = [...topicCounts.entries()]
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+      .slice(0, 5)
+      .map(([topic, count]) => `<button type="button" class="filter-pill" data-search-topic="${escapeHtml(topic)}">${escapeHtml(topic.toUpperCase())} <small>${count}</small></button>`)
+      .join("");
+  }
   const topicContainer = document.querySelector("[data-search-topics]");
   if (topicContainer) {
     topicContainer.innerHTML = [
       '<button type="button" class="filter-pill is-active" data-search-topic="all">ALL TOPICS</button>',
-      ...topicOptions.map((topic) => `<button type="button" class="filter-pill" data-search-topic="${escapeHtml(topic.toLowerCase())}">${escapeHtml(topic.toUpperCase())}</button>`),
+      ...topicOptions.map((topic) => `<button type="button" class="filter-pill" data-search-topic="${escapeHtml(topic.toLowerCase())}">${escapeHtml(topic.toUpperCase())} <small>${topicCounts.get(topic.toLowerCase()) || 0}</small></button>`),
     ].join("");
+    const tagFilter = document.querySelector("[data-tag-filter]");
+    tagFilter?.addEventListener("input", () => {
+      const term = tagFilter.value.trim().toLowerCase();
+      topicContainer.querySelectorAll("[data-search-topic]").forEach((button) => {
+        button.hidden = term && button.dataset.searchTopic !== "all" && !button.textContent.toLowerCase().includes(term);
+      });
+    });
   }
 
   const applyFilterClasses = () => {
@@ -189,7 +212,7 @@ const renderGlobalSearch = (posts, ctfs) => {
       button.classList.toggle("is-active", button.dataset.searchFilter === activeFilter);
     });
     document.querySelectorAll("[data-search-topic]").forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.searchTopic === activeTopic);
+      button.classList.toggle("is-active", button.dataset.searchTopic === "all" ? activeTopics.size === 0 : activeTopics.has(button.dataset.searchTopic));
     });
   };
   input.value = query;
@@ -203,7 +226,12 @@ const renderGlobalSearch = (posts, ctfs) => {
   });
   document.querySelectorAll("[data-search-topic]").forEach((button) => {
     button.addEventListener("click", () => {
-      activeTopic = button.dataset.searchTopic;
+      if (button.dataset.searchTopic === "all") activeTopics.clear();
+      else if (activeTopics.has(button.dataset.searchTopic)) activeTopics.delete(button.dataset.searchTopic);
+      else activeTopics.add(button.dataset.searchTopic);
+      const url = new URL(location.href);
+      activeTopics.size ? url.searchParams.set("topic", [...activeTopics].join(",")) : url.searchParams.delete("topic");
+      history.replaceState(null, "", url);
       applyFilterClasses();
       renderSearch(input.value, true);
     });
@@ -214,26 +242,32 @@ const renderGlobalSearch = (posts, ctfs) => {
     const found = filterGlobalRecords(records, {
       query: value,
       type: activeFilter,
-      topic: activeTopic,
+      topic: "all",
       year: selectedYear,
     });
-    const { currentPage: shownPage, totalPages, start, shown } = pageSlice(found, currentPage + 1);
+    const selected = activeTopics.size ? found.filter((record) => {
+      const topics = recordTopics(record.item, record.ctf);
+      return [...activeTopics].every((topic) => topics.some((value) => value.includes(normalizeTopic(topic))));
+    }) : found;
+    const { currentPage: shownPage, totalPages, start, shown } = pageSlice(selected, currentPage + 1);
     currentPage = shownPage - 1;
-    const range = found.length ? ` · SHOWING ${start + 1}–${start + shown.length}` : "";
+    const range = selected.length ? ` · SHOWING ${start + 1}–${start + shown.length}` : "";
     const count = document.querySelector("[data-record-count]");
-    if (count) count.textContent = `FOUND ${found.length} RECORD${found.length === 1 ? "" : "S"}${range}`;
+    if (count) count.textContent = `FOUND ${selected.length} RECORD${selected.length === 1 ? "" : "S"}${range}`;
     const list = document.querySelector("[data-quest-list]");
     if (list) {
-      list.innerHTML = shown.map((record) => record.type === "post" ? postCard(record.item) : writeupCard(record.ctf, record.item)).join("") || emptyMessage("NO RECORDS FOUND. TRY ANOTHER SEARCH.");
+      list.innerHTML = shown.map((record) => record.type === "post" ? postCard(record.item) : writeupCard(record.ctf, record.item)).join("") || '<div class="archive-empty archive-empty--404"><strong>404</strong><span>NO RECORDS FOUND</span><small>TRY ANOTHER TAG OR SEARCH TERM.</small></div>';
     }
     const pagination = document.querySelector("[data-search-pagination]");
     if (pagination) {
       pagination.innerHTML = totalPages > 1
-        ? `<button class="pixel-button start-button" type="button" data-search-page="previous" ${currentPage === 0 ? "disabled" : ""}>← PREVIOUS</button><button class="pixel-button start-button" type="button" data-search-page="next" ${currentPage === totalPages - 1 ? "disabled" : ""}>NEXT →</button>`
+        ? `<button class="pixel-button start-button" type="button" data-search-page="previous" aria-label="Previous page" ${currentPage === 0 ? "disabled" : ""}>‹</button>${Array.from({ length: totalPages }, (_, index) => `<button class="pixel-button start-button" type="button" data-search-page="${index}"${index === currentPage ? ' aria-current="page"' : ""}>${index + 1}</button>`).join("")}<button class="pixel-button start-button" type="button" data-search-page="next" aria-label="Next page" ${currentPage === totalPages - 1 ? "disabled" : ""}>›</button>`
         : "";
       pagination.querySelectorAll("[data-search-page]").forEach((button) => {
         button.addEventListener("click", () => {
-          currentPage += button.dataset.searchPage === "next" ? 1 : -1;
+          if (button.dataset.searchPage === "next") currentPage += 1;
+          else if (button.dataset.searchPage === "previous") currentPage -= 1;
+          else currentPage = Number(button.dataset.searchPage);
           renderSearch(input.value, false);
         });
       });
@@ -269,8 +303,6 @@ const renderPostArticle = (article, post) => {
   typesetMath(article);
 };
 
-const clampDifficulty = (value) => Math.max(0, Math.min(5, parseInt(value, 10) || 0));
-const stars = (value) => "★".repeat(clampDifficulty(value)) + "☆".repeat(5 - clampDifficulty(value));
 const categoryCounts = (challenges) => {
   const counts = {};
   challenges.forEach((challenge) => {
@@ -297,13 +329,13 @@ const eventSidebar = (ctf) => {
   const pointsLabel = isFullEvent ? "TOTAL POINTS" : "PAGE POINTS";
   const categoryLabel = isFullEvent ? "BY CATEGORY" : "BY PAGE CATEGORY";
   const source = ctf.url ? `<section class="pixel-panel"><h2>SOURCE</h2><nav class="region-list"><a href="${escapeHtml(ctf.url)}" target="_blank" rel="noopener">VISIT EVENT SITE →</a></nav></section>` : "";
-  return `<section class="pixel-panel"><h2>EVENT DATA</h2><ul class="stat-list"><li>ORGANIZER <strong>${escapeHtml(ctf.event || "—")}</strong></li><li>DATE <strong>${formatDate(ctf.date)}</strong></li><li>CHALLENGES <strong>${challengeTotal(ctf)}</strong></li><li>${pointsLabel} <strong>${points.toLocaleString()}</strong></li><li>DIFFICULTY <strong class="difficulty">${stars(ctf.difficulty)}</strong></li></ul></section><section class="pixel-panel"><h2>${categoryLabel}</h2><ul class="stat-list">${countRows(categoryCounts(ctf.challenges))}</ul></section>${source}`;
+  return `<section class="pixel-panel"><h2>EVENT DATA</h2><ul class="stat-list"><li>ORGANIZER <strong>${escapeHtml(ctf.event || "—")}</strong></li><li>DATE <strong>${formatDate(ctf.date)}</strong></li><li>CHALLENGES <strong>${challengeTotal(ctf)}</strong></li><li>${pointsLabel} <strong>${points.toLocaleString()}</strong></li><li>DIFFICULTY <strong class="difficulty">${difficultyStars(ctf.difficulty)}</strong></li></ul></section><section class="pixel-panel"><h2>${categoryLabel}</h2><ul class="stat-list">${countRows(categoryCounts(ctf.challenges))}</ul></section>${source}`;
 };
 
 const challengeMeta = (ctf, challenge) => {
   const solves = challenge.solves ? `<li>SOLVES <strong>${escapeHtml(challenge.solves)}</strong></li>` : "";
   const flag = challenge.flag ? `<h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(challenge.flag)}</p>` : "";
-  return `<h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(ctf.event || ctf.title)}</strong></li><li>CATEGORY <strong>${escapeHtml((challenge.category || "MISC").toUpperCase())}</strong></li><li>POINTS <strong>${escapeHtml(challenge.points || "—")}</strong></li><li>DIFFICULTY <strong class="difficulty">${stars(challenge.difficulty)}</strong></li>${solves}</ul>${flag}`;
+  return `<h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(ctf.event || ctf.title)}</strong></li><li>CATEGORY <strong>${escapeHtml((challenge.category || "MISC").toUpperCase())}</strong></li><li>POINTS <strong>${escapeHtml(challenge.points || "—")}</strong></li><li>DIFFICULTY <strong class="difficulty">${difficultyStars(challenge.difficulty)}</strong></li>${solves}</ul>${flag}`;
 };
 
 const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
@@ -406,7 +438,7 @@ const renderWriteup = (ctf, challengeFile) => {
   canonical.hash = "";
   updatePageMetadata({ title: `${challenge.title} · ${ctf.title} · Radiant Blaze`, description: challenge.description || `CTF writeup for ${challenge.title} from ${ctf.title}.`, canonicalUrl: canonical.href });
   if (back) back.innerHTML = `<a href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">← ${escapeHtml(ctf.title.toUpperCase())}</a>`;
-  if (header) header.innerHTML = `<p class="quest-number">${escapeHtml(ctf.title.toUpperCase())} · ${escapeHtml(category)}</p><h1 class="quest-title">${escapeHtml(challenge.title.toUpperCase())}</h1><div class="article-info"><span>POINTS: <b>${escapeHtml(challenge.points || "—")}</b></span><span>DIFFICULTY: <b class="difficulty">${stars(challenge.difficulty)}</b></span>${challenge.solves ? `<span>SOLVES: <b>${escapeHtml(challenge.solves)}</b></span>` : ""}<span>BY <b>${escapeHtml((challenge.author || "Radiant Blaze").toUpperCase())}</b></span></div>`;
+  if (header) header.innerHTML = `<p class="quest-number">${escapeHtml(ctf.title.toUpperCase())} · ${escapeHtml(category)}</p><h1 class="quest-title">${escapeHtml(challenge.title.toUpperCase())}</h1><div class="article-info"><span>POINTS: <b>${escapeHtml(challenge.points || "—")}</b></span><span>DIFFICULTY: <b class="difficulty">${difficultyStars(challenge.difficulty)}</b></span>${challenge.solves ? `<span>SOLVES: <b>${escapeHtml(challenge.solves)}</b></span>` : ""}<span>BY <b>${escapeHtml((challenge.author || "Radiant Blaze").toUpperCase())}</b></span></div>`;
   article.innerHTML = markdownToHtml(challenge.body);
   const layout = article.closest(".article-layout");
   const hasMath = /```math\b|\\\[|\\\(|\$\$/i.test(challenge.body);

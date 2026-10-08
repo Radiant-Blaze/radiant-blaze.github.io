@@ -1,5 +1,5 @@
 ---
-import site from "../../content/site.json";
+import Footer from "../components/Footer.astro";
 import QuestShell from "./QuestShell.astro";
 
 interface Props {
@@ -10,16 +10,6 @@ interface Props {
 }
 
 const { title, description, canonical, type } = Astro.props;
-const social = site.social
-  .map((item) => {
-    const valid = /^(https?:|mailto:)/i.test(item.url);
-    const external = valid && !item.url.startsWith("mailto:");
-    const icon = `<span aria-hidden="true">${item.icon}</span>`;
-    return valid
-      ? `<a class="social-link" href="${item.url}"${external ? ' target="_blank" rel="noopener"' : ""} aria-label="${item.label}">${icon}</a>`
-      : `<span class="social-link is-pending" title="${item.label} · coming soon" aria-label="${item.label} · coming soon">${icon}</span>`;
-  })
-  .join("");
 ---
 <QuestShell
   title={title}
@@ -34,5 +24,5 @@ const social = site.social
 >
   <script slot="headScripts" type="module" src="/assets/js/astro-article.js?v=20261002-1" is:inline></script>
   <slot />
-  <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">{type === "post" ? "BLOG STATUS" : "CONNECT"}</p>{type === "post" && <div class="footer-stats"><span><b>21</b>POSTS</span><span><b>28,750</b>WORDS</span><span><b>01,284</b>READERS</span><span><b>v1.0.0</b>CURRENT BUILD</span></div>}<nav class="social-links" aria-label="Social links" set:html={social}></nav></div></footer>
+  <Footer heading={type === "post" ? "BLOG STATUS" : "CONNECT"} stats={type === "post"} />
 </QuestShell>

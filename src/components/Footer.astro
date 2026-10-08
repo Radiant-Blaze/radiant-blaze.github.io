@@ -1,0 +1,24 @@
+---
+import site from "../../content/site.json";
+import { socialLinksHtml } from "../lib/listing-html";
+
+interface Props {
+  heading?: string;
+  stats?: boolean;
+  home?: boolean;
+  simple?: boolean;
+}
+
+const { heading = "CONNECT", stats = false, home = false, simple = false } = Astro.props;
+const year = new Date().getFullYear();
+---
+<footer class={home ? undefined : "site-footer"}>
+  {simple ? <><span>© {year} RADIANT BLAZE</span><span>MADE WITH ♥ + PIXELS</span></> : <>
+    <div class="quest-wrap footer-connect">
+      <p class="section-heading">{heading}</p>
+      {stats && <div class="footer-stats"><span><b>21</b>POSTS</span><span><b>28,750</b>WORDS</span><span><b>01,284</b>READERS</span><span><b>v1.0.0</b>CURRENT BUILD</span></div>}
+      <nav class="social-links" data-social aria-label="Social links" set:html={socialLinksHtml(site.social)}></nav>
+    </div>
+    {home && <div class="footer-meta"><span>© <span id="year">{year}</span> RADIANT BLAZE</span><span>MADE WITH ♥ + PIXELS</span></div>}
+  </>}
+</footer>

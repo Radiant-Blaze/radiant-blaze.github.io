@@ -1,9 +1,10 @@
 ---
 import { getRuntimeReadModel } from "../../lib/runtime-read-model";
-import { ctfCardHtml, socialLinksHtml } from "../../lib/listing-html";
+import { ctfCardHtml } from "../../lib/listing-html";
+import Footer from "../../components/Footer.astro";
 import QuestShell from "../../layouts/QuestShell.astro";
 
-const { ctfs, site } = await getRuntimeReadModel();
+const { ctfs } = await getRuntimeReadModel();
 const pageSize = 5;
 const totalPages = Math.max(1, Math.ceil(ctfs.length / pageSize));
 const writeupCount = ctfs.reduce((total, ctf) => total + ctf.challengeCount, 0);
@@ -12,6 +13,9 @@ const pagination = Array.from({ length: totalPages }, (_, index) => {
   const page = index + 1;
   return `<a class="pixel-button start-button" href="${page === 1 ? "ctf.html" : `ctf.html?pg=${page}`}"${page === 1 ? ' aria-current="page"' : ""}>${page}</a>`;
 }).join("");
+const paginationWithControls = totalPages > 1
+  ? `<a class="pixel-button start-button" href="ctf.html" aria-label="Previous page" aria-disabled="true" tabindex="-1">‹</a>${pagination}<a class="pixel-button start-button" href="ctf.html?pg=2" aria-label="Next page">›</a>`
+  : "";
 const arenaSidebar = `<section class="pixel-panel"><h2>ARENA STATS</h2><ul class="stat-list"><li>EVENTS <strong>${ctfs.length}</strong></li><li>WRITEUPS <strong>${writeupCount}</strong></li></ul></section>`;
 ---
 <QuestShell
@@ -37,10 +41,10 @@ const arenaSidebar = `<section class="pixel-panel"><h2>ARENA STATS</h2><ul class
   <div class="page-grid quest-wrap">
     <section>
       <div class="quest-list" data-ctf-list aria-live="polite" set:html={eventCards}></div>
-      <nav class="ctf-pagination" data-ctf-pagination aria-label="CTF list pages" set:html={pagination}></nav>
+      <nav class="ctf-pagination" data-ctf-pagination aria-label="CTF list pages" set:html={paginationWithControls}></nav>
     </section>
     <aside class="sidebar" data-ctf-aside set:html={arenaSidebar}></aside>
   </div>
-  <footer class="site-footer"><div class="quest-wrap"><p class="section-heading">CONNECT</p><nav class="social-links" data-social aria-label="Social links" set:html={socialLinksHtml(site.social)}></nav></div></footer>
+  <Footer />
 </QuestShell>
 <script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261002-1" is:inline></script>

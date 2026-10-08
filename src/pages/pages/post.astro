@@ -1,5 +1,6 @@
 ---
 import QuestShell from "../../layouts/QuestShell.astro";
+import Footer from "../../components/Footer.astro";
 ---
 <QuestShell
   title="Post · Radiant Blaze"
@@ -18,12 +19,6 @@ import QuestShell from "../../layouts/QuestShell.astro";
       <section class="pixel-panel"><h2>TAGS</h2><nav class="region-list" data-post-tags></nav></section>
     </aside>
   </div>
-  <footer class="site-footer">
-    <div class="quest-wrap">
-      <p class="section-heading">BLOG STATUS</p>
-      <div class="footer-stats"><span><b>21</b>POSTS</span><span><b>28,750</b>WORDS</span><span><b>01,284</b>READERS</span><span><b>v1.0.0</b>CURRENT BUILD</span></div>
-      <nav class="social-links" data-social aria-label="Social links"></nav>
-    </div>
-  </footer>
+  <Footer heading="BLOG STATUS" stats />
 </QuestShell>
 <script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261002-1" is:inline></script>

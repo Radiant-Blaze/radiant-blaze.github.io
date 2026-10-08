@@ -31,10 +31,13 @@ export const paginationHtml = (
 ) => {
   const totalPages = Math.ceil(totalItems / pageSize);
   if (totalPages <= 1) return "";
-  return Array.from({ length: totalPages }, (_, index) => {
+  const previous = `<a class="${className}" href="${pageHref(Math.max(1, currentPage - 1))}" aria-label="Previous page"${currentPage === 1 ? ' aria-disabled="true" tabindex="-1"' : ""}>‹</a>`;
+  const next = `<a class="${className}" href="${pageHref(Math.min(totalPages, currentPage + 1))}" aria-label="Next page"${currentPage === totalPages ? ' aria-disabled="true" tabindex="-1"' : ""}>›</a>`;
+  const pages = Array.from({ length: totalPages }, (_, index) => {
     const page = index + 1;
     return `<a class="${className}" href="${pageHref(page)}"${page === currentPage ? ' aria-current="page"' : ""}>${page}</a>`;
   }).join("");
+  return previous + pages + next;
 };
 
 export const searchableText = (...values) =>
@@ -43,6 +46,18 @@ export const searchableText = (...values) =>
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+
+export const normalizeTopic = (value) => String(value ?? "").trim().toLowerCase();
+
+export const recordTopics = (item = {}, ctf) =>
+  [item.category, ...(item.tags || []), ctf?.title]
+    .filter(Boolean)
+    .map(normalizeTopic);
+
+export const difficultyStars = (value) => {
+  const difficulty = Math.max(0, Math.min(5, Number.parseInt(String(value ?? "0"), 10) || 0));
+  return "★".repeat(difficulty) + "☆".repeat(5 - difficulty);
+};
 
 export const syncSearchForm = ({ query, inputSelector, hidden = [] }) => {
   const input = document.querySelector(inputSelector);
