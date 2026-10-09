@@ -3,8 +3,12 @@ import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { postCardHtml } from "../../lib/listing-html";
 import Footer from "../../components/Footer.astro";
 import QuestShell from "../../layouts/QuestShell.astro";
+import PlayerStats from "../../components/PlayerStats.astro";
+import { calculatePlayerStats } from "../../lib/player-stats";
 
-const { posts } = await getRuntimeReadModel();
+const readModel = await getRuntimeReadModel();
+const { posts } = readModel;
+const playerStats = calculatePlayerStats(readModel);
 const pageSize = 5;
 const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
 const categories = [...new Set(posts.map((post) => post.category).filter(Boolean))].sort();
@@ -47,10 +51,7 @@ const paginationWithControls = totalPages > 1
       <nav class="blog-pagination" data-blog-pagination aria-label="Blog post pages" set:html={paginationWithControls}></nav>
     </section>
     <aside class="sidebar">
-      <section class="pixel-panel">
-        <h2>PLAYER STATS</h2>
-        <ul class="stat-list"><li>LEVEL <strong>12</strong></li><li>QUESTS WRITTEN <strong>21</strong></li><li>XP EARNED <strong>8,750</strong></li><li>CURRENT STREAK <strong>7 DAYS</strong></li><li>COFFEE <strong>248</strong></li><li>GIT COMMITS <strong>1,604</strong></li><li>LANGUAGES <strong>7</strong></li></ul>
-      </section>
+      <PlayerStats stats={playerStats} variant="blog" />
       <section class="pixel-panel"><h2>SAVE FILES</h2><ul class="save-list" data-save-list>{[...yearCounts].sort(([left], [right]) => right - left).map(([year, count]) => <li><a href={`search.html?year=${year}`}>{year} <small>{count}</small></a></li>)}</ul></section>
       <section class="pixel-panel"><h2>CATEGORIES</h2><nav class="region-list" data-category-list>{categories.map((name) => <a href={`blog.html?category=${encodeURIComponent(name)}`}>{name.toUpperCase()}</a>)}</nav></section>
     </aside>

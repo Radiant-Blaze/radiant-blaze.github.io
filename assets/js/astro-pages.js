@@ -49,7 +49,7 @@ const ctfCard = (ctf) => {
   return `<article class="quest-card listing-entry listing-entry--event"><div class="listing-entry__main"><p class="quest-number">CTF EVENT · ${year}</p><h2>${escapeHtml(ctf.title)}</h2><p>${escapeHtml(ctf.description || "")}</p><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span class="difficulty" title="Difficulty">${stars}</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT →</a></article>`;
 };
 
-const emptyMessage = (value) => `<p class="quest-intro">${value}</p>`;
+const emptyMessage = (value) => `<div class="rb-404-search-empty" role="status"><p class="rb-404-status">SYSTEM ERROR // 404</p><div class="rb-404-tv-wrap" role="img" aria-label="Retro television displaying a lost signal"><div class="rb-404-tv"><div class="rb-404-antenna" aria-hidden="true"><span class="rb-404-antenna-shadow"></span><span class="rb-404-antenna-left"></span><span class="rb-404-antenna-right"></span><i class="rb-404-tip-left"></i><i class="rb-404-tip-right"></i></div><div class="rb-404-display"><div class="rb-404-screen"><span>NO SIGNAL</span><b>404</b></div><div class="rb-404-screen-pattern" aria-hidden="true"></div></div><div class="rb-404-controls" aria-hidden="true"><span class="rb-404-button rb-404-button-one"></span><span class="rb-404-button rb-404-button-two"></span><div class="rb-404-speakers"><i></i><i></i><i></i><i></i><i></i></div></div><div class="rb-404-base" aria-hidden="true"><span></span><span></span></div></div></div><strong class="rb-404-search-title">${value}</strong><small>TRY ANOTHER TAG OR SEARCH TERM.</small></div>`;
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "S"}`;
 const challengeTotal = (ctf) => ctf.challengeCount ?? ctf.challenges.length;
 
@@ -186,7 +186,7 @@ const renderGlobalSearch = (posts, ctfs) => {
   });
   const topTags = document.querySelector("[data-top-tags]");
   if (topTags) {
-    topTags.innerHTML = [...topicCounts.entries()]
+    topTags.innerHTML = '<button type="button" class="filter-pill is-active" data-search-topic="all">ALL TOPICS</button>' + [...topicCounts.entries()]
       .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
       .slice(0, 5)
       .map(([topic, count]) => `<button type="button" class="filter-pill" data-search-topic="${escapeHtml(topic)}">${escapeHtml(topic.toUpperCase())} <small>${count}</small></button>`)
@@ -195,7 +195,6 @@ const renderGlobalSearch = (posts, ctfs) => {
   const topicContainer = document.querySelector("[data-search-topics]");
   if (topicContainer) {
     topicContainer.innerHTML = [
-      '<button type="button" class="filter-pill is-active" data-search-topic="all">ALL TOPICS</button>',
       ...topicOptions.map((topic) => `<button type="button" class="filter-pill" data-search-topic="${escapeHtml(topic.toLowerCase())}">${escapeHtml(topic.toUpperCase())} <small>${topicCounts.get(topic.toLowerCase()) || 0}</small></button>`),
     ].join("");
     const tagFilter = document.querySelector("[data-tag-filter]");
@@ -256,7 +255,7 @@ const renderGlobalSearch = (posts, ctfs) => {
     if (count) count.textContent = `FOUND ${selected.length} RECORD${selected.length === 1 ? "" : "S"}${range}`;
     const list = document.querySelector("[data-quest-list]");
     if (list) {
-      list.innerHTML = shown.map((record) => record.type === "post" ? postCard(record.item) : writeupCard(record.ctf, record.item)).join("") || '<div class="archive-empty archive-empty--404"><strong>404</strong><span>NO RECORDS FOUND</span><small>TRY ANOTHER TAG OR SEARCH TERM.</small></div>';
+      list.innerHTML = shown.map((record) => record.type === "post" ? postCard(record.item) : writeupCard(record.ctf, record.item)).join("") || emptyMessage("NO RECORDS FOUND");
     }
     const pagination = document.querySelector("[data-search-pagination]");
     if (pagination) {
@@ -345,7 +344,6 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
   const intro = document.querySelector("[data-ctf-intro]");
   const count = document.querySelector("[data-ctf-count]");
   const back = document.querySelector("[data-ctf-back]");
-  const aside = document.querySelector("[data-ctf-aside]");
   const pagination = document.querySelector("[data-ctf-pagination]");
   const term = searchQuery.toLowerCase();
 
@@ -359,7 +357,6 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
     if (count) count.textContent = `${plural(results.length, "RESULT")} · PAGE ${currentPage} OF ${totalPages}`;
     list.innerHTML = shown.map(searchResultCard).join("") || emptyMessage("NO MATCHING CTF RESULTS.");
     if (pagination) pagination.innerHTML = paginationHtml(results.length, currentPage, (page) => `ctf.html?ctf=${encodeURIComponent(ctf.id)}&q=${encodeURIComponent(searchQuery)}&pg=${page}`);
-    if (aside) aside.innerHTML = eventSidebar(ctf);
     return;
   }
 
@@ -380,7 +377,6 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
     if (count) count.textContent = `${plural(total, "CHALLENGE")} LOGGED · PAGE ${currentPage} OF ${totalPages}`;
     list.innerHTML = visible.map((challenge) => writeupCard(ctf, challenge)).join("") || emptyMessage("NO CHALLENGES LOGGED YET.");
     if (pagination) pagination.innerHTML = paginationHtml(total, currentPage, (page) => `ctf.html?ctf=${encodeURIComponent(ctf.id)}&pg=${page}`);
-    if (aside) aside.innerHTML = eventSidebar({ ...ctf, challenges: visible });
     return;
   }
 
@@ -391,7 +387,6 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
     if (count) count.textContent = "";
     list.innerHTML = emptyMessage("THAT EVENT ISN'T IN THE ARCHIVE.");
     if (pagination) pagination.innerHTML = "";
-    if (aside) aside.innerHTML = "";
     return;
   }
 
@@ -404,7 +399,6 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
     if (count) count.textContent = `${plural(results.length, "RESULT")} · PAGE ${currentPage} OF ${totalPages}`;
     list.innerHTML = shown.map(searchResultCard).join("") || emptyMessage("NO MATCHING CTF RESULTS.");
     if (pagination) pagination.innerHTML = paginationHtml(results.length, currentPage, (page) => page === 1 ? "ctf.html?q=" + encodeURIComponent(searchQuery) : `ctf.html?q=${encodeURIComponent(searchQuery)}&pg=${page}`);
-    if (aside) aside.innerHTML = arenaSidebar(ctfs);
     return;
   }
 
@@ -414,7 +408,6 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
   if (count) count.textContent = `${plural(ctfs.length, "EVENT")} · ${plural(writeups, "WRITEUP")} · PAGE ${currentPage} OF ${totalPages}`;
   list.innerHTML = shown.map(ctfCard).join("") || emptyMessage("NO CTF EVENTS YET.");
   if (pagination) pagination.innerHTML = paginationHtml(ctfs.length, currentPage, (page) => page === 1 ? "ctf.html" : `ctf.html?pg=${page}`);
-  if (aside) aside.innerHTML = arenaSidebar(ctfs);
 };
 
 const renderWriteup = (ctf, challengeFile) => {

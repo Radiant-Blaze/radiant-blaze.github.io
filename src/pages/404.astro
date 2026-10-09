@@ -21,13 +21,25 @@ import Footer from "../components/Footer.astro";
         <a class="pixel-logo" href="/" aria-label="Radiant Blaze home">RB</a>
         <div class="top-controls"><input class="theme-checkbox" id="theme-toggle-checkbox" type="checkbox" data-theme-toggle aria-label="Switch to light theme" /><label class="theme-switch" for="theme-toggle-checkbox" aria-hidden="true"><span class="theme-switch-thumb"><svg class="sun-icon" viewBox="0 0 16 16"><path d="M7 0h2v3H7zM7 13h2v3H7zM0 7h3v2H0zM13 7h3v2h-3zM2 2h2v2H2zM12 2h2v2h-2zM2 12h2v2H2zM12 12h2v2h-2zM5 5h6v6H5z" /></svg><svg class="moon-icon" viewBox="0 0 24 24"><path d="M19.8 15.1A9.4 9.4 0 0 1 8.9 4.2 9.6 9.6 0 1 0 19.8 15.1Z" /><path d="M17 3v4M15 5h4M6 2v3M4.5 3.5h3M20 9v3M18.5 10.5h3" /></svg></span></label></div>
       </header>
-      <section class="hero" id="top">
-        <div class="pixel-spark spark-one" aria-hidden="true"></div>
-        <div class="pixel-spark spark-two" aria-hidden="true"></div>
-        <p class="level-label">ERROR 404</p>
-        <h1>GAME<br /><span>OVER</span></h1>
-        <p class="hero-copy">This quest doesn't exist —<br />the page wandered off the map.</p>
-        <a class="pixel-button cta-button" href="/">RETURN HOME <span aria-hidden="true">→</span></a>
+      <section class="rb-404-hero" id="top" aria-labelledby="rb-404-title">
+        <div class="rb-404-spark rb-404-spark-one" aria-hidden="true"></div>
+        <div class="rb-404-spark rb-404-spark-two" aria-hidden="true"></div>
+        <p class="rb-404-status">SYSTEM ERROR // 404</p>
+        <div class="rb-404-tv-wrap" aria-label="Retro television displaying a lost signal" role="img">
+          <div class="rb-404-signal-text" aria-hidden="true">404</div>
+          <div class="rb-404-tv">
+            <div class="rb-404-antenna" aria-hidden="true"><span class="rb-404-antenna-shadow"></span><span class="rb-404-antenna-left"></span><span class="rb-404-antenna-right"></span><i class="rb-404-tip-left"></i><i class="rb-404-tip-right"></i></div>
+            <div class="rb-404-display">
+              <div class="rb-404-screen"><span>NO SIGNAL</span><b>404</b></div>
+              <div class="rb-404-screen-pattern" aria-hidden="true"></div>
+            </div>
+            <div class="rb-404-controls" aria-hidden="true"><span class="rb-404-button rb-404-button-one"></span><span class="rb-404-button rb-404-button-two"></span><div class="rb-404-speakers"><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="rb-404-base" aria-hidden="true"><span></span><span></span></div>
+          </div>
+        </div>
+        <h1 id="rb-404-title">SIGNAL <span>LOST</span></h1>
+        <p class="rb-404-copy">This quest doesn't exist —<br />the page wandered off the map.</p>
+        <a class="pixel-button rb-404-home" href="/">RETURN HOME <span aria-hidden="true">→</span></a>
       </section>
       <Footer simple />
     </main>

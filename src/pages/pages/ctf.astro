@@ -3,11 +3,21 @@ import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { ctfCardHtml } from "../../lib/listing-html";
 import Footer from "../../components/Footer.astro";
 import QuestShell from "../../layouts/QuestShell.astro";
+import PlayerStats from "../../components/PlayerStats.astro";
+import { calculatePlayerStats } from "../../lib/player-stats";
 
-const { ctfs } = await getRuntimeReadModel();
+const readModel = await getRuntimeReadModel();
+const { ctfs } = readModel;
+const playerStats = calculatePlayerStats(readModel);
 const pageSize = 5;
 const totalPages = Math.max(1, Math.ceil(ctfs.length / pageSize));
 const writeupCount = ctfs.reduce((total, ctf) => total + ctf.challengeCount, 0);
+const yearCounts = ctfs.reduce((counts, ctf) => {
+  const year = new Date(`${ctf.date}T00:00:00`).getFullYear();
+  counts.set(year, (counts.get(year) || 0) + ctf.challengeCount);
+  return counts;
+}, new Map<number, number>());
+const categories = [...new Set(ctfs.flatMap((ctf) => ctf.challenges || []).map((challenge) => challenge.category).filter(Boolean))].sort();
 const eventCards = ctfs.slice(0, pageSize).map(ctfCardHtml).join("");
 const pagination = Array.from({ length: totalPages }, (_, index) => {
   const page = index + 1;
@@ -16,7 +26,6 @@ const pagination = Array.from({ length: totalPages }, (_, index) => {
 const paginationWithControls = totalPages > 1
   ? `<a class="pixel-button start-button" href="ctf.html" aria-label="Previous page" aria-disabled="true" tabindex="-1">‹</a>${pagination}<a class="pixel-button start-button" href="ctf.html?pg=2" aria-label="Next page">›</a>`
   : "";
-const arenaSidebar = `<section class="pixel-panel"><h2>ARENA STATS</h2><ul class="stat-list"><li>EVENTS <strong>${ctfs.length}</strong></li><li>WRITEUPS <strong>${writeupCount}</strong></li></ul></section>`;
 ---
 <QuestShell
   title="CTF Arena · Radiant Blaze"
@@ -43,7 +52,11 @@ const arenaSidebar = `<section class="pixel-panel"><h2>ARENA STATS</h2><ul class
       <div class="quest-list" data-ctf-list aria-live="polite" set:html={eventCards}></div>
       <nav class="ctf-pagination" data-ctf-pagination aria-label="CTF list pages" set:html={paginationWithControls}></nav>
     </section>
-    <aside class="sidebar" data-ctf-aside set:html={arenaSidebar}></aside>
+    <aside class="sidebar" data-ctf-aside>
+      <PlayerStats stats={playerStats} variant="blog" />
+      <section class="pixel-panel"><h2>SAVE FILES</h2><ul class="save-list" data-save-list>{[...yearCounts].sort(([left], [right]) => right - left).map(([year, count]) => <li><a href={`ctf.html?year=${year}`}>{year} <small>{count}</small></a></li>)}</ul></section>
+      <section class="pixel-panel"><h2>CATEGORIES</h2><nav class="region-list" data-category-list>{categories.map((name) => <a href={`search.html?topic=${encodeURIComponent(name!)}`}>{name!.toUpperCase()}</a>)}</nav></section>
+    </aside>
   </div>
   <Footer />
 </QuestShell>
