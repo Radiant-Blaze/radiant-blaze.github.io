@@ -45,7 +45,18 @@ for (const ctf of model.ctfs) {
 }
 
 const indexHtml = await getText("/pages/ctf.html");
-assert.equal((indexHtml.match(/class="quest-card"/g) || []).length, Math.min(5, model.ctfs.length));
+const cardClassLists = [...indexHtml.matchAll(/<article\b[^>]*\bclass="([^"]*)"/g)]
+  .map((match) => match[1].split(/\s+/).filter(Boolean));
+assert.equal(
+  cardClassLists.filter((classes) => classes.includes("quest-card")).length,
+  Math.min(5, model.ctfs.length),
+  "SSR event card count",
+);
+assert.equal(
+  cardClassLists.filter((classes) => classes.includes("listing-entry--event")).length,
+  Math.min(5, model.ctfs.length),
+  "SSR event card variant",
+);
 assert.ok(indexHtml.includes(`${challengeCount} WRITEUPS`));
 for (const ctf of model.ctfs) assert.ok(indexHtml.includes(ctf.title));
 

@@ -23,7 +23,13 @@ for (const post of model.posts) {
 
 const html = await getText("/pages/blog.html");
 assert.match(html, new RegExp(`data-blog-count[^>]*>${model.posts.length} POST`));
-assert.equal((html.match(/class="quest-card"/g) || []).length, Math.min(5, model.posts.length));
+const cardClassLists = [...html.matchAll(/<article\b[^>]*\bclass="([^"]*)"/g)]
+  .map((match) => match[1].split(/\s+/).filter(Boolean));
+assert.equal(
+  cardClassLists.filter((classes) => classes.includes("quest-card")).length,
+  Math.min(5, model.posts.length),
+  "SSR blog card count",
+);
 for (const post of model.posts.slice(0, 5)) {
   assert.ok(html.includes(post.title), `SSR blog card title ${post.title}`);
   assert.ok(html.includes(postUrl(post.file)), `SSR blog card URL ${post.file}`);

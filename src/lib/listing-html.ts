@@ -25,11 +25,17 @@ export function postCardHtml(post: Record<string, any>) {
   return `<article class="quest-card listing-entry listing-entry--post"><div class="listing-entry__main"><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="listing-tags">${tags}</div><div class="quest-meta"><span>${formatClientDate(post.date)}</span><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div></div><a class="listing-entry__action pixel-button start-button" href="${homePostPageUrl(post.file)}">READ POST →</a></article>`;
 }
 
-export function ctfCardHtml(ctf: Record<string, any>) {
+function ctfViewportVariant(_ctf: Record<string, any>, index = 0) {
+  const variants = ["rain", "pulse", "stars", "crt-tv", "glitch"];
+  return variants[index % variants.length];
+}
+
+export function ctfCardHtml(ctf: Record<string, any>, index = 0) {
   const difficulty = Math.max(0, Math.min(5, Number.parseInt(String(ctf.difficulty ?? "0"), 10) || 0));
   const stars = "★".repeat(difficulty) + "☆".repeat(5 - difficulty);
   const challengeCount = ctf.challengeCount ?? ctf.challenges.length;
-  return `<article class="quest-card listing-entry listing-entry--event"><div class="listing-entry__main"><p class="quest-number">CTF EVENT · ${new Date(`${ctf.date}T00:00:00`).getFullYear()}</p><h2>${escapeHtml(ctf.title)}</h2><p>${escapeHtml(ctf.description || "")}</p><div class="quest-meta"><span>${formatClientDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span class="difficulty" title="Difficulty">${stars}</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT →</a></article>`;
+  const viewportVariant = ctfViewportVariant(ctf, index);
+  return `<article class="quest-card listing-entry listing-entry--event"><div class="event-viewport event-viewport--${viewportVariant}" aria-hidden="true"><img class="event-viewport__screen" src="/assets/ctf-animations/${viewportVariant}.svg" alt="" /></div><div class="listing-entry__main"><div class="event-kicker"><span class="quest-number">CTF EVENT</span></div><h2>${escapeHtml(ctf.title)}</h2><p class="listing-event">${escapeHtml(ctf.event || "INDEPENDENT EVENT")}</p><p>${escapeHtml(ctf.description || "")}</p><div class="event-stats"><span>${formatClientDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span><b class="difficulty" title="Difficulty">${stars}</b> DIFFICULTY</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT <span aria-hidden="true">→</span></a></article>`;
 }
 
 export function writeupCardHtml(ctf: Record<string, any>, challenge: Record<string, any>) {

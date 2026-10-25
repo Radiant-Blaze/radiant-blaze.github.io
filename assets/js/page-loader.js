@@ -38,9 +38,14 @@
     const header = button.closest(".site-header");
     const menu = document.getElementById(button.getAttribute("aria-controls"));
     if (!header || !menu) return;
+    header.classList.remove("is-menu-closing");
     button.setAttribute("aria-expanded", String(open));
     button.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
     header.classList.toggle("is-menu-open", open);
+    if (!open) {
+      header.classList.add("is-menu-closing");
+      window.setTimeout(() => header.classList.remove("is-menu-closing"), 200);
+    }
   };
 
   document.addEventListener("click", (event) => {

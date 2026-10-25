@@ -45,6 +45,10 @@ const paginationWithControls = totalPages > 1
       <input id="ctf-search" type="search" name="q" placeholder="SEARCH CTFS OR CHALLENGES" data-ctf-search-input />
       <button class="pixel-button start-button" type="submit">SEARCH</button>
     </form>
+    <div class="ctf-toolbar" data-ctf-toolbar>
+      <label class="ctf-select-label" for="ctf-sort">SORT <select id="ctf-sort" data-ctf-sort><option value="recent">RECENT FIRST</option><option value="difficulty">DIFFICULTY</option><option value="size">MOST CHALLENGES</option><option value="name">NAME</option></select></label>
+      <label class="ctf-select-label" for="ctf-category">CATEGORY <select id="ctf-category" data-ctf-category><option value="all">ALL CATEGORIES</option>{categories.map((name) => <option value={name}>{name!.toUpperCase()}</option>)}</select></label>
+    </div>
     <p class="record-count" data-ctf-count>{ctfs.length} EVENT{ctfs.length === 1 ? "" : "S"} · {writeupCount} WRITEUP{writeupCount === 1 ? "" : "S"} · PAGE 1 OF {totalPages}</p>
   </section>
   <div class="page-grid quest-wrap">
@@ -54,7 +58,7 @@ const paginationWithControls = totalPages > 1
     </section>
     <aside class="sidebar" data-ctf-aside>
       <PlayerStats stats={playerStats} variant="blog" />
-      <section class="pixel-panel"><h2>SAVE FILES</h2><ul class="save-list" data-save-list>{[...yearCounts].sort(([left], [right]) => right - left).map(([year, count]) => <li><a href={`ctf.html?year=${year}`}>{year} <small>{count}</small></a></li>)}</ul></section>
+      <section class="pixel-panel"><h2>SAVE FILES</h2><ul class="save-list" data-save-list>{[...yearCounts].sort(([left], [right]) => right - left).map(([year, count]) => <li><a href={`ctf.html?year=${year}`}><span class="save-year">{year}</span><small>{count}</small></a></li>)}</ul></section>
       <section class="pixel-panel"><h2>CATEGORIES</h2><nav class="region-list" data-category-list>{categories.map((name) => <a href={`search.html?topic=${encodeURIComponent(name!)}`}>{name!.toUpperCase()}</a>)}</nav></section>
     </aside>
   </div>
