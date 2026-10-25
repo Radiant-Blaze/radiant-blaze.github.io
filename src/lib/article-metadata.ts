@@ -14,7 +14,7 @@ type WriteupMetadata = {
   points?: string | number | null;
   difficulty?: string | number | null;
   solves?: string | number | null;
-  flag?: string | number | null;
+  flag?: string | null;
   tags?: string[] | null;
   author?: string | null;
 };

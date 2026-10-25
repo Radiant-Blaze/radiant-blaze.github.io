@@ -20,12 +20,12 @@
     "check:phase5j": "node astro-tools/check_phase5j.mjs",
     "content:sync": "node astro-tools/content-sync/index.mjs",
     "content:check": "node astro-tools/content-sync/index.mjs --check",
-    "test:content-sync": "node astro-tools/content-sync/test.mjs"
-    ,"test:astro-route-parity": "node astro-tools/test-astro-route-parity.mjs",
+    "test:content-sync": "node astro-tools/content-sync/test.mjs",
+    "test:astro-route-parity": "node astro-tools/test-astro-route-parity.mjs",
     "test:compatibility-assets": "node astro-tools/test-compatibility-assets.mjs"
   },
   "dependencies": {
-    "astro": "^7.3.5",
-    "js-yaml": "^4.3.2"
+    "astro": "^7.4.2",
+    "js-yaml": "^5.5.0"
   }
 }

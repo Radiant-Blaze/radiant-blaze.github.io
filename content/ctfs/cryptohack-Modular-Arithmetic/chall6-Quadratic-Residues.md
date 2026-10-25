@@ -3,7 +3,7 @@ title: Quadratic Residues
 category: Crypto
 points: 100
 difficulty: 1
-flag: 8
+flag: "8"
 solves: 
 tags: [crypto, quadratic-residues, modular-arithmetic]
 author: Radiant Blaze

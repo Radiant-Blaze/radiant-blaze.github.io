@@ -1,4 +1,4 @@
-import yaml from "js-yaml";
+import { load } from "js-yaml";
 
 export type FrontmatterValue = string | number | boolean | null | FrontmatterValue[] | { [key: string]: FrontmatterValue };
 export type Frontmatter = Record<string, FrontmatterValue>;
@@ -11,7 +11,7 @@ export function extractFrontmatter(source: string) {
     throw new Error("Unclosed YAML frontmatter fence");
   }
   const header = normalized.slice(4, end);
-  const parsed = yaml.load(header);
+  const parsed = load(header);
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Frontmatter must contain a YAML mapping");
   return { data: parsed as Frontmatter, body: normalized.slice(end + 4).replace(/^\n/, "") };
 }

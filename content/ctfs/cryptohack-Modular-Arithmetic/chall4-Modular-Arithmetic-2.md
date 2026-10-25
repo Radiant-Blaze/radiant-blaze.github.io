@@ -3,7 +3,7 @@ title: Modular-Arithmetic-2
 category: Crypto
 points: 100
 difficulty: 1
-flag: 1
+flag: "1"
 solves: 
 tags: [crypto, modular-arithmetic, fermats-little-theorem, diffie-hellman]
 author: Radiant Blaze

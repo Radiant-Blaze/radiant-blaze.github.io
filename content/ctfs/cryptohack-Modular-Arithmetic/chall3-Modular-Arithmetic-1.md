@@ -3,7 +3,7 @@ title: Modular-Arithmetic-1
 category: Crypto
 points: 100
 difficulty: 1
-flag: 4
+flag: "4"
 solves: 
 tags: [crypto, modular-arithmetic, rsa]
 author: Radiant Blaze

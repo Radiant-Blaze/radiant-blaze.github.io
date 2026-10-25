@@ -3,7 +3,7 @@ title: Chinese Remainder Theorem
 category: Crypto
 points: 100
 difficulty: 1
-flag: 872
+flag: "872"
 solves:
 tags: [crypto, chinese-remainder-theorem, crt, modular-arithmetic]
 author: Radiant Blaze

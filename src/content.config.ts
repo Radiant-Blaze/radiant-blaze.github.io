@@ -26,7 +26,7 @@ const writeups = defineCollection({
     category: z.string().optional(),
     points: z.union([z.number(), z.string()]).optional(),
     difficulty: z.union([z.number(), z.string()]).optional(),
-    flag: z.union([z.string(), z.number()]).nullish(),
+    flag: z.string().nullish(),
     solves: z.union([z.string(), z.number()]).nullish(),
     tags: z.array(z.string()).default([]),
     author: z.string().optional(),

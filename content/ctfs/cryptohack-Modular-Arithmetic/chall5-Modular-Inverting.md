@@ -3,7 +3,7 @@ title: Modular Inverting
 category: Crypto
 points: 100
 difficulty: 1
-flag: 9
+flag: "9"
 solves: 
 tags: [crypto, modular-arithmetic, modular-inverse]
 author: Radiant Blaze

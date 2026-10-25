@@ -3,7 +3,7 @@ title: Extended GCD
 category: Crypto
 points: 100
 difficulty: 1
-flag: -8404
+flag: "-8404"
 solves: 
 tags: [crypto, gcd, extended-gcd, rsa]
 author: Radiant Blaze
