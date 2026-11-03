@@ -25,6 +25,22 @@ export const buildGlobalRecords = (posts, ctfs) => {
   ].sort((left, right) => new Date(`${right.date}T00:00:00`) - new Date(`${left.date}T00:00:00`));
 };
 
+export const getRecordYear = (record) => {
+  const date = new Date(`${record.date ?? ""}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date.getFullYear();
+};
+
+export const buildYearIndex = (records) => {
+  const counts = new Map();
+  records.forEach((record) => {
+    const year = getRecordYear(record);
+    if (year !== null) counts.set(year, (counts.get(year) || 0) + 1);
+  });
+  return [...counts.entries()]
+    .map(([year, count]) => ({ year, count }))
+    .sort((left, right) => right.year - left.year);
+};
+
 export const filterGlobalRecords = (
   records,
   { query, type = "all", topic = "all", year = "" },
@@ -35,7 +51,7 @@ export const filterGlobalRecords = (
     const { item, ctf } = record;
     const searchable = `${item.title} ${item.description || ""} ${item.category || ""} ${(item.tags || []).join(" ")} ${ctf?.title || ""}`.toLowerCase();
     const matchesQuery = !term || searchable.includes(term);
-    const matchesYear = !selectedYear || new Date(`${record.date}T00:00:00`).getFullYear() === Number(selectedYear);
+    const matchesYear = !selectedYear || getRecordYear(record) === Number(selectedYear);
     const matchesType = type === "all" || (type === "posts" && record.type === "post") || (type === "writeups" && record.type === "writeup");
     const topics = recordTopics(item, ctf);
     const matchesTopic = topic === "all" || topics.some((value) => value.includes(normalizeTopic(topic)));

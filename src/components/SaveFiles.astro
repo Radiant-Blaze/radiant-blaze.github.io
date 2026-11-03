@@ -1,0 +1,20 @@
+---
+interface Props {
+  years: Array<[number, number]>;
+  hrefPrefix: string;
+}
+
+const { years, hrefPrefix } = Astro.props;
+---
+
+<section class="pixel-panel">
+  <h2>SAVE FILES</h2>
+  <ul class="save-list" data-save-list data-save-href-prefix={hrefPrefix}>
+    {[...years].sort(([left], [right]) => right - left).map(([year, count]) => (
+      <li><a href={`${hrefPrefix}${year}`}><span class="save-year">{year}</span><small>{count}</small></a></li>
+    ))}
+  </ul>
+  <template data-save-template>
+    <li><a><span class="save-year"></span><small></small></a></li>
+  </template>
+</section>

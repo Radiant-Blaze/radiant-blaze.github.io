@@ -19,8 +19,16 @@ export type PlayerStats = {
   xp: number;
   level: number;
   levelProgress: number;
+  blogXp: number;
+  blogLevel: number;
+  blogLevelProgress: number;
+  ctfXp: number;
+  ctfLevel: number;
+  ctfLevelProgress: number;
   currentStreak: number;
   longestStreak: number;
+  ctfCurrentStreak: number;
+  ctfLongestStreak: number;
   blogMetrics: PlayerStat[];
   ctfMetrics: PlayerStat[];
 };
@@ -101,10 +109,21 @@ export function calculatePlayerStats(source: PlayerStatsSource): PlayerStats {
   });
   const dates = source.posts.map((article) => article.date).concat(source.ctfs.map((ctf) => ctf.date)).filter((date): date is string => Boolean(validDate(date)));
   const { current, longest } = streaks(dates);
+  const { current: ctfCurrent, longest: ctfLongest } = streaks(
+    source.ctfs.map((ctf) => ctf.date).filter((date): date is string => Boolean(validDate(date))),
+  );
+  const blogXp = source.posts.length * XP_WEIGHTS.blogPost;
+  const ctfXp = writeups.length * XP_WEIGHTS.writeup + source.ctfs.length * XP_WEIGHTS.ctfEvent;
   const xp = source.posts.length * XP_WEIGHTS.blogPost + writeups.length * XP_WEIGHTS.writeup + source.ctfs.length * XP_WEIGHTS.ctfEvent;
   const level = Math.floor(xp / 500) + 1;
   const levelProgress = xp % 500;
+  const blogLevel = Math.floor(blogXp / 500) + 1;
+  const blogLevelProgress = blogXp % 500;
+  const ctfLevel = Math.floor(ctfXp / 500) + 1;
+  const ctfLevelProgress = ctfXp % 500;
   const wordsWritten = allArticles.reduce((total, article) => total + countWords(article.body), 0);
+  const ctfWordsWritten = writeups.reduce((total, article) => total + countWords(article.body), 0);
+  const ctfCategories = new Set(writeups.map((article) => (article.category || "MISC").toUpperCase()));
   const format = (value: number) => value.toLocaleString("en-US");
   return {
     blogPosts: source.posts.length,
@@ -118,6 +137,12 @@ export function calculatePlayerStats(source: PlayerStatsSource): PlayerStats {
     xp,
     level,
     levelProgress,
+    blogXp,
+    blogLevel,
+    blogLevelProgress,
+    ctfXp,
+    ctfLevel,
+    ctfLevelProgress,
     currentStreak: current,
     longestStreak: longest,
     blogMetrics: [
@@ -126,16 +151,19 @@ export function calculatePlayerStats(source: PlayerStatsSource): PlayerStats {
       metric("articles", "TOTAL ARTICLES", allArticles.length, "Blog posts plus CTF writeups"),
       metric("categories", "CATEGORIES", categories.size, "Distinct categories and tags"),
       metric("words", "WORDS WRITTEN", format(wordsWritten), "Words in published article bodies"),
-      metric("xp", "XP EARNED", format(xp), "100 per post, 50 per writeup, 100 per event"),
+      metric("xp", "BLOG XP", format(blogXp), `${XP_WEIGHTS.blogPost} per published blog post`),
       metric("streak", "CURRENT STREAK", `${current} DAY${current === 1 ? "" : "S"}`, "Consecutive publication days, active through today or yesterday"),
     ],
     ctfMetrics: [
-      metric("writeups", "WRITEUPS PUBLISHED", writeups.length, "Published writeups; not a claim of verified solves"),
       metric("events", "CTF EVENTS", source.ctfs.length, "Distinct events represented in the content index"),
+      metric("writeups", "CTF WRITEUPS", writeups.length, "Published writeups; not a claim of verified solves"),
       metric("challenges", "CHALLENGES DOCUMENTED", writeups.length, "Distinct challenge files in the published event index"),
-      ...["CRYPTO", "WEB", "PWN", "REV", "FORENSICS", "MISC"].map((category) => metric(category.toLowerCase(), category, categoryCounts[category] || 0, `Writeups classified as ${category}`)),
-      metric("words", "WORDS WRITTEN", format(writeups.reduce((total, article) => total + countWords(article.body), 0)), "Words in published CTF writeup bodies"),
-      metric("xp", "CTF XP", format(writeups.length * XP_WEIGHTS.writeup + source.ctfs.length * XP_WEIGHTS.ctfEvent), "50 per writeup plus 100 per event"),
+      metric("categories", "CTF CATEGORIES", ctfCategories.size, "Distinct categories represented by published CTF writeups"),
+      metric("words", "WORDS WRITTEN", format(ctfWordsWritten), "Words in published CTF writeup bodies"),
+      metric("xp", "CTF XP", format(ctfXp), `${XP_WEIGHTS.writeup} per writeup plus ${XP_WEIGHTS.ctfEvent} per event`),
+      metric("streak", "EVENT STREAK", `${ctfCurrent} DAY${ctfCurrent === 1 ? "" : "S"}`, "Consecutive CTF event dates, active through today or yesterday"),
     ],
+    ctfCurrentStreak: ctfCurrent,
+    ctfLongestStreak: ctfLongest,
   };
 }

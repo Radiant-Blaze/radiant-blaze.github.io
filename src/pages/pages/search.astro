@@ -27,8 +27,15 @@ import Footer from "../../components/Footer.astro";
       <details class="tag-database">
         <summary>TAG DATABASE <span aria-hidden="true">+</span></summary>
         <label class="sr-only" for="tag-filter">Search tags</label>
-        <input id="tag-filter" class="tag-filter" type="search" placeholder="SEARCH TAGS" data-tag-filter />
-        <div class="search-pills search-pills--topic" data-search-topics></div>
+        <input id="tag-filter" class="database-filter" type="search" placeholder="SEARCH TAGS" data-tag-filter />
+        <div class="search-pills search-pills--topic" data-search-topics aria-live="polite"></div>
+      </details>
+      <details class="year-database">
+        <summary>YEAR DATABASE <span aria-hidden="true">+</span></summary>
+        <label class="sr-only" for="year-filter">Search years</label>
+        <input id="year-filter" class="database-filter" type="search" inputmode="numeric" placeholder="SEARCH YEARS" data-year-filter />
+        <div class="search-pills search-pills--year" data-search-years aria-live="polite"></div>
+        <p class="year-database__empty" data-year-empty hidden>NO MATCHING YEARS</p>
       </details>
     </div>
     <p class="record-count" data-record-count>LOADING RECORDS...</p>

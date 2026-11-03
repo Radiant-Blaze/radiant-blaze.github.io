@@ -46,4 +46,77 @@ const events = defineCollection({
   }),
 });
 
-export const collections = { posts, writeups, events };
+const portfolioLinkUrl = z.string().url().refine((value) => ["http:", "https:", "mailto:"].includes(new URL(value).protocol), "Links must use HTTP, HTTPS, or mailto");
+const portfolioImageSource = z.string().min(1).refine((value) => value.startsWith("/") && !value.startsWith("//") || /^https:\/\//i.test(value), "Images must use a site path or HTTPS URL");
+
+const portfolioBase = {
+  published: z.boolean().default(true),
+  featured: z.boolean().default(false),
+  order: z.number().int().default(100),
+  date: z.coerce.date().optional(),
+  description: z.string().optional(),
+  links: z.array(z.object({
+    label: z.string(),
+    url: portfolioLinkUrl,
+  })).default([]),
+};
+
+const portfolio = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./content/portfolio" }),
+  schema: z.discriminatedUnion("type", [
+    z.object({
+      ...portfolioBase,
+      type: z.literal("profile"),
+      title: z.string(),
+    }),
+    z.object({
+      ...portfolioBase,
+      type: z.literal("skill"),
+      title: z.string(),
+      category: z.string(),
+      skills: z.array(z.string().min(1)).min(1),
+    }),
+    z.object({
+      ...portfolioBase,
+      type: z.literal("project"),
+      title: z.string(),
+      description: z.string(),
+      category: z.string(),
+      technologies: z.array(z.string()).default([]),
+      tags: z.array(z.string()).default([]),
+      image: z.object({
+        src: portfolioImageSource,
+        alt: z.string().min(1),
+      }).optional(),
+    }),
+    z.object({
+      ...portfolioBase,
+      type: z.literal("achievement"),
+      title: z.string(),
+      description: z.string(),
+      category: z.string().optional(),
+    }),
+    z.object({
+      ...portfolioBase,
+      type: z.literal("research"),
+      title: z.string(),
+      description: z.string(),
+      publication: z.string().optional(),
+    }),
+    z.object({
+      ...portfolioBase,
+      type: z.literal("certification"),
+      title: z.string(),
+      issuer: z.string(),
+      credentialId: z.string().optional(),
+    }),
+    z.object({
+      ...portfolioBase,
+      type: z.literal("custom"),
+      sectionId: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      title: z.string(),
+    }),
+  ]),
+});
+
+export const collections = { posts, writeups, events, portfolio };

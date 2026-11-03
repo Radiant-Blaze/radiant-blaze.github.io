@@ -8,13 +8,15 @@ interface Props {
 
 const { stats, variant = "blog" } = Astro.props;
 const metrics = variant === "ctf" ? stats.ctfMetrics : stats.blogMetrics;
+const level = variant === "ctf" ? stats.ctfLevel : stats.blogLevel;
+const levelProgress = variant === "ctf" ? stats.ctfLevelProgress : stats.blogLevelProgress;
 ---
 <section class="pixel-panel player-stats" aria-labelledby={`player-stats-${variant}`}>
   <h2 id={`player-stats-${variant}`}>PLAYER STATS</h2>
-  <div class="player-level" aria-label={`Level ${stats.level}, ${stats.levelProgress} of 500 XP toward the next level`}>
-    <span>LEVEL {stats.level}</span><span>{stats.levelProgress}/500 XP</span>
+  <div class="player-level" aria-label={`Level ${level}, ${levelProgress} of 500 page-specific XP toward the next level`}>
+    <span>LEVEL {level}</span><span>{levelProgress}/500 XP</span>
   </div>
-  <div class="player-level-track" role="progressbar" aria-valuemin="0" aria-valuemax="500" aria-valuenow={stats.levelProgress} aria-label="Progress toward next level"><span style={`width: ${(stats.levelProgress / 500) * 100}%`}></span></div>
+  <div class="player-level-track" role="progressbar" aria-valuemin="0" aria-valuemax="500" aria-valuenow={levelProgress} aria-label="Progress toward next level"><span style={`width: ${(levelProgress / 500) * 100}%`}></span></div>
   <ul class="stat-list">
     {metrics.map((item) => <li title={item.description}><span>{item.label}</span><strong>{item.value}</strong></li>)}
   </ul>

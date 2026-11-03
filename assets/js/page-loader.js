@@ -30,9 +30,8 @@
 
   window.RadiantBlazePageLoader = Object.freeze({ show, hide });
 
-  // Keep the initial document behind the same loader used for navigation.
-  // Article pages remove it only after their page module has finished setup.
-  show();
+  const isDisabled = document.body.classList.contains("disable-page-loader");
+  if (!isDisabled) show();
 
   const setMenuOpen = (button, open) => {
     const header = button.closest(".site-header");
@@ -89,6 +88,8 @@
       event.target instanceof Element ? event.target.closest("a[href]") : null;
     if (
       event.defaultPrevented ||
+      document.body.classList.contains("disable-page-loader") ||
+      isDisabled ||
       event.button !== 0 ||
       event.metaKey ||
       event.ctrlKey ||

@@ -1,6 +1,7 @@
 ---
 import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { ctfCardHtml } from "../../lib/listing-html";
+import SaveFiles from "../../components/SaveFiles.astro";
 import Footer from "../../components/Footer.astro";
 import QuestShell from "../../layouts/QuestShell.astro";
 import PlayerStats from "../../components/PlayerStats.astro";
@@ -41,6 +42,7 @@ const paginationWithControls = totalPages > 1
     <p class="quest-intro" data-ctf-intro>Capture-the-flag write-ups, grouped by event. Pick a competition to browse the challenges I cracked.</p>
     <form class="search-form ctf-search-form" action="ctf.html" method="get" data-ctf-search>
       <input type="hidden" name="ctf" data-ctf-search-scope />
+      <input type="hidden" name="year" data-ctf-search-year />
       <label class="sr-only" for="ctf-search">Search CTFs and challenges</label>
       <input id="ctf-search" type="search" name="q" placeholder="SEARCH CTFS OR CHALLENGES" data-ctf-search-input />
       <button class="pixel-button start-button" type="submit">SEARCH</button>
@@ -57,8 +59,8 @@ const paginationWithControls = totalPages > 1
       <nav class="ctf-pagination" data-ctf-pagination aria-label="CTF list pages" set:html={paginationWithControls}></nav>
     </section>
     <aside class="sidebar" data-ctf-aside>
-      <PlayerStats stats={playerStats} variant="blog" />
-      <section class="pixel-panel"><h2>SAVE FILES</h2><ul class="save-list" data-save-list>{[...yearCounts].sort(([left], [right]) => right - left).map(([year, count]) => <li><a href={`ctf.html?year=${year}`}><span class="save-year">{year}</span><small>{count}</small></a></li>)}</ul></section>
+      <PlayerStats stats={playerStats} variant="ctf" />
+      <SaveFiles years={[...yearCounts]} hrefPrefix="ctf.html?year=" />
       <section class="pixel-panel"><h2>CATEGORIES</h2><nav class="region-list" data-category-list>{categories.map((name) => <a href={`search.html?topic=${encodeURIComponent(name!)}`}>{name!.toUpperCase()}</a>)}</nav></section>
     </aside>
   </div>

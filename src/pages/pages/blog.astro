@@ -1,6 +1,7 @@
 ---
 import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { postCardHtml } from "../../lib/listing-html";
+import SaveFiles from "../../components/SaveFiles.astro";
 import Footer from "../../components/Footer.astro";
 import QuestShell from "../../layouts/QuestShell.astro";
 import PlayerStats from "../../components/PlayerStats.astro";
@@ -52,7 +53,7 @@ const paginationWithControls = totalPages > 1
     </section>
     <aside class="sidebar">
       <PlayerStats stats={playerStats} variant="blog" />
-      <section class="pixel-panel"><h2>SAVE FILES</h2><ul class="save-list" data-save-list>{[...yearCounts].sort(([left], [right]) => right - left).map(([year, count]) => <li><a href={`search.html?year=${year}`}>{year} <small>{count}</small></a></li>)}</ul></section>
+      <SaveFiles years={[...yearCounts]} hrefPrefix="search.html?year=" />
       <section class="pixel-panel"><h2>CATEGORIES</h2><nav class="region-list" data-category-list>{categories.map((name) => <a href={`blog.html?category=${encodeURIComponent(name)}`}>{name.toUpperCase()}</a>)}</nav></section>
     </aside>
   </div>

@@ -34,8 +34,9 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatHomeDate(
     <meta name="twitter:description" content="A pixel-powered dev blog about code, Linux, and side quests." />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="/assets/css/style.css?v=20261002-15" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=20261103-24" />
     <script src="/assets/js/astro-controls.js" is:inline></script>
+    <script defer src="/assets/js/music-controller.js?v=20261103-10" is:inline></script>
     <script src="/assets/js/page-loader.js" defer is:inline></script>
     <script defer src="/assets/js/astro-navigation.js" is:inline></script>
   </head>
@@ -43,12 +44,10 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatHomeDate(
     <main class="game-screen">
       <header class="top-bar site-header">
         <a class="home-brand" href="#top" aria-label="Radiant Blaze home" aria-current="page"><span class="pixel-logo">RB</span><span class="brand-copy"><span class="brand-title">RADIANT BLAZE</span><span class="brand-caption">PLAYER ONE / HOME BASE</span></span></a>
-        <nav class="home-nav" id="primary-site-nav" aria-label="Site navigation"><a href="pages/blog.html" data-nav-index="01">BLOG</a><a href="pages/ctf.html" data-nav-index="02">CTFS</a><a href="pages/search.html" data-nav-index="03">SEARCH</a></nav>
+        <nav class="home-nav" id="primary-site-nav" aria-label="Site navigation"><a href="pages/blog.html" data-nav-index="01">BLOG</a><a href="pages/ctf.html" data-nav-index="02">CTFS</a><a href="pages/search.html" data-nav-index="03">SEARCH</a><a href="portfolio/" data-nav-index="04">PORTFOLIO</a></nav>
         <div class="top-controls">
           <input class="theme-checkbox" id="theme-toggle-checkbox" type="checkbox" data-theme-toggle aria-label="Switch to light theme" />
           <label class="theme-switch" for="theme-toggle-checkbox" aria-hidden="true"><span class="theme-switch-thumb"><svg class="sun-icon" viewBox="0 0 16 16"><path d="M7 0h2v3H7zM7 13h2v3H7zM0 7h3v2H0zM13 7h3v2h-3zM2 2h2v2H2zM12 2h2v2h-2zM2 12h2v2H2zM12 12h2v2h-2zM5 5h6v6H5z" /></svg><svg class="moon-icon" viewBox="0 0 24 24"><path d="M19.8 15.1A9.4 9.4 0 0 1 8.9 4.2 9.6 9.6 0 1 0 19.8 15.1Z" /><path d="M17 3v4M15 5h4M6 2v3M4.5 3.5h3M20 9v3M18.5 10.5h3" /></svg></span></label>
-          <input class="audio-checkbox" id="audio-toggle-checkbox" type="checkbox" data-audio-toggle aria-label="Play music" />
-          <label class="toggleSwitch" for="audio-toggle-checkbox" aria-hidden="true"><span class="speaker"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z" /><path d="M16 9a5 5 0 0 1 0 6m3-9a9 9 0 0 1 0 12" /></svg></span><span class="mute-speaker"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z" /><path d="m16 9 5 6m0-6-5 6" /></svg></span></label>
           <button class="mobile-menu-toggle" data-mobile-menu-toggle type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="primary-site-nav">
             <span class="menu-wrapper" aria-hidden="true">
               <span class="menu-row menu-row-top"><span class="menu-dot"></span><span class="menu-dot"></span></span>
@@ -62,16 +61,15 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatHomeDate(
       <section class="hero" id="top">
         <div class="pixel-spark spark-one" aria-hidden="true"></div>
         <div class="pixel-spark spark-two" aria-hidden="true"></div>
-        <p class="level-label">PLAYER ONE PRESENTS</p>
-        <h1>RADIANT<br /><span>BLAZE</span></h1>
+        <p class="level-label">TALHA AHMED PRESENTS</p>
+        <h1>BLAZE'S<br /><span>BLOGPOST</span></h1>
         <p class="hero-copy">A tiny corner of the internet<br />made with big pixels and bright ideas.</p>
-        <a class="pixel-button cta-button" href="pages/blog.html">PRESS START <span aria-hidden="true">→</span></a>
       </section>
       <section class="status-panel" id="start" aria-label="Useful next steps">
         <div class="status-panel-header"><div class="status-status"><span class="status-light" aria-hidden="true"></span><span class="panel-title">LIVE LOADOUT</span></div><span class="loading-dots" aria-hidden="true">→</span></div>
         <div class="status-panel-grid">
           <a class="feature-tile feature-tile--primary" href={feature.href} data-latest-post aria-label={`Read the latest ${feature.type.toLowerCase()}: ${feature.title}`}><p class="quest-number">LATEST {feature.type}</p><h3>{feature.title}</h3><p>{feature.description}</p><div class="quest-meta"><span>{featureDate}</span><span><b>{feature.category.toUpperCase()}</b></span></div></a>
-          <a class="feature-tile" href="/generated/posts/linux/021-tiny-command-line-toolkit.html" aria-label="Read the latest post: Building a Tiny Command-Line Toolkit"><p class="quest-number">LATEST POST</p><h3>Building a Tiny Command-Line Toolkit</h3><p>A practical guide to creating compact shell utilities and making everyday terminal work faster.</p><div class="quest-meta"><span>MAR 21, 2026</span><span><b>LINUX</b></span></div></a>
+          {latestPost && <a class="feature-tile" href={latestPost.href} aria-label={`Read the latest post: ${latestPost.title}`}><p class="quest-number">LATEST POST</p><h3>{latestPost.title}</h3><p>{latestPost.description}</p><div class="quest-meta"><span>{formatHomeDate(latestPost.date)}</span><span><b>{latestPost.category.toUpperCase()}</b></span></div></a>}
           <a class="feature-tile" href="pages/search.html" aria-label="Search the archive"><p class="quest-number">SEARCH ARCHIVE</p><h3>Search the archive</h3><p>Browse every post, writeup, and tag in one place to find the exact material you need.</p><div class="quest-meta"><span>NOW</span><span><b>DISCOVER</b></span></div></a>
         </div>
       </section>

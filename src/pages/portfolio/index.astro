@@ -1,0 +1,209 @@
+---
+import { getCollection } from "astro:content";
+import portfolioSettings from "../../../content/portfolio/config.json";
+import Footer from "../../components/Footer.astro";
+import QuestShell from "../../layouts/QuestShell.astro";
+import { homeWriteupPageUrl } from "../../lib/home-selection";
+import { getRuntimeReadModel } from "../../lib/runtime-read-model";
+import { escapeHtml, formatDate, renderMarkdown } from "../../lib/markdown";
+import { portfolioConfigSchema } from "../../lib/portfolio-config";
+
+const config = portfolioConfigSchema.parse(portfolioSettings);
+const entries = await getCollection("portfolio");
+const publishedEntries = entries.filter((entry) => entry.data.published);
+const profiles = publishedEntries.filter((entry) => entry.data.type === "profile");
+if (profiles.length > 1) throw new Error("Portfolio supports one published profile entry.");
+const profile = config.sections.some((section) => section.type === "profile" && section.enabled) ? profiles[0] : undefined;
+const skills = publishedEntries.filter((entry) => entry.data.type === "skill")
+  .sort((left, right) => left.data.order - right.data.order || (right.data.date?.getTime() ?? 0) - (left.data.date?.getTime() ?? 0));
+const projects = publishedEntries.filter((entry) => entry.data.type === "project")
+  .sort((left, right) => left.data.order - right.data.order || (right.data.date?.getTime() ?? 0) - (left.data.date?.getTime() ?? 0));
+const achievements = publishedEntries.filter((entry) => entry.data.type === "achievement");
+const research = publishedEntries.filter((entry) => entry.data.type === "research");
+const certifications = publishedEntries.filter((entry) => entry.data.type === "certification");
+const customEntries = publishedEntries.filter((entry) => entry.data.type === "custom");
+const { ctfs } = await getRuntimeReadModel();
+const writeupCount = ctfs.reduce((count, ctf) => count + ctf.challenges.length, 0);
+const categoryOptions = [...new Set(projects.map((entry) => entry.data.category))].sort((a, b) => a.localeCompare(b));
+const technologyOptions = [...new Set(projects.flatMap((entry) => entry.data.technologies))].sort((a, b) => a.localeCompare(b));
+const contentFor = (section: typeof config.sections[number]) => {
+  switch (section.type) {
+    case "profile": return profile ? [profile] : [];
+    case "skills": return skills;
+    case "projects": return projects;
+    case "ctfs": return ctfs;
+    case "achievements": return achievements;
+    case "research": return research;
+    case "certifications": return certifications;
+    case "custom": return customEntries.filter((entry) => entry.data.sectionId === section.id);
+    default: return [];
+  }
+};
+const configuredSections = [...config.sections]
+  .filter((section) => section.enabled)
+  .sort((left, right) => left.order - right.order);
+const visibleSections = configuredSections.filter((section) => section.showEmpty || contentFor(section).length > 0);
+const profileSection = visibleSections.find((section) => section.type === "profile");
+const sectionsWithContent = visibleSections.filter((section) => section.type !== "profile");
+
+const sortEntries = <T extends { data: { order: number; date?: Date } }>(items: T[], section: typeof config.sections[number]) =>
+  [...items].sort((left, right) => {
+    const difference = section.sort === "date"
+      ? (left.data.date?.getTime() ?? 0) - (right.data.date?.getTime() ?? 0)
+      : left.data.order - right.data.order;
+    if (difference) return section.direction === "desc" ? -difference : difference;
+    return left.data.order - right.data.order;
+  });
+
+const projectCard = (entry: (typeof projects)[number]) => {
+  if (entry.data.type !== "project") return "";
+  const { title, description, category, technologies, links, image, featured } = entry.data;
+  const imageHtml = image
+    ? `<img class="portfolio-image" src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" loading="lazy" />`
+    : "";
+  const technologyList = technologies.length
+    ? `<ul class="portfolio-tags" aria-label="Technologies">${technologies.map((technology) => `<li>${escapeHtml(technology)}</li>`).join("")}</ul>`
+    : "";
+  const linkList = links.length
+    ? `<nav class="portfolio-actions" aria-label="${escapeHtml(title)} links">${links.map((link) => `<a class="pixel-button start-button" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)} <span aria-hidden="true">↗</span></a>`).join("")}</nav>`
+    : "";
+  return `<article class="portfolio-card${featured ? " is-featured" : ""}" data-portfolio-project data-category="${escapeHtml(category.toLocaleLowerCase())}" data-technologies="${escapeHtml(technologies.map((technology) => technology.toLocaleLowerCase()).join("|"))}">${imageHtml}<div class="portfolio-card-copy"><p class="portfolio-kicker">${escapeHtml(category).toUpperCase()}${featured ? " · FEATURED" : ""}</p><h3>${escapeHtml(title)}</h3><p>${escapeHtml(description)}</p></div><div class="portfolio-card-details">${technologyList}${linkList}</div></article>`;
+};
+
+const recordLinks = (title: string, links: { label: string; url: string }[]) => links.length
+  ? `<nav class="portfolio-actions" aria-label="${escapeHtml(title)} links">${links.map((link) => `<a class="portfolio-text-link" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)} <span aria-hidden="true">↗</span></a>`).join("")}</nav>`
+  : "";
+---
+<QuestShell
+  title={config.pageTitle}
+  description={config.description}
+  canonical="https://radiant-blaze.github.io/portfolio/"
+  currentPage="portfolio"
+  brandHref="/"
+  pageLinkPrefix="/pages/"
+  disablePageLoader={true}
+>
+  <section class="quest-hero quest-wrap portfolio-hero" id={profileSection?.id}>
+    <p class="eyebrow">{config.heroEyebrow}</p>
+    <div class="portfolio-hero-copy">
+      <h1 class="quest-title">{config.displayName}</h1>
+      <p class="portfolio-role">{config.focusLine}</p>
+      {profile && <>
+        <h2 class="sr-only">{profile.data.title}</h2>
+        <div class="portfolio-intro quest-intro" set:html={renderMarkdown(profile.body)} />
+      </>}
+    </div>
+    <aside class="portfolio-snapshot" aria-label="Portfolio at a glance">
+      <p class="portfolio-snapshot-title"><span aria-hidden="true">▶</span> FIELD RECORD</p>
+      <dl>
+        <div><dt>PROJECTS</dt><dd data-portfolio-stat="projects">{String(projects.length).padStart(2, "0")}</dd></div>
+        <div><dt>FOCUS AREAS</dt><dd data-portfolio-stat="skills">{String(skills.length).padStart(2, "0")}</dd></div>
+        <div><dt>CTF WRITEUPS</dt><dd data-portfolio-stat="writeups">{String(writeupCount).padStart(2, "0")}</dd></div>
+      </dl>
+      <p class="portfolio-snapshot-note">Published work and learning notes</p>
+    </aside>
+  </section>
+
+  {visibleSections.some((section) => section.navigation) && <nav class="portfolio-nav quest-wrap" aria-label="Portfolio sections">
+    {visibleSections.filter((section) => section.navigation).map((section) => <a href={`#${section.id}`}>{section.title}</a>)}
+  </nav>}
+
+  {sectionsWithContent.map((section) => <section class="portfolio-section quest-wrap" id={section.id} aria-labelledby={`${section.id}-title`}>
+    <div class="portfolio-section-heading">
+      {section.description && <p class="eyebrow">{section.description}</p>}
+      <h2 id={`${section.id}-title`}>{section.title}</h2>
+    </div>
+
+    {section.type === "skills" && <div class="portfolio-skill-groups">
+      {sortEntries(skills, section).map((entry) => entry.data.type === "skill" && <article class="portfolio-skill-group">
+        <h3>{entry.data.category}</h3>
+        {entry.body.trim() && <p>{entry.body.trim()}</p>}
+        <ul class="portfolio-tags" aria-label={entry.data.category}>{entry.data.skills.map((skill) => <li>{skill}</li>)}</ul>
+      </article>)}
+      {skills.length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
+    </div>}
+
+    {section.type === "projects" && <div class="portfolio-projects" data-portfolio-projects>
+      {projects.length > 1 && (categoryOptions.length > 1 || technologyOptions.length > 1) && <div class="portfolio-project-controls" aria-label="Filter projects">
+        {categoryOptions.length > 1 && <label>Category
+          <select data-project-category aria-label="Filter projects by category">
+            <option value="">All categories</option>
+            {categoryOptions.map((category) => <option value={category.toLocaleLowerCase()}>{category}</option>)}
+          </select>
+        </label>}
+        {technologyOptions.length > 1 && <label>Technology
+          <select data-project-technology aria-label="Filter projects by technology">
+            <option value="">All technologies</option>
+            {technologyOptions.map((technology) => <option value={technology.toLocaleLowerCase()}>{technology}</option>)}
+          </select>
+        </label>}
+        <p data-project-count aria-live="polite"></p>
+      </div>}
+      <div class="portfolio-project-grid">
+        {sortEntries(projects, section).map((entry) => <Fragment set:html={projectCard(entry)} />)}
+      </div>
+      <p class="portfolio-empty" data-project-empty hidden>No projects match these filters.</p>
+      {projects.length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
+    </div>}
+
+    {section.type === "ctfs" && <div class="portfolio-timeline">
+      {[...ctfs]
+        .sort((left, right) => (section.direction === "asc" ? 1 : -1) * (new Date(left.date).getTime() - new Date(right.date).getTime()))
+        .slice(0, section.itemLimit ?? ctfs.length)
+        .map((ctf) => <article class="portfolio-timeline-entry">
+          <div class="portfolio-timeline-date">{formatDate(ctf.date)}</div>
+          <div class="portfolio-timeline-content">
+            <p class="portfolio-kicker">{ctf.event || ctf.title} · {ctf.challengeCount}</p>
+            <h3>{ctf.title}</h3>
+            {ctf.description && <p>{ctf.description}</p>}
+            <ul class="portfolio-writeup-links">{ctf.challenges.slice(0, section.challengeLimit ?? ctf.challenges.length).map((challenge) => <li><a href={homeWriteupPageUrl(ctf.id, challenge.file)}>{challenge.title || challenge.file} <span aria-hidden="true">→</span></a></li>)}</ul>
+            <a class="portfolio-text-link" href={`/pages/ctf.html?ctf=${encodeURIComponent(ctf.id)}`}>Browse event <span aria-hidden="true">→</span></a>
+          </div>
+        </article>)}
+      {ctfs.length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
+    </div>}
+
+    {section.type === "achievements" && <div class="portfolio-timeline">
+      {sortEntries(achievements, section).map((entry) => entry.data.type === "achievement" && <article class="portfolio-timeline-entry">
+        <div class="portfolio-timeline-date">{entry.data.date ? formatDate(entry.data.date) : ""}</div>
+        <div class="portfolio-timeline-content">
+          {entry.data.category && <p class="portfolio-kicker">{entry.data.category}</p>}
+          <h3>{entry.data.title}</h3><p>{entry.data.description}</p>
+          <Fragment set:html={recordLinks(entry.data.title, entry.data.links)} />
+        </div>
+      </article>)}
+      {achievements.length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
+    </div>}
+
+    {(section.type === "research" || section.type === "certifications") && <div class="portfolio-entry-list">
+      {sortEntries(section.type === "research" ? research : certifications, section).map((entry) => <article class="portfolio-record">
+        {entry.data.type === "research" && <>
+          {(entry.data.publication || entry.data.date) && <p class="portfolio-kicker">{entry.data.publication}{entry.data.publication && entry.data.date ? " · " : ""}{entry.data.date ? formatDate(entry.data.date) : ""}</p>}
+          <h3>{entry.data.title}</h3><p>{entry.data.description}</p>
+          <Fragment set:html={recordLinks(entry.data.title, entry.data.links)} />
+        </>}
+        {entry.data.type === "certification" && <>
+          <p class="portfolio-kicker">{entry.data.issuer}{entry.data.date ? ` · ${formatDate(entry.data.date)}` : ""}</p>
+          <h3>{entry.data.title}</h3>
+          {entry.data.credentialId && <p>Credential ID: {entry.data.credentialId}</p>}
+          <Fragment set:html={recordLinks(entry.data.title, entry.data.links)} />
+        </>}
+      </article>)}
+      {section.type === "research" && research.length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
+      {section.type === "certifications" && certifications.length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
+    </div>}
+
+    {section.type === "custom" && <div class="portfolio-entry-list">
+      {sortEntries(customEntries.filter((entry) => entry.data.sectionId === section.id), section).map((entry) => <article class={`portfolio-record${entry.data.featured ? " is-featured" : ""}`}>
+        {(entry.data.date || entry.data.featured) && <p class="portfolio-kicker">{entry.data.date ? formatDate(entry.data.date) : ""}{entry.data.date && entry.data.featured ? " · " : ""}{entry.data.featured ? "FEATURED" : ""}</p>}
+        <h3>{entry.data.title}</h3>
+        {entry.data.description && <p>{entry.data.description}</p>}
+        {entry.body.trim() && <div class="portfolio-record-body" set:html={renderMarkdown(entry.body)} />}
+        <Fragment set:html={recordLinks(entry.data.title, entry.data.links)} />
+      </article>)}
+      {customEntries.filter((entry) => entry.data.sectionId === section.id).length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
+    </div>}
+  </section>)}
+  <Footer />
+  <script slot="pageScripts" type="module" src="/assets/js/portfolio.js?v=20261103-1" is:inline></script>
+</QuestShell>

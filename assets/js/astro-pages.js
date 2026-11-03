@@ -11,6 +11,7 @@ import {
   writeupPageUrl,
 } from "./astro-runtime.js";
 import {
+  buildYearIndex,
   buildGlobalRecords,
   filterGlobalRecords,
   matchesBlogPost,
@@ -95,10 +96,30 @@ const renderBlog = async (model) => {
       counts[year] = (counts[year] || 0) + 1;
       return counts;
     }, {});
-    element.innerHTML = Object.entries(byYear)
+    const template = element.parentElement?.querySelector("[data-save-template]");
+    const templateItem = template?.content.querySelector("li");
+    if (!templateItem) {
+      throw new Error("Save file entry template is missing.");
+    }
+    const hrefPrefix = element.dataset.saveHrefPrefix;
+    if (!hrefPrefix) {
+      throw new Error("Save file link prefix is missing.");
+    }
+    element.replaceChildren(...Object.entries(byYear)
       .sort(([left], [right]) => right - left)
-      .map(([year, count]) => `<li><a href="search.html?year=${year}">${year} <small>${count}</small></a></li>`)
-      .join("");
+      .map(([year, count]) => {
+        const item = templateItem.cloneNode(true);
+        const link = item.querySelector("a");
+        const yearLabel = item.querySelector(".save-year");
+        const countLabel = item.querySelector("small");
+        if (!link || !yearLabel || !countLabel) {
+          throw new Error("Save file entry template is incomplete.");
+        }
+        link.href = `${hrefPrefix}${year}`;
+        yearLabel.textContent = year;
+        countLabel.textContent = count;
+        return item;
+      }));
   });
 
   const categoryTitle = document.querySelector("[data-category-title]");
@@ -175,7 +196,7 @@ const renderGlobalSearch = (posts, ctfs) => {
   const writeups = ctfs.flatMap((ctf) => ctf.challenges.map((challenge) => ({ ctf, challenge })));
   const records = buildGlobalRecords(posts, ctfs);
   const query = params.get("q") || "";
-  const selectedYear = params.get("year") || "";
+  let selectedYear = params.get("year") || "";
   let currentPage = 0;
   let activeFilter = "all";
   const activeTopics = new Set((params.get("topic") || "all").toLowerCase().split(",").filter((topic) => topic && topic !== "all"));
@@ -185,6 +206,7 @@ const renderGlobalSearch = (posts, ctfs) => {
       .filter(Boolean),
   );
   const topicOptions = [...new Set([...topicSet].map(normalizeTopic))].sort((left, right) => left.localeCompare(right));
+  const yearOptions = buildYearIndex(records);
   const topicCounts = new Map(topicOptions.map((topic) => [topic.toLowerCase(), 0]));
   [...posts, ...writeups.map(({ challenge }) => challenge)].forEach((item) => {
     [item.category, ...(item.tags || [])].filter(Boolean).forEach((topic) => topicCounts.set(normalizeTopic(topic), (topicCounts.get(normalizeTopic(topic)) || 0) + 1));
@@ -211,12 +233,43 @@ const renderGlobalSearch = (posts, ctfs) => {
     });
   }
 
+  const yearContainer = document.querySelector("[data-search-years]");
+  const yearFilter = document.querySelector("[data-year-filter]");
+  const yearEmpty = document.querySelector("[data-year-empty]");
+  if (yearContainer) {
+    yearContainer.innerHTML = [
+      '<button type="button" class="filter-pill" data-search-year="all">ALL YEARS</button>',
+      ...yearOptions.map(({ year, count }) => `<button type="button" class="filter-pill" data-search-year="${year}">${year} <small>${count}</small></button>`),
+    ].join("");
+    if (yearEmpty) {
+      yearEmpty.textContent = yearOptions.length ? "NO MATCHING YEARS" : "NO YEARS AVAILABLE";
+      yearEmpty.hidden = yearOptions.length > 0;
+    }
+    yearFilter?.addEventListener("input", () => {
+      const term = yearFilter.value.trim();
+      let matchingYears = 0;
+      yearContainer.querySelectorAll("[data-search-year]").forEach((button) => {
+        const isAllYears = button.dataset.searchYear === "all";
+        const matches = isAllYears || !term || button.dataset.searchYear.includes(term);
+        button.hidden = !matches;
+        if (!isAllYears && matches) matchingYears += 1;
+      });
+      if (yearEmpty) {
+        yearEmpty.textContent = yearOptions.length ? "NO MATCHING YEARS" : "NO YEARS AVAILABLE";
+        yearEmpty.hidden = yearOptions.length > 0 && matchingYears > 0;
+      }
+    });
+  }
+
   const applyFilterClasses = () => {
     document.querySelectorAll("[data-search-filter]").forEach((button) => {
       button.classList.toggle("is-active", button.dataset.searchFilter === activeFilter);
     });
     document.querySelectorAll("[data-search-topic]").forEach((button) => {
       button.classList.toggle("is-active", button.dataset.searchTopic === "all" ? activeTopics.size === 0 : activeTopics.has(button.dataset.searchTopic));
+    });
+    document.querySelectorAll("[data-search-year]").forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.searchYear === "all" ? !selectedYear : button.dataset.searchYear === selectedYear);
     });
   };
   input.value = query;
@@ -235,6 +288,16 @@ const renderGlobalSearch = (posts, ctfs) => {
       else activeTopics.add(button.dataset.searchTopic);
       const url = new URL(location.href);
       activeTopics.size ? url.searchParams.set("topic", [...activeTopics].join(",")) : url.searchParams.delete("topic");
+      history.replaceState(null, "", url);
+      applyFilterClasses();
+      renderSearch(input.value, true);
+    });
+  });
+  document.querySelectorAll("[data-search-year]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedYear = button.dataset.searchYear === "all" ? "" : button.dataset.searchYear;
+      const url = new URL(location.href);
+      selectedYear ? url.searchParams.set("year", selectedYear) : url.searchParams.delete("year");
       history.replaceState(null, "", url);
       applyFilterClasses();
       renderSearch(input.value, true);
@@ -416,7 +479,9 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
   if (toolbar) toolbar.hidden = false;
   const sort = document.querySelector("[data-ctf-sort]");
   const category = document.querySelector("[data-ctf-category]");
+  let eventPage = requestedPage;
   const matchesCategory = (ctf, value) => value === "all" || ctf.challenges.some((challenge) => challenge.category === value);
+  const selectedYear = params.get("year") || "";
   const renderEvents = () => {
     let filtered = ctfs.filter((item) => matchesCategory(item, category?.value || "all"));
     const mode = sort?.value || "recent";
@@ -427,7 +492,8 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
         : mode === "size"
           ? challengeTotal(right) - challengeTotal(left)
           : String(right.date).localeCompare(String(left.date)));
-    const slice = pageSlice(filtered, requestedPage);
+    const slice = pageSlice(filtered, eventPage);
+    eventPage = slice.currentPage;
     if (count) count.textContent = `${plural(filtered.length, "EVENT")} · ${plural(filtered.reduce((total, item) => total + challengeTotal(item), 0), "WRITEUP")} · PAGE ${slice.currentPage} OF ${slice.totalPages}`;
     list.innerHTML = slice.shown.map(ctfCard).join("") || emptyMessage("NO CTF EVENTS MATCH THAT FILTER.");
     if (pagination) pagination.innerHTML = paginationHtml(filtered.length, slice.currentPage, (page) => {
@@ -435,11 +501,21 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
       if (page > 1) next.set("pg", page);
       if (sort?.value && sort.value !== "recent") next.set("sort", sort.value);
       if (category?.value && category.value !== "all") next.set("category", category.value);
+      if (selectedYear) next.set("year", selectedYear);
       return `ctf.html${next.toString() ? `?${next}` : ""}`;
     });
   };
-  if (sort) { sort.value = params.get("sort") || "recent"; sort.addEventListener("change", renderEvents); }
-  if (category) { category.value = params.get("category") || "all"; category.addEventListener("change", renderEvents); }
+  const updateEventFilters = () => {
+    eventPage = 1;
+    const url = new URL(location.href);
+    sort?.value && sort.value !== "recent" ? url.searchParams.set("sort", sort.value) : url.searchParams.delete("sort");
+    category?.value && category.value !== "all" ? url.searchParams.set("category", category.value) : url.searchParams.delete("category");
+    url.searchParams.delete("pg");
+    history.replaceState(null, "", url);
+    renderEvents();
+  };
+  if (sort) { sort.value = params.get("sort") || "recent"; sort.addEventListener("change", updateEventFilters); }
+  if (category) { category.value = params.get("category") || "all"; category.addEventListener("change", updateEventFilters); }
   renderEvents();
 };
 
@@ -487,11 +563,18 @@ const renderCtf = (model) => {
   const query = (params.get("q") || "").trim();
   const requestedId = params.get("ctf");
   const challengeFile = params.get("challenge");
+  const selectedYear = params.get("year") || "";
   const article = document.querySelector("[data-writeup]");
   let requestedCtf = requestedId ? model.ctfs.find((ctf) => ctf.id === requestedId) : null;
-  let visibleCtfs = model.ctfs;
+  const validYear = /^\d{4}$/.test(selectedYear) ? Number(selectedYear) : null;
+  let visibleCtfs = selectedYear
+    ? model.ctfs.filter((ctf) => {
+      const date = new Date(`${ctf.date}T00:00:00`);
+      return validYear !== null && !Number.isNaN(date.getTime()) && date.getFullYear() === validYear;
+    })
+    : model.ctfs;
   if (!requestedId && !query) {
-    visibleCtfs = model.ctfs;
+    visibleCtfs = selectedYear ? visibleCtfs : model.ctfs;
   } else if (requestedId && requestedCtf && !query && !article) {
     const { start } = pageMeta(challengeTotal(requestedCtf), requestedPage);
     const challengeByFile = new Map(requestedCtf.challenges.map((challenge) => [challenge.file, challenge]));
@@ -510,8 +593,21 @@ const renderCtf = (model) => {
   document.querySelectorAll("[data-social]").forEach((element) => {
     element.innerHTML = socialHtml(model.site.social);
   });
-  syncSearchForm({ query, inputSelector: "[data-ctf-search-input]", hidden: [{ selector: "[data-ctf-search-scope]", value: requestedId }] });
+  syncSearchForm({
+    query,
+    inputSelector: "[data-ctf-search-input]",
+    hidden: [
+      { selector: "[data-ctf-search-scope]", value: requestedId },
+      { selector: "[data-ctf-search-year]", value: selectedYear },
+    ],
+  });
   renderArena(visibleCtfs, requestedCtf, requestedId, query, requestedPage);
+  if (selectedYear && !requestedId && !query && !article) {
+    const title = document.querySelector("[data-ctf-title]");
+    const intro = document.querySelector("[data-ctf-intro]");
+    if (title) title.textContent = `YEAR: ${selectedYear}`;
+    if (intro) intro.textContent = `CTF events from ${selectedYear}.`;
+  }
   if (article) renderWriteup(requestedCtf, challengeFile);
 };
 

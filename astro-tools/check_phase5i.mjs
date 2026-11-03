@@ -38,12 +38,12 @@ for (const ctf of model.ctfs) {
 }
 
 const trickyWriteup = await getText(writeupUrl("cryptohack-Introduction to CryptoHack", "chall1-Great-Snakes.md"));
-assert.ok(trickyWriteup.includes("<pre class=\"terminal\"><code"));
+assert.match(trickyWriteup, /<pre><code data-language="(?:python|text)">/);
 assert.ok(!trickyWriteup.includes("\n`\n"), "primary static Astro renderer matches the legacy generated article on four-backtick fence output");
 const mathPage = await getText(writeupUrl("ASIS-CTF-2026", "Headache.md"));
 assert.ok(mathPage.includes("math-block"));
 const postPage = await getText("/generated/posts/linux/021-tiny-command-line-toolkit.html");
-assert.ok(postPage.includes("<pre class=\"terminal\"><code"));
+assert.match(postPage, /<pre><code data-language="(?:python|text|sh)">/);
 
 const queryShells = ["/pages/post.html", "/pages/writeup.html"];
 for (const route of queryShells) {

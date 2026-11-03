@@ -1,10 +1,6 @@
 (() => {
   const THEME_KEY = "radiant-blaze-theme";
-  const MUSIC_KEY = "radiant-blaze-music-enabled";
   const root = document.documentElement;
-  let audioContext;
-  let loopId;
-  let isPlaying = false;
 
   const applyTheme = (theme) => {
     const light = theme === "light";
@@ -16,74 +12,34 @@
     });
   };
 
-  const updateAudioButtons = () => {
-    document.querySelectorAll("[data-audio-toggle]").forEach((button) => {
-      button.checked = isPlaying;
-      button.setAttribute("aria-label", isPlaying ? "Pause music" : "Play music");
-    });
-  };
-
-  const blip = (frequency, start, duration, type, volume) => {
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, start);
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-    oscillator.connect(gain).connect(audioContext.destination);
-    oscillator.start(start);
-    oscillator.stop(start + duration + 0.02);
-  };
-
-  const playBar = () => {
-    const melody = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880, 698.46];
-    const bass = [130.81, 130.81, 146.83, 146.83, 174.61, 174.61, 130.81, 130.81];
-    const start = audioContext.currentTime + 0.03;
-    melody.forEach((note, index) => {
-      const time = start + index * 0.2;
-      blip(note, time, 0.16, "square", 0.055);
-      blip(bass[index], time, 0.18, "triangle", 0.075);
-    });
-  };
-
-  applyTheme(localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark");
+  let initialTheme = "dark";
+  try {
+    initialTheme = localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+  } catch (error) {
+    console.warn("[radiant-blaze] Theme preference could not be read.", error);
+  }
+  applyTheme(initialTheme);
 
   addEventListener("DOMContentLoaded", () => {
     applyTheme(root.classList.contains("light-theme") ? "light" : "dark");
-    updateAudioButtons();
-    if (localStorage.getItem(MUSIC_KEY) !== "true") localStorage.setItem(MUSIC_KEY, "false");
 
     addEventListener("radiantblaze:contentchange", () => {
       applyTheme(root.classList.contains("light-theme") ? "light" : "dark");
-      updateAudioButtons();
     });
 
-    document.addEventListener("change", async (event) => {
-      const themeToggle = event.target.closest("[data-theme-toggle]");
+    document.addEventListener("change", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const themeToggle = target.closest("[data-theme-toggle]");
       if (themeToggle) {
         const next = themeToggle.checked ? "light" : "dark";
-        localStorage.setItem(THEME_KEY, next);
+        try {
+          localStorage.setItem(THEME_KEY, next);
+        } catch (error) {
+          console.warn("[radiant-blaze] Theme preference could not be saved.", error);
+        }
         applyTheme(next);
-        return;
       }
-      const toggle = event.target.closest("[data-audio-toggle]");
-      if (!toggle) return;
-      if (!toggle.checked) {
-        window.clearInterval(loopId);
-        isPlaying = false;
-        localStorage.setItem(MUSIC_KEY, "false");
-        updateAudioButtons();
-        return;
-      }
-      if (!audioContext) audioContext = new AudioContext();
-      if (audioContext.state === "suspended") await audioContext.resume();
-      window.clearInterval(loopId);
-      playBar();
-      loopId = window.setInterval(playBar, 1600);
-      isPlaying = true;
-      localStorage.setItem(MUSIC_KEY, "true");
-      updateAudioButtons();
     });
   });
 })();

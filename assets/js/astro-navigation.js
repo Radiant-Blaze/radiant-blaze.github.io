@@ -22,7 +22,8 @@
   const navigate = async (url, { push = true, scrollY = 0 } = {}) => {
     if (navigating) return;
     navigating = true;
-    window.RadiantBlazePageLoader?.show();
+    const pageLoaderDisabled = document.body.classList.contains("disable-page-loader");
+    if (!pageLoaderDisabled) window.RadiantBlazePageLoader?.show();
     document.documentElement.classList.add("is-navigating");
     let fullNavigation = false;
 
@@ -30,6 +31,10 @@
       const response = await fetch(url.href, { headers: { "X-Requested-With": "spa" } });
       if (!response.ok) throw new Error(`Could not load ${url.pathname}`);
       const nextDocument = new DOMParser().parseFromString(await response.text(), "text/html");
+      document.body.classList.toggle(
+        "disable-page-loader",
+        nextDocument.body.classList.contains("disable-page-loader"),
+      );
       const nextMain = nextDocument.querySelector("main");
       const currentMain = document.querySelector("main");
       if (!nextMain || !currentMain) throw new Error("Page content is missing");

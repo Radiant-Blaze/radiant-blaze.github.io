@@ -1,0 +1,16 @@
+{
+  "pageTitle": "Portfolio · Radiant Blaze",
+  "description": "A personal portfolio of software projects, areas of learning, and CTF writeups.",
+  "heroEyebrow": "PORTFOLIO · FIELD PROFILE",
+  "displayName": "Talha Ahmed",
+  "focusLine": "Software development · cybersecurity learner",
+  "sections": [
+    { "id": "profile", "type": "profile", "title": "ABOUT ME", "enabled": true, "navigation": false, "order": 10 },
+    { "id": "projects", "type": "projects", "title": "SELECTED PROJECTS", "description": "Work documented in this portfolio.", "enabled": true, "navigation": true, "order": 20, "sort": "order", "direction": "asc" },
+    { "id": "skills", "type": "skills", "title": "TECHNICAL FOCUS", "description": "Tools and topics represented in the published notes and projects.", "enabled": true, "navigation": true, "order": 30 },
+    { "id": "ctf-field-notes", "type": "ctfs", "title": "CTF FIELD NOTES", "description": "Published event writeups. These entries do not imply competition placements.", "enabled": true, "navigation": true, "order": 40, "sort": "date", "direction": "desc", "itemLimit": 3, "challengeLimit": 5 },
+    { "id": "achievements", "type": "achievements", "title": "ACHIEVEMENTS", "enabled": true, "navigation": true, "order": 50, "sort": "date", "direction": "desc" },
+    { "id": "research", "type": "research", "title": "RESEARCH", "enabled": true, "navigation": true, "order": 60, "sort": "date", "direction": "desc" },
+    { "id": "certifications", "type": "certifications", "title": "CERTIFICATIONS", "enabled": true, "navigation": true, "order": 70, "sort": "date", "direction": "desc" }
+  ]
+}

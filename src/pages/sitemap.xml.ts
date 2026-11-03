@@ -14,6 +14,7 @@ export const GET: APIRoute = async () => {
     `${ORIGIN}/pages/blog.html`,
     `${ORIGIN}/pages/search.html`,
     `${ORIGIN}/pages/ctf.html`,
+    `${ORIGIN}/portfolio/`,
     ...posts.map(({ entry }) => `${ORIGIN}${postRoute(entry.id)}`),
   ];
 
