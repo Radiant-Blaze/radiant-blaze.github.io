@@ -73,6 +73,7 @@
   audio.tabIndex = -1;
   document.addEventListener("DOMContentLoaded", initialize, { once: true });
 
+
   function readSettings() {
     try {
       const savedValue = localStorage.getItem(SETTINGS_KEY);
@@ -153,8 +154,6 @@
     mountInterface();
     bindEvents();
     state.collection = routeCollection();
-    state.preferences.enabled = true;
-    saveSettings();
     const restored = readSession();
     fetch("/assets/music/manifest.json")
       .then((response) => {
@@ -355,8 +354,6 @@
         case "close": setPlayerOpen(false); break;
         case "toggle":
           if (state.playing) {
-            state.preferences.enabled = false;
-            saveSettings();
             pausePlayback();
           } else {
             state.preferences.enabled = true;
@@ -422,21 +419,116 @@
   }
 
   function bindAutoplayGestureFallback() {
-    const retryFromGesture = () => {
+    const gestureStarts = new Map();
+    let lastTouchPointerPlayback = -Infinity;
+    const MIN_SWIPE_DISTANCE = 50;
+    const activationDiagnostics = (type, event) => {
+      if (!navigator.userActivation) return;
+      console.debug("[radiant-blaze:music] Gesture activation.", {
+        type,
+        pointerType: event?.pointerType || event?.type || "",
+        trusted: event?.isTrusted === true,
+        userActivation: navigator.userActivation.isActive,
+      });
+    };
+    const retryFromGesture = (event) => {
+      if (event && event.isTrusted === false) return;
       if (!state.autoplayRequested || !audio.paused || !state.autoplayBlocked) return;
       state.autoplayBlocked = false;
       state.playbackState = PLAYBACK_STATES.READY;
       requestPlaybackWhenReady();
     };
-    document.addEventListener("pointerdown", retryFromGesture, { passive: true });
-    document.addEventListener("pointerup", retryFromGesture, { passive: true });
-    document.addEventListener("touchend", retryFromGesture, { passive: true });
-    document.addEventListener("keydown", retryFromGesture);
+    const beginPointerGesture = (event) => {
+      if (event.isTrusted === false) return;
+      gestureStarts.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    };
+    const retryFromPointerDown = (event) => {
+      beginPointerGesture(event);
+      if (event.pointerType === "mouse" || event.pointerType === "pen" || event.pointerType === "") {
+        activationDiagnostics("pointerdown", event);
+        retryFromGesture(event);
+      }
+    };
+    const retryFromTouchPointer = (event) => {
+      if (event.isTrusted === false) return;
+      const start = gestureStarts.get(event.pointerId);
+      gestureStarts.delete(event.pointerId);
+      if (!start) return;
+      const diffX = event.clientX - start.x;
+      const diffY = event.clientY - start.y;
+      const isTap = Math.hypot(diffX, diffY) <= 12;
+      const isSwipe = Math.max(Math.abs(diffX), Math.abs(diffY)) >= MIN_SWIPE_DISTANCE;
+      if (!isTap && !isSwipe) return;
+      if (event.pointerType === "touch" || event.pointerType === "pen") {
+        lastTouchPointerPlayback = performance.now();
+        activationDiagnostics("pointerup", event);
+        retryFromGesture(event);
+      }
+    };
+    const retryFromClick = (event) => {
+      if (event.isTrusted === false || event.pointerType === "touch") return;
+      activationDiagnostics("click", event);
+      retryFromGesture(event);
+    };
+    const rememberTouchStart = (event) => {
+      if (event.isTrusted === false || event.changedTouches.length === 0) return;
+      const touch = event.changedTouches[0];
+      gestureStarts.set(`touch:${touch.identifier}`, {
+        x: touch.clientX,
+        y: touch.clientY,
+      });
+    };
+    const retryFromTouchEnd = (event) => {
+      if (event.isTrusted === false || event.changedTouches.length === 0) return;
+      if ("PointerEvent" in window && performance.now() - lastTouchPointerPlayback < 750) return;
+      const touch = event.changedTouches[0];
+      const start = gestureStarts.get(`touch:${touch.identifier}`);
+      gestureStarts.delete(`touch:${touch.identifier}`);
+      if (start) {
+        const horizontalDistance = Math.abs(touch.clientX - start.x);
+        const verticalDistance = Math.abs(touch.clientY - start.y);
+        if (Math.max(horizontalDistance, verticalDistance) > 12 &&
+          Math.max(horizontalDistance, verticalDistance) < MIN_SWIPE_DISTANCE) return;
+      }
+      activationDiagnostics("touchend", event);
+      retryFromGesture(event);
+    };
+    const retryFromKeyboard = (event) => {
+      if (event.isTrusted === false) return;
+      activationDiagnostics("keydown", event);
+      retryFromGesture(event);
+    };
+    const cancelPointerGesture = (event) => {
+      if (event.isTrusted === false) return;
+      gestureStarts.delete(event.pointerId);
+    };
+    const cancelTouchGesture = (event) => {
+      if (event.isTrusted === false || event.changedTouches.length === 0) return;
+      const touch = event.changedTouches[0];
+      gestureStarts.delete(`touch:${touch.identifier}`);
+    };
+    document.addEventListener("pointerdown", retryFromPointerDown, { passive: true });
+    document.addEventListener("touchstart", rememberTouchStart, { passive: true });
+    document.addEventListener("touchend", retryFromTouchEnd, { passive: true });
+    document.addEventListener("touchcancel", cancelTouchGesture, { passive: true });
+    document.addEventListener("click", retryFromClick, { passive: true });
+    document.addEventListener("keydown", retryFromKeyboard);
+    if ("PointerEvent" in window) {
+      document.addEventListener("pointerup", retryFromTouchPointer, { passive: true });
+      document.addEventListener("pointercancel", cancelPointerGesture, { passive: true });
+    }
     removeAutoplayGestureFallback = () => {
-      document.removeEventListener("pointerdown", retryFromGesture);
-      document.removeEventListener("pointerup", retryFromGesture);
-      document.removeEventListener("touchend", retryFromGesture);
-      document.removeEventListener("keydown", retryFromGesture);
+      document.removeEventListener("pointerdown", retryFromPointerDown);
+      document.removeEventListener("touchstart", rememberTouchStart);
+      document.removeEventListener("touchend", retryFromTouchEnd);
+      document.removeEventListener("touchcancel", cancelTouchGesture);
+      document.removeEventListener("click", retryFromClick);
+      document.removeEventListener("pointerup", retryFromTouchPointer);
+      document.removeEventListener("keydown", retryFromKeyboard);
+      document.removeEventListener("pointercancel", cancelPointerGesture);
       removeAutoplayGestureFallback = () => {};
     };
   }
@@ -586,6 +678,7 @@
       }).catch((error) => {
         if (loadId !== state.loadId) return;
         state.autoplayAttempting = false;
+        console.debug("[radiant-blaze:music] Playback rejected.", error?.name || error);
         handlePlayFailure(error);
       });
     } catch (error) {
@@ -620,7 +713,7 @@
     if (lastSyncedRoute === routePath) return;
     lastSyncedRoute = routePath;
     if (nextCollection !== state.collection) {
-      selectCollection(nextCollection, { autoplay: !audio.paused || state.autoplayRequested });
+      selectCollection(nextCollection, { autoplay: state.preferences.enabled && (!audio.paused || state.autoplayRequested) });
     } else if (state.current) {
       retryAutomaticPlayback();
     }
@@ -777,7 +870,7 @@
       if (!state.queue.length) buildQueue(null);
       const first = state.tracks.find((track) => track.id === state.queue[0]) || tracks[0];
       state.queueIndex = Math.max(0, state.queue.indexOf(first.id));
-      await loadTrack(first, { autoplay: true });
+      void loadTrack(first, { autoplay: true });
       return;
     }
     try {
