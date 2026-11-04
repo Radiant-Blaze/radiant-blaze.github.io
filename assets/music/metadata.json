@@ -1,22 +1,42 @@
 {
-  "Blogs and CTFs/kulakovka-lo-fi-chill-620585.mp3": {
-    "title": "Lo-Fi Chill",
-    "artist": "Kulakovka",
-    "duration": 108.199156
+  "Blogs and CTFs/viacheslavstarostin-retro-arcade-game-music-408074.mp3": {
+    "title": "Retro arcade game music",
+    "artist": "viacheslavstarostin",
+    "duration": 134
   },
-  "Blogs and CTFs/kulakovka-soothing-607947.mp3": {
-    "title": "Soothing",
-    "artist": "Kulakovka",
-    "duration": 129.462844
+
+  "Blogs and CTFs/moodmode-8-bit-arcade-mode-158814.mp3": {
+    "title": "8-bit arcade",
+    "artist": "mood mode",
+    "duration": 137
   },
+
+
   "Portfolio and Main Page/kulakovka-retro-music-620580.mp3": {
     "title": "Retro Music",
     "artist": "Kulakovka",
-    "duration": 159.373063
+    "duration": 159
+  },
+    "Portfolio and Main Page/alex1990z-gamer-590167.mp3": {
+    "title": "Gamer",
+    "artist": "alex1990z",
+    "duration": 158
+  },
+
+
+  "Reading CTFs and Blogs/kulakovka-soothing-607947.mp3": {
+    "title": "Soothing",
+    "artist": "Kulakovka",
+    "duration": 129
   },
   "Reading CTFs and Blogs/kulakovka-artificial-intelligence-618573.mp3": {
     "title": "Artificial Intelligence",
     "artist": "Kulakovka",
-    "duration": 131.056313
+    "duration": 131
+  },
+  "Reading CTFs and Blogs/kulakovka-lo-fi-chill-620585.mp3": {
+    "title": "Lo-Fi Chill",
+    "artist": "Kulakovka",
+    "duration": 108
   }
 }

@@ -13,6 +13,16 @@
     { id: "Reading CTFs and Blogs", label: "Reading" },
   ];
   const supportedRepeatModes = ["off", "all", "one"];
+  const PLAYBACK_STATES = Object.freeze({
+    INITIALIZING: "INITIALIZING",
+    LOADING: "LOADING",
+    READY: "READY",
+    ATTEMPTING: "ATTEMPTING",
+    PLAYING: "PLAYING",
+    BLOCKED: "BLOCKED",
+    PAUSED: "PAUSED",
+    ERROR: "ERROR",
+  });
   const defaults = {
     enabled: true,
     volume: 0.45,
@@ -42,14 +52,21 @@
     mediaSource: null,
     visualizerFrame: 0,
     autoplayPrompt: false,
+    autoplayAttempting: false,
+    autoplayRetryCount: 0,
+    autoplayRequested: false,
+    autoplayBlocked: false,
     playerCloseTimer: 0,
     trackChangeTimer: 0,
     renderedTrackId: "",
+    playbackState: PLAYBACK_STATES.INITIALIZING,
   };
 
   let audio = new Audio();
   const audioGraphs = new WeakMap();
   const audioListeners = new WeakSet();
+  let lastSyncedRoute = null;
+  let removeAutoplayGestureFallback = () => {};
   audio.preload = "metadata";
   audio.dataset.radiantBlazeMusic = "";
   audio.setAttribute("aria-hidden", "true");
@@ -114,13 +131,20 @@
   }
 
   function routeCollection(pathname = location.pathname) {
-    if (/\/portfolio(?:\/|\.html|$)/i.test(pathname) || /^\/(?:index\.html)?$/i.test(pathname)) {
+    let normalizedPath = pathname;
+    try {
+      normalizedPath = decodeURIComponent(pathname);
+    } catch (error) {
+      console.warn("[radiant-blaze:music] Route pathname could not be decoded.", error);
+    }
+    normalizedPath = normalizedPath.replace(/\\/g, "/");
+    if (/\/portfolio(?:\/|\.html)?$/i.test(normalizedPath) || /^\/(?:index\.html)?$/i.test(normalizedPath)) {
       return collections[0].id;
     }
-    if (/\/generated\/(?:posts|writeups)\//i.test(pathname) || /\/pages\/(?:post|writeup)\.html$/i.test(pathname)) {
+    if (/\/generated\/(?:posts|writeups)\//i.test(normalizedPath) || /\/pages\/(?:post|writeup)\.html$/i.test(normalizedPath)) {
       return collections[2].id;
     }
-    if (/\/pages\/(?:blog|ctf|search)\.html$/i.test(pathname)) return collections[1].id;
+    if (/\/pages\/(?:blog|ctf|search)\.html$/i.test(normalizedPath)) return collections[1].id;
     return collections[0].id;
   }
 
@@ -129,6 +153,8 @@
     mountInterface();
     bindEvents();
     state.collection = routeCollection();
+    state.preferences.enabled = true;
+    saveSettings();
     const restored = readSession();
     fetch("/assets/music/manifest.json")
       .then((response) => {
@@ -137,6 +163,7 @@
       })
       .then((manifest) => {
         if (!manifest || !Array.isArray(manifest.tracks)) throw new TypeError("Music manifest has an invalid shape.");
+        console.info("[radiant-blaze:music] Manifest loaded.", manifest.tracks.length);
         state.tracks = manifest.tracks.filter((track) =>
           track && typeof track.id === "string" && typeof track.src === "string" &&
           typeof track.title === "string" && typeof track.artist === "string" &&
@@ -145,12 +172,15 @@
         if (restored && restored.collection === state.collection) {
           const track = state.tracks.find((candidate) => candidate.id === restored.trackId);
           if (track) {
-            state.queue = [track.id];
-            state.queueIndex = 0;
+            console.info("[radiant-blaze:music] Track selected.", track.title);
+            buildQueue(track.id);
+            state.queueIndex = state.queue.indexOf(track.id);
             void loadTrack(track, { position: 0, autoplay: state.preferences.enabled });
             return;
           }
         }
+        const selectedTrack = state.tracks.find((track) => track.collection === state.collection && !state.failed.has(track.id));
+        if (selectedTrack) console.info("[radiant-blaze:music] Track selected.", selectedTrack.title);
         activateCollection(state.collection, { autoplay: state.preferences.enabled });
       })
       .catch((error) => {
@@ -173,7 +203,6 @@
           <span class="rb-music-pill-copy"><strong data-track-title>Music loading</strong><small data-track-artist>Radiant Blaze radio</small></span>
           <span class="rb-music-status" data-play-status>READY</span>
         </button>
-        <button class="pixel-button rb-music-enable" type="button" data-music-action="enable" hidden>ENABLE MUSIC</button>
       </div>
       <section class="rb-music-player" id="rb-music-player" role="dialog" aria-label="Radiant Blaze music player" hidden>
         <div class="rb-music-player-head"><p data-collection-name>NO COLLECTION</p><button class="pixel-button rb-music-icon-button" type="button" data-music-action="close" aria-label="Close music player" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div>
@@ -231,7 +260,6 @@
             </div>
           </div>
         </details>
-        <p class="rb-autoplay-note" data-autoplay-note role="status" hidden>Browser autoplay is blocked. Select enable to start the radio.</p>
       </section>
     `;
     document.body.append(root);
@@ -325,12 +353,6 @@
       switch (action) {
         case "open": setPlayerOpen(true); break;
         case "close": setPlayerOpen(false); break;
-        case "enable":
-          state.preferences.enabled = true;
-          state.autoplayPrompt = false;
-          saveSettings();
-          void startPlayback();
-          break;
         case "toggle":
           if (state.playing) {
             state.preferences.enabled = false;
@@ -390,36 +412,97 @@
       }
     });
     addEventListener("radiantblaze:contentchange", () => syncRoute());
-    addEventListener("pointerdown", tryAutoplayAfterInteraction, { once: true, capture: true });
-    addEventListener("keydown", tryAutoplayAfterInteraction, { once: true, capture: true });
+    addEventListener("popstate", () => queueMicrotask(syncRoute));
+    addEventListener("pageshow", retryAutomaticPlayback);
+    document.addEventListener("visibilitychange", retryAutomaticPlayback);
+    interceptHistoryRouteChanges();
+    bindAutoplayGestureFallback();
+    setupMediaSession();
     bindAudioEvents(audio);
+  }
+
+  function bindAutoplayGestureFallback() {
+    const retryFromGesture = () => {
+      if (!state.autoplayRequested || !audio.paused || !state.autoplayBlocked) return;
+      state.autoplayBlocked = false;
+      state.playbackState = PLAYBACK_STATES.READY;
+      requestPlaybackWhenReady();
+    };
+    document.addEventListener("pointerdown", retryFromGesture, { passive: true });
+    document.addEventListener("pointerup", retryFromGesture, { passive: true });
+    document.addEventListener("touchend", retryFromGesture, { passive: true });
+    document.addEventListener("keydown", retryFromGesture);
+    removeAutoplayGestureFallback = () => {
+      document.removeEventListener("pointerdown", retryFromGesture);
+      document.removeEventListener("pointerup", retryFromGesture);
+      document.removeEventListener("touchend", retryFromGesture);
+      document.removeEventListener("keydown", retryFromGesture);
+      removeAutoplayGestureFallback = () => {};
+    };
+  }
+
+  function interceptHistoryRouteChanges() {
+    for (const method of ["pushState", "replaceState"]) {
+      if (history[method].__radiantBlazeRouteInterceptor) continue;
+      const original = history[method];
+      const intercepted = function (...args) {
+        const result = original.apply(this, args);
+        queueMicrotask(syncRoute);
+        return result;
+      };
+      intercepted.__radiantBlazeRouteInterceptor = true;
+      history[method] = intercepted;
+    }
   }
 
   function bindAudioEvents(element) {
     if (audioListeners.has(element)) return;
     audioListeners.add(element);
+    element.addEventListener("loadedmetadata", () => {
+      if (element !== audio) return;
+      console.info("[radiant-blaze:music] Media metadata loaded.", state.current?.title || "");
+      synchronizePlaybackState("metadata");
+    });
+    element.addEventListener("loadeddata", () => {
+      if (element !== audio) return;
+      console.info("[radiant-blaze:music] Audio loading completed.", state.current?.title || "");
+      synchronizePlaybackState("data");
+    });
     element.addEventListener("playing", () => {
       if (element !== audio) return;
-      state.playing = true;
-      state.loading = false;
+      removeAutoplayGestureFallback();
+      setPlaybackState(PLAYBACK_STATES.PLAYING);
       state.autoplayPrompt = false;
+      state.autoplayBlocked = false;
+      state.autoplayRetryCount = 0;
+      state.autoplayRequested = false;
+      console.info("[radiant-blaze:music] Playback started.", state.current?.title || "");
       startVisualizer();
       render();
     });
     element.addEventListener("pause", () => {
       if (element !== audio) return;
-      state.playing = false;
+      if (state.playbackState !== PLAYBACK_STATES.ERROR && state.playbackState !== PLAYBACK_STATES.BLOCKED) {
+        setPlaybackState(PLAYBACK_STATES.PAUSED);
+      }
       stopVisualizer();
       render();
     });
     element.addEventListener("waiting", () => {
       if (element !== audio) return;
-      state.loading = true;
+      setPlaybackState(PLAYBACK_STATES.LOADING);
       render();
     });
     element.addEventListener("canplay", () => {
       if (element !== audio) return;
-      state.loading = false;
+      setPlaybackState(PLAYBACK_STATES.READY);
+      console.info("[radiant-blaze:music] canplay received.", state.current?.title || "");
+      synchronizePlaybackState("canplay");
+      render();
+    });
+    element.addEventListener("stalled", () => {
+      if (element !== audio || state.playing) return;
+      setPlaybackState(PLAYBACK_STATES.LOADING);
       render();
     });
     element.addEventListener("timeupdate", () => {
@@ -440,6 +523,7 @@
     element.addEventListener("error", () => {
       if (element !== audio) return;
       if (!state.current) return;
+      setPlaybackState(PLAYBACK_STATES.ERROR);
       console.warn(`[radiant-blaze:music] Skipping unavailable track "${state.current.path}".`);
       state.failed.add(state.current.id);
       state.loading = false;
@@ -447,15 +531,99 @@
     });
   }
 
-  function tryAutoplayAfterInteraction(event) {
-    if (!state.preferences.enabled || !state.autoplayPrompt) return;
-    if (event.type === "keydown" && !["Enter", " "].includes(event.key)) return;
-    void startPlayback();
+  function setPlaybackState(nextState) {
+    state.playbackState = nextState;
+    state.loading = [
+      PLAYBACK_STATES.INITIALIZING,
+      PLAYBACK_STATES.LOADING,
+      PLAYBACK_STATES.ATTEMPTING,
+    ].includes(nextState);
+    state.playing = nextState === PLAYBACK_STATES.PLAYING;
+    updateMediaSession();
+  }
+
+  function synchronizePlaybackState(source) {
+    if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      setPlaybackState(audio.paused ? PLAYBACK_STATES.READY : PLAYBACK_STATES.PLAYING);
+      requestPlaybackWhenReady();
+    } else if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      setPlaybackState(PLAYBACK_STATES.LOADING);
+    }
+    if (source === "metadata" && state.autoplayRequested) requestPlaybackWhenReady();
+    render();
+  }
+
+  function retryAutomaticPlayback() {
+    if (!state.autoplayRequested || !state.preferences.enabled || document.hidden) return;
+    if (state.autoplayRetryCount >= 3 || state.autoplayAttempting || !audio.paused) return;
+    requestPlaybackWhenReady({ countRetry: true });
+  }
+
+  function requestPlaybackWhenReady({ countRetry = false } = {}) {
+    if (!state.autoplayRequested || !state.preferences.enabled || document.hidden) return;
+    if (state.autoplayBlocked && state.playbackState === PLAYBACK_STATES.BLOCKED) return;
+    if (!audio.paused || state.autoplayAttempting) return;
+    if (audio.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) return;
+    if (countRetry) {
+      if (state.autoplayRetryCount >= 3) return;
+      state.autoplayRetryCount += 1;
+    }
+    state.autoplayAttempting = true;
+    const loadId = state.loadId;
+    setPlaybackState(PLAYBACK_STATES.ATTEMPTING);
+    console.info("[radiant-blaze:music] Playback attempt.", state.current?.title || "");
+    try {
+      state.loading = true;
+      render();
+      const playbackPromise = audio.play();
+      void ensureAudioGraph().catch((error) => {
+        console.warn("[radiant-blaze:music] Visualization audio could not be initialized.", error);
+      });
+      void playbackPromise.then(() => {
+        if (loadId !== state.loadId) return;
+        state.autoplayAttempting = false;
+        if (!audio.paused) console.info("[radiant-blaze:music] Playback succeeded.", state.current?.title || "");
+      }).catch((error) => {
+        if (loadId !== state.loadId) return;
+        state.autoplayAttempting = false;
+        handlePlayFailure(error);
+      });
+    } catch (error) {
+      if (loadId !== state.loadId) return;
+      handlePlayFailure(error);
+    }
+  }
+
+  function setupMediaSession() {
+    if (!("mediaSession" in navigator)) return;
+    navigator.mediaSession.setActionHandler("play", () => void startPlayback());
+    navigator.mediaSession.setActionHandler("pause", () => pausePlayback());
+    navigator.mediaSession.setActionHandler("previoustrack", () => previousTrack());
+    navigator.mediaSession.setActionHandler("nexttrack", () => void nextTrack());
+  }
+
+  function updateMediaSession() {
+    if (!("mediaSession" in navigator)) return;
+    navigator.mediaSession.metadata = state.current && typeof MediaMetadata !== "undefined"
+      ? new MediaMetadata({
+          title: state.current.title,
+          artist: state.current.artist,
+          album: collections.find((item) => item.id === state.collection)?.label || state.collection,
+        })
+      : null;
+    navigator.mediaSession.playbackState = state.playing ? "playing" : "paused";
   }
 
   function syncRoute() {
     const nextCollection = routeCollection();
-    if (nextCollection !== state.collection) selectCollection(nextCollection);
+    const routePath = location.pathname;
+    if (lastSyncedRoute === routePath) return;
+    lastSyncedRoute = routePath;
+    if (nextCollection !== state.collection) {
+      selectCollection(nextCollection, { autoplay: !audio.paused || state.autoplayRequested });
+    } else if (state.current) {
+      retryAutomaticPlayback();
+    }
   }
 
   function shuffled(items) {
@@ -485,6 +653,7 @@
     const currentId = state.current?.id;
     buildQueue(currentId);
     if (currentId) {
+      state.queue = state.queue.filter((id) => id !== currentId);
       state.queue.unshift(currentId);
       state.queueIndex = 0;
     }
@@ -507,10 +676,10 @@
     if (track) void loadTrack(track, { autoplay });
   }
 
-  function selectCollection(id) {
+  function selectCollection(id, { autoplay = state.preferences.enabled } = {}) {
     if (id === state.collection || !collections.some((collection) => collection.id === id)) return;
     state.collection = id;
-    activateCollection(id, { autoplay: state.preferences.enabled });
+    activateCollection(id, { autoplay });
   }
 
   function appendHistory(track) {
@@ -527,7 +696,13 @@
     state.current = track;
     state.collection = track.collection;
     state.loading = true;
+    setPlaybackState(PLAYBACK_STATES.LOADING);
     state.autoplayPrompt = false;
+    state.autoplayRequested = Boolean(autoplay && state.preferences.enabled);
+    state.autoplayBlocked = false;
+    state.autoplayRetryCount = 0;
+    state.autoplayAttempting = false;
+    console.info("[radiant-blaze:music] Track loading.", track.title);
     if (record) appendHistory(track);
     render();
     audio.dataset.trackId = track.id;
@@ -546,14 +721,13 @@
         state.loading = false;
         render();
       }
+      requestPlaybackWhenReady();
     });
     if (autoplay && state.preferences.enabled) {
-      try {
-        await ensureAudioGraph();
-        await audio.play();
-      } catch (error) {
-        if (loadId === state.loadId) handlePlayFailure(error);
-      }
+      void ensureAudioGraph().catch((error) => {
+        console.warn("[radiant-blaze:music] Visualization audio could not be initialized.", error);
+      });
+      requestPlaybackWhenReady();
     }
   }
 
@@ -577,7 +751,18 @@
       audioGraphs.set(audio, { mediaSource, analyser, gain });
     }
     Object.assign(state, audioGraphs.get(audio));
-    if (state.context.state === "suspended") await state.context.resume();
+    if (state.context.state === "suspended") {
+      void state.context.resume().catch((error) => {
+        console.warn("[radiant-blaze:music] Audio context could not resume.", error);
+      });
+    }
+    if (!state.context.__radiantBlazeStateListener) {
+      state.context.__radiantBlazeStateListener = true;
+      state.context.addEventListener("statechange", () => {
+        if (state.context.state === "running" && !audio.paused) return;
+        if (state.context.state === "running" && state.autoplayPrompt) retryAutomaticPlayback();
+      });
+    }
     applyVolume();
   }
 
@@ -598,8 +783,12 @@
     try {
       state.loading = true;
       render();
-      await ensureAudioGraph();
-      await audio.play();
+      void ensureAudioGraph().catch((error) => {
+        console.warn("[radiant-blaze:music] Visualization audio could not be initialized.", error);
+      });
+      state.autoplayRequested = true;
+      state.autoplayBlocked = false;
+      requestPlaybackWhenReady();
     } catch (error) {
       handlePlayFailure(error);
     }
@@ -610,12 +799,19 @@
     state.playing = false;
     if (error?.name === "NotAllowedError") {
       state.autoplayPrompt = state.preferences.enabled;
+      state.autoplayBlocked = true;
+      console.warn("[radiant-blaze:music] Browser rejected playback; intent preserved.", error.message || error.name);
+      setPlaybackState(PLAYBACK_STATES.BLOCKED);
     } else {
       if (error?.name !== "AbortError") {
         console.warn("[radiant-blaze:music] Playback could not start.", error);
       }
       state.autoplayPrompt = false;
+      state.autoplayRequested = false;
+      state.autoplayBlocked = false;
+      setPlaybackState(error?.name === "AbortError" ? PLAYBACK_STATES.PAUSED : PLAYBACK_STATES.ERROR);
     }
+    console.warn("[radiant-blaze:music] Playback failed.", error?.name || "UnknownError", error?.message || "");
     render();
   }
 
@@ -623,6 +819,8 @@
     audio.pause();
     state.loading = false;
     state.playing = false;
+    state.autoplayRequested = false;
+    state.autoplayAttempting = false;
     state.autoplayPrompt = false;
     persistSession();
     render();
@@ -651,41 +849,30 @@
 
   function getNextQueueTrack(skipFailed = false) {
     if (!state.queue.length) buildQueue(state.current?.id);
-    let index = state.queueIndex + 1;
-    while (index < state.queue.length && state.failed.has(state.queue[index])) index += 1;
-    if (index >= state.queue.length) {
-      if (state.preferences.repeat === "all" && !skipFailed) {
-        state.queueIndex = -1;
-        index = 0;
-      } else {
-        buildQueue(state.current?.id);
-        index = 0;
-      }
-      if (state.queue[index] === state.current?.id && state.queue.length > 1) index = 1;
-    }
+    const playlist = state.queue.filter((id) => !state.failed.has(id));
+    if (!playlist.length) return { index: -1, track: null };
+    const currentId = state.current?.id;
+    let currentIndex = playlist.indexOf(currentId);
+    if (currentIndex < 0) currentIndex = Math.max(0, state.queueIndex);
+    const nextIndexInPlaylist = (currentIndex + 1) % playlist.length;
     return {
-      index,
-      track: state.tracks.find((item) => item.id === state.queue[index]),
+      index: state.queue.indexOf(playlist[nextIndexInPlaylist]),
+      track: state.tracks.find((item) => item.id === playlist[nextIndexInPlaylist]),
     };
   }
 
   function previousTrack() {
-    if (audio.currentTime > 3) {
-      audio.currentTime = 0;
-      updateProgress();
-      return;
-    }
-    if (state.historyIndex > 0) {
-      state.historyIndex -= 1;
-      const track = state.history[state.historyIndex];
-      state.collection = track.collection;
-      if (!state.queue.includes(track.id)) state.queue.unshift(track.id);
-      state.queueIndex = state.queue.indexOf(track.id);
-      void loadTrack(track, { autoplay: state.preferences.enabled, record: false });
-    } else {
-      audio.currentTime = 0;
-      updateProgress();
-    }
+    if (!state.queue.length) buildQueue(state.current?.id);
+    const playlist = state.queue.filter((id) => !state.failed.has(id));
+    if (!playlist.length) return;
+    const currentId = state.current?.id;
+    let currentIndex = playlist.indexOf(currentId);
+    if (currentIndex < 0) currentIndex = Math.max(0, state.queueIndex);
+    const previousIndexInPlaylist = (currentIndex - 1 + playlist.length) % playlist.length;
+    const track = state.tracks.find((item) => item.id === playlist[previousIndexInPlaylist]);
+    if (!track) return;
+    state.queueIndex = state.queue.indexOf(track.id);
+    void loadTrack(track, { autoplay: state.preferences.enabled });
   }
 
   function toggleMute() {
@@ -917,6 +1104,7 @@
       state.trackChangeTimer = window.setTimeout(() => nowPlaying.classList.remove("is-changing"), 350);
     }
     state.renderedTrackId = current?.id || "";
+    updateMediaSession();
     const collection = collections.find((item) => item.id === state.collection);
     root.querySelector("[data-collection-name]").textContent = collection?.label.toUpperCase() || "NO COLLECTION";
     root.querySelector("[data-play-status]").textContent = state.loading
@@ -942,8 +1130,6 @@
     root.querySelector("[data-repeat-badge]").hidden = state.preferences.repeat !== "one";
     repeatButton.classList.toggle("is-active", state.preferences.repeat !== "off");
     updateSpeakerUi();
-    root.querySelector("[data-autoplay-note]").hidden = !state.autoplayPrompt;
-    root.querySelector('[data-music-action="enable"]').hidden = !state.autoplayPrompt;
     root.querySelector("[data-album-art]").replaceChildren();
     if (current?.artwork) {
       const image = document.createElement("img");
