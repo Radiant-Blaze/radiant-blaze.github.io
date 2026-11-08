@@ -151,17 +151,6 @@
     return collections[0].id;
   }
 
-  function isCtfReadingRoute(pathname = location.pathname) {
-    let normalizedPath = pathname;
-    try {
-      normalizedPath = decodeURIComponent(pathname);
-    } catch (error) {
-      console.warn("[radiant-blaze:music] CTF route pathname could not be decoded.", error);
-    }
-    normalizedPath = normalizedPath.replace(/\\/g, "/");
-    return /\/generated\/writeups\/[^/]+\/[^/]+(?:\.html)?$/i.test(normalizedPath);
-  }
-
   function initialize() {
     document.body.append(audio);
     mountInterface();
@@ -203,7 +192,7 @@
             buildQueue(track.id);
             state.queueIndex = state.queue.indexOf(track.id);
             selectTrackMetadata(track);
-            if (state.preferences.enabled && isCtfReadingRoute()) {
+            if (state.preferences.enabled) {
               void loadTrack(track, { position: 0, autoplay: true });
             }
             return;
@@ -211,7 +200,7 @@
         }
         const selectedTrack = state.tracks.find((track) => track.collection === state.collection && !state.failed.has(track.id));
         if (selectedTrack) console.info("[radiant-blaze:music] Track selected.", selectedTrack.title);
-        activateCollection(state.collection, { autoplay: state.preferences.enabled && isCtfReadingRoute() });
+        activateCollection(state.collection, { autoplay: state.preferences.enabled });
       });
     return state.manifestPromise;
   }
@@ -739,21 +728,18 @@
     const routePath = location.pathname;
     if (lastSyncedRoute === routePath) return;
     lastSyncedRoute = routePath;
-    const ctfReading = isCtfReadingRoute(routePath);
+    // Once playback is active, navigation must not replace the track or interrupt
+    // its position. The route can update again when playback is paused.
+    if (state.playing || !audio.paused) return;
     if (nextCollection !== state.collection) {
-      selectCollection(nextCollection, { autoplay: state.preferences.enabled && ctfReading });
+      selectCollection(nextCollection, { autoplay: state.preferences.enabled });
     } else if (state.current) {
-      if (ctfReading) {
-        if (state.preferences.enabled && audio.paused) {
-          state.autoplayRequested = true;
-          state.autoplayBlocked = false;
-          state.autoplayRetryCount = 0;
-        }
-        retryAutomaticPlayback();
-      } else {
-        state.autoplayRequested = false;
+      if (state.preferences.enabled && audio.paused) {
+        state.autoplayRequested = true;
         state.autoplayBlocked = false;
+        state.autoplayRetryCount = 0;
       }
+      retryAutomaticPlayback();
     }
   }
 
