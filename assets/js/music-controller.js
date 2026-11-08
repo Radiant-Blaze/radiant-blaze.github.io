@@ -25,7 +25,7 @@
   });
   const defaults = {
     enabled: true,
-    volume: 0.45,
+    volume: 0.30,
     shuffle: true,
     repeat: "off",
   };
@@ -60,6 +60,8 @@
     trackChangeTimer: 0,
     renderedTrackId: "",
     playbackState: PLAYBACK_STATES.INITIALIZING,
+    manifestPromise: null,
+    preloadLink: null,
   };
 
   let audio = new Audio();
@@ -67,7 +69,7 @@
   const audioListeners = new WeakSet();
   let lastSyncedRoute = null;
   let removeAutoplayGestureFallback = () => {};
-  audio.preload = "metadata";
+  audio.preload = "none";
   audio.dataset.radiantBlazeMusic = "";
   audio.setAttribute("aria-hidden", "true");
   audio.tabIndex = -1;
@@ -149,13 +151,38 @@
     return collections[0].id;
   }
 
+  function isCtfReadingRoute(pathname = location.pathname) {
+    let normalizedPath = pathname;
+    try {
+      normalizedPath = decodeURIComponent(pathname);
+    } catch (error) {
+      console.warn("[radiant-blaze:music] CTF route pathname could not be decoded.", error);
+    }
+    normalizedPath = normalizedPath.replace(/\\/g, "/");
+    return /\/generated\/writeups\/[^/]+\/[^/]+(?:\.html)?$/i.test(normalizedPath);
+  }
+
   function initialize() {
     document.body.append(audio);
     mountInterface();
     bindEvents();
     state.collection = routeCollection();
-    const restored = readSession();
-    fetch("/assets/music/manifest.json")
+    if (!state.preferences.enabled) {
+      state.loading = false;
+      render();
+      return;
+    }
+    void loadManifest().catch((error) => {
+      console.error("[radiant-blaze:music] Could not load music tracks.", error);
+      state.loading = false;
+      render();
+    });
+    addEventListener("pagehide", persistSession);
+  }
+
+  function loadManifest() {
+    if (state.manifestPromise) return state.manifestPromise;
+    state.manifestPromise = fetch("/assets/music/manifest.json")
       .then((response) => {
         if (!response.ok) throw new Error(`Music manifest request failed (${response.status}).`);
         return response.json();
@@ -168,26 +195,25 @@
           typeof track.title === "string" && typeof track.artist === "string" &&
           collections.some((collection) => collection.id === track.collection),
         );
+        const restored = readSession();
         if (restored && restored.collection === state.collection) {
           const track = state.tracks.find((candidate) => candidate.id === restored.trackId);
           if (track) {
             console.info("[radiant-blaze:music] Track selected.", track.title);
             buildQueue(track.id);
             state.queueIndex = state.queue.indexOf(track.id);
-            void loadTrack(track, { position: 0, autoplay: state.preferences.enabled });
+            selectTrackMetadata(track);
+            if (state.preferences.enabled && isCtfReadingRoute()) {
+              void loadTrack(track, { position: 0, autoplay: true });
+            }
             return;
           }
         }
         const selectedTrack = state.tracks.find((track) => track.collection === state.collection && !state.failed.has(track.id));
         if (selectedTrack) console.info("[radiant-blaze:music] Track selected.", selectedTrack.title);
-        activateCollection(state.collection, { autoplay: state.preferences.enabled });
-      })
-      .catch((error) => {
-        console.error("[radiant-blaze:music] Could not load music tracks.", error);
-        state.loading = false;
-        render();
+        activateCollection(state.collection, { autoplay: state.preferences.enabled && isCtfReadingRoute() });
       });
-    addEventListener("pagehide", persistSession);
+    return state.manifestPromise;
   }
 
   function mountInterface() {
@@ -570,6 +596,7 @@
       state.autoplayRequested = false;
       console.info("[radiant-blaze:music] Playback started.", state.current?.title || "");
       startVisualizer();
+      scheduleNextTrackPreload();
       render();
     });
     element.addEventListener("pause", () => {
@@ -712,10 +739,21 @@
     const routePath = location.pathname;
     if (lastSyncedRoute === routePath) return;
     lastSyncedRoute = routePath;
+    const ctfReading = isCtfReadingRoute(routePath);
     if (nextCollection !== state.collection) {
-      selectCollection(nextCollection, { autoplay: state.preferences.enabled && (!audio.paused || state.autoplayRequested) });
+      selectCollection(nextCollection, { autoplay: state.preferences.enabled && ctfReading });
     } else if (state.current) {
-      retryAutomaticPlayback();
+      if (ctfReading) {
+        if (state.preferences.enabled && audio.paused) {
+          state.autoplayRequested = true;
+          state.autoplayBlocked = false;
+          state.autoplayRetryCount = 0;
+        }
+        retryAutomaticPlayback();
+      } else {
+        state.autoplayRequested = false;
+        state.autoplayBlocked = false;
+      }
     }
   }
 
@@ -750,6 +788,7 @@
       state.queue.unshift(currentId);
       state.queueIndex = 0;
     }
+    if (state.playing) scheduleNextTrackPreload();
   }
 
   function activateCollection(id, { autoplay = state.preferences.enabled } = {}) {
@@ -766,7 +805,10 @@
     }
     state.queueIndex = 0;
     const track = state.tracks.find((item) => item.id === nextId);
-    if (track) void loadTrack(track, { autoplay });
+    if (track) {
+      selectTrackMetadata(track);
+      if (autoplay) void loadTrack(track, { autoplay: true });
+    }
   }
 
   function selectCollection(id, { autoplay = state.preferences.enabled } = {}) {
@@ -783,6 +825,13 @@
     state.historyIndex = state.history.length - 1;
   }
 
+  function selectTrackMetadata(track) {
+    state.current = track;
+    state.collection = track.collection;
+    state.loading = false;
+    render();
+  }
+
   async function loadTrack(track, { position = 0, autoplay = state.preferences.enabled, record = true } = {}) {
     if (!track || state.failed.has(track.id)) return;
     const loadId = ++state.loadId;
@@ -795,6 +844,7 @@
     state.autoplayBlocked = false;
     state.autoplayRetryCount = 0;
     state.autoplayAttempting = false;
+    clearNextTrackPreload();
     console.info("[radiant-blaze:music] Track loading.", track.title);
     if (record) appendHistory(track);
     render();
@@ -822,6 +872,26 @@
       });
       requestPlaybackWhenReady();
     }
+  }
+
+  function clearNextTrackPreload() {
+    state.preloadLink?.remove();
+    state.preloadLink = null;
+  }
+
+  function scheduleNextTrackPreload() {
+    clearNextTrackPreload();
+    if (!state.playing || !state.current || state.preferences.repeat === "one") return;
+    const next = getNextQueueTrack()?.track;
+    if (!next || next.id === state.current.id || state.failed.has(next.id)) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "audio";
+    link.fetchPriority = "low";
+    link.href = next.src;
+    link.dataset.radiantBlazeMusicPreload = next.id;
+    document.head.append(link);
+    state.preloadLink = link;
   }
 
   async function ensureAudioGraph() {
@@ -861,6 +931,14 @@
 
   async function startPlayback() {
     if (!state.preferences.enabled) return;
+    if (!state.tracks.length) {
+      try {
+        await loadManifest();
+      } catch (error) {
+        console.warn("[radiant-blaze:music] Playback unavailable because the manifest could not be loaded.", error);
+        return;
+      }
+    }
     if (!state.current) {
       const tracks = collectionTracks();
       if (!tracks.length) {
@@ -871,6 +949,10 @@
       const first = state.tracks.find((track) => track.id === state.queue[0]) || tracks[0];
       state.queueIndex = Math.max(0, state.queue.indexOf(first.id));
       void loadTrack(first, { autoplay: true });
+      return;
+    }
+    if (audio.dataset.trackId !== state.current.id || !audio.src) {
+      void loadTrack(state.current, { autoplay: true });
       return;
     }
     try {
