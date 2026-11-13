@@ -286,9 +286,7 @@ footer {
 .mobile-menu-toggle:hover {
   color: var(--accent-pink);
 }
-.quest-nav {
-  align-items: center;
-}
+
 .mobile-menu-toggle[aria-expanded="true"] {
   color: #fff;
 }
@@ -547,7 +545,7 @@ h1 span {
 .light-theme .feature-tile {
   background: rgba(255, 255, 255, 0.55);
 }
-.feature-tile h3 {
+.feature-tile h2 {
   margin: 0;
   color: var(--text);
   font-size: clamp(12px, 1.4vw, 16px);
@@ -684,15 +682,7 @@ footer {
 }
 
 @media (max-width: 700px) {
-  .top-bar.site-header,
-  .quest-top.site-header {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "brand tools"
-      "nav nav";
-    gap: 6px;
-    padding: 6px 8px;
-  }
+
   .home-brand,
   .quest-brand {
     grid-area: brand;
@@ -758,11 +748,7 @@ footer {
     padding: 8px 10px;
     white-space: nowrap;
   }
-  .top-bar.site-header > .top-controls,
-  .quest-nav-tools {
-    padding-left: 0;
-    border-left: 0;
-  }
+
   .mobile-menu-toggle {
     display: inline-flex;
   }
@@ -890,10 +876,7 @@ footer {
     animation: rb-music-in 0.16s steps(4, end) both;
     overscroll-behavior: contain;
   }
-  @keyframes rb-music-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+
   .rb-music-player-head {
     display: flex;
     justify-content: space-between;
@@ -1165,12 +1148,8 @@ footer {
   .mobile-menu-toggle {
     display: inline-flex;
   }
-  .brand-title {
-    font-size: 7px;
-  }
-  .brand-caption {
-    font-size: 8px;
-  }
+
+
   .top-controls {
     display: flex;
     justify-content: center;
@@ -1214,7 +1193,7 @@ footer {
     min-height: 190px;
     padding: 14px 12px;
   }
-  .feature-tile h3 {
+  .feature-tile h2 {
     font-size: 13px;
   }
   .feature-tile p {
@@ -2875,8 +2854,13 @@ footer {
 .social-label { align-self: end; letter-spacing: .04em; }
 .social-kind { align-self: start; color: var(--muted); font-size: 6px; letter-spacing: .04em; }
 /* Placeholder entries render as badges, not links, so they must not respond to
-   hover the way a real destination does. */
+   hover the way a real destination does. The recessed look comes from the icon
+   block alone: dimming the whole badge pushed the 6px STANDBY text to ~3.5:1,
+   below the 4.5:1 AA floor. */
 .social-link.is-pending {
+  opacity: 1;
+}
+.social-link.is-pending .social-icon {
   opacity: 0.55;
 }
 .social-link:not(.is-pending):hover,
@@ -3373,26 +3357,13 @@ footer {
   gap: 8px;
   padding: 6px 9px;
 }
-#rb-music-root .rb-music-pill:hover,
-#rb-music-root .rb-music-enable:hover {
-  box-shadow: 3px 5px 0 var(--shadow);
-}
+
 #rb-music-root .rb-music-player-head {
   margin-bottom: 12px;
   border-bottom-color: var(--muted);
 }
-#rb-music-root .rb-music-now {
-  gap: 12px;
-}
-#rb-music-root .rb-music-art {
-  flex-basis: 54px;
-  width: 54px;
-  height: 54px;
-  border-width: 2px;
-}
-#rb-music-root .rb-music-now-copy {
-  gap: 6px;
-}
+
+
 #rb-music-root .rb-music-now-copy strong {
   font-size: 9px;
   line-height: 1.8;
@@ -3400,11 +3371,7 @@ footer {
 #rb-music-root .rb-music-now-copy span {
   font: 8px/1.6 "Press Start 2P", monospace;
 }
-#rb-music-root .rb-music-progress {
-  grid-template-columns: 38px minmax(0, 1fr) 38px;
-  gap: 8px;
-  margin-top: 15px;
-}
+
 #rb-music-root .rb-music-progress input,
 #rb-music-root .rb-music-volume input {
   display: block;
@@ -3420,10 +3387,7 @@ footer {
   -webkit-appearance: none;
   appearance: none;
 }
-#rb-music-root .rb-music-controls {
-  gap: 12px;
-  margin: 9px 0 13px;
-}
+
 #rb-music-root .rb-music-controls button {
   min-width: 40px;
   min-height: 36px;
@@ -3435,9 +3399,7 @@ footer {
   min-height: 42px;
   border-width: 2px;
 }
-#rb-music-root .rb-jukebox {
-  border-top: 1px solid var(--muted);
-}
+
 #rb-music-root .rb-jukebox summary {
   min-height: 38px;
   padding: 11px 2px 8px;
@@ -3463,9 +3425,7 @@ footer {
 #rb-music-root .rb-jukebox summary span {
   color: var(--accent-cyan);
 }
-#rb-music-root .rb-jukebox-content {
-  padding-bottom: 5px;
-}
+
 #rb-music-root .rb-collections button {
   min-height: 34px;
   border-width: 1px;
@@ -3479,9 +3439,7 @@ footer {
   line-height: 2;
 }
 @media (max-width: 480px) {
-  #rb-music-root .rb-music-player {
-    padding: 12px;
-  }
+
 }
 @media (prefers-reduced-motion: reduce) {
   #rb-music-root .rb-music-pill,

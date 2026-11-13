@@ -1,3 +1,7 @@
 /node_modules/
 /.astro/
 /dist/
+
+# Python bytecode from astro-tools/*.py helpers (e.g. compare_output.py).
+__pycache__/
+*.py[cod]

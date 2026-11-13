@@ -10,6 +10,9 @@ const musicMetadataPath = path.join(musicRoot, "metadata.json");
 const musicManifestPath = "/assets/music/manifest.json";
 const copiedFiles = ["favicon.svg", "og-image.png", "robots.txt", ".nojekyll"];
 const legacyFallbackFiles = ["blog.js", "ctf.js", "content.js"];
+// Modules that live in assets/js/ but are also served from /legacy/assets/js/
+// because the compatibility fallback imports them as same-directory siblings.
+const sharedLegacyFiles = ["list-utils.js", "markdown-renderer.js"];
 const isCompatibilityJson = (relativePath) =>
   relativePath === "posts/index.json" ||
   relativePath === "ctfs/index.json" ||
@@ -94,7 +97,7 @@ const resolveSource = (pathname) => {
   if (pathname.startsWith(legacyJsPrefix)) {
     const filename = pathname.slice(legacyJsPrefix.length);
     if (legacyFallbackFiles.includes(filename)) return path.join(root, "compat", "legacy-assets", "js", filename);
-    if (filename === "list-utils.js") return path.join(root, "assets", "js", filename);
+    if (sharedLegacyFiles.includes(filename)) return path.join(root, "assets", "js", filename);
     return null;
   }
   for (const prefix of ["/assets/", "/content/"]) {
@@ -178,7 +181,9 @@ export function sourceAssetsIntegration() {
           ...legacyFallbackFiles.map((file) =>
             copyFile(path.join(root, "compat", "legacy-assets", "js", file), path.join(legacyJsOutput, file)),
           ),
-          copyFile(path.join(root, "assets", "js", "list-utils.js"), path.join(legacyJsOutput, "list-utils.js")),
+          ...sharedLegacyFiles.map((file) =>
+            copyFile(path.join(root, "assets", "js", file), path.join(legacyJsOutput, file)),
+          ),
         ]);
         const contentRoot = path.join(root, "content");
         await cp(contentRoot, path.join(output, "content"), {

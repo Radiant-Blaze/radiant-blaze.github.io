@@ -219,10 +219,14 @@ Promise.all([
 
       const applyFilterClasses = () => {
         document.querySelectorAll("[data-search-filter]").forEach((button) => {
-          button.classList.toggle("is-active", button.dataset.searchFilter === activeFilter);
+          const active = button.dataset.searchFilter === activeFilter;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", String(active));
         });
         document.querySelectorAll("[data-search-topic]").forEach((button) => {
-          button.classList.toggle("is-active", button.dataset.searchTopic === activeTopic);
+          const active = button.dataset.searchTopic === activeTopic;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", String(active));
         });
       };
 

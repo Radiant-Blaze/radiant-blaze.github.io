@@ -4,7 +4,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-export const PREVIEW = process.env.ASTRO_PREVIEW_URL || "http://127.0.0.1:4322";
+// `npm run preview` binds 127.0.0.1 explicitly, so probes must use the same
+// address instead of relying on how `localhost` resolves.
+export const PREVIEW = process.env.ASTRO_PREVIEW_URL || "http://127.0.0.1:4321";
 
 export async function getJson(route) {
   const response = await fetch(`${PREVIEW}${route}`);

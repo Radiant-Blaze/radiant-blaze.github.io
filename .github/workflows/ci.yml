@@ -1,25 +1,44 @@
+name: CI - Verify
 
-name: CI - Build Check
-
+# Runs for branch pushes and pull requests, and is reused by the deploy workflow
+# as its `verify` job, so a GitHub Pages deployment can only happen after these
+# checks pass.
+#
+# `main` is deliberately excluded from the push trigger: the deploy workflow
+# calls this workflow for every main push, so triggering here as well would run
+# the whole suite twice per push.
 on:
   push:
+    branches-ignore: [main]
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
 
-jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
+# `github.workflow` resolves to the *caller* inside a reusable workflow, so the
+# standalone run and the run started by the deploy workflow land in different
+# groups. Sharing one group would let either run cancel the other, which GitHub
+# documents as a hazard for caller/callee pairs.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    env:
+      # `npm run preview` binds 127.0.0.1; the checks must probe that address so
+      # nothing depends on how `localhost` resolves on the runner.
+      ASTRO_PREVIEW_URL: http://127.0.0.1:4321
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: npm
@@ -27,5 +46,96 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Astro website
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      # The parity and JSON compatibility scripts invoke `python`, which the
+      # runner may expose as `python3` only. Aliasing keeps the documented npm
+      # scripts usable verbatim.
+      - name: Make `python` available
+        run: |
+          if ! command -v python >/dev/null 2>&1; then
+            python3_path="$(command -v python3 || true)"
+            if [ -z "$python3_path" ]; then
+              echo "::error::Neither python nor python3 is available on this runner."
+              exit 1
+            fi
+            sudo ln -sf "$python3_path" /usr/local/bin/python
+          fi
+          python --version
+
+      - name: Validate content indexes
+        run: npm run content:check
+
+      - name: Build site
         run: npm run build
+
+      - name: Fixture and unit tests
+        run: |
+          npm run test:converter
+          npm run test:renderer
+          npm run test:real-content
+          npm run test:content-sync
+          npm run test:astro-route-parity
+          npm run test:compatibility-assets
+          npm run test:year-search
+          npm run test:portfolio
+          npm run test:player-stats
+
+      - name: Route and output parity
+        run: |
+          npm run parity
+          npm run check:json-compat
+
+      - name: Projection checks against the built site
+        run: |
+          if [ -z "$ASTRO_PREVIEW_URL" ]; then
+            echo "::error::ASTRO_PREVIEW_URL is not set"
+            exit 1
+          fi
+
+          preview_pid=""
+          cleanup() {
+            status=$?
+            if [ -n "$preview_pid" ]; then
+              kill "$preview_pid" 2>/dev/null || true
+            fi
+            pkill -f "astro.*preview" 2>/dev/null || true
+            if [ "$status" -ne 0 ] && [ -f /tmp/preview.log ]; then
+              echo "::group::preview server log"
+              cat /tmp/preview.log
+              echo "::endgroup::"
+            fi
+          }
+          trap cleanup EXIT
+
+          nohup npm run preview > /tmp/preview.log 2>&1 &
+          preview_pid=$!
+
+          # Probe with Node's own fetch: it is the same client the checks use, so
+          # "ready" means the checks can actually reach the server, with no
+          # dependency on curl or on how `localhost` resolves.
+          probe_ready() {
+            node -e 'fetch(process.env.ASTRO_PREVIEW_URL).then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))'
+          }
+
+          ready=""
+          for attempt in $(seq 1 60); do
+            if probe_ready > /dev/null 2>&1; then
+              ready="yes"
+              echo "preview ready after ${attempt}s"
+              break
+            fi
+            sleep 1
+          done
+          if [ -z "$ready" ]; then
+            echo "::error::preview server did not become ready within 60s"
+            exit 1
+          fi
+
+          npm run check:blog-projection
+          npm run check:search-projection
+          npm run check:ctf-projection
+          npm run check:phase5h
+          npm run check:phase5i
+          npm run check:phase5j

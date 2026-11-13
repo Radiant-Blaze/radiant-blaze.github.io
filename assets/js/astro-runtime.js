@@ -1,11 +1,7 @@
-export const escapeHtml = (value) =>
-  value.replace(
-    /[&<>"']/g,
-    (character) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-        character
-      ],
-  );
+import { escapeHtml, markdownToHtml } from "./markdown-renderer.js";
+
+// Re-exported so existing consumers keep importing both from the runtime.
+export { escapeHtml, markdownToHtml };
 
 export const formatDate = (date) =>
   new Intl.DateTimeFormat("en", {
@@ -68,93 +64,6 @@ export const updatePageMetadata = ({ title, description, canonicalUrl }) => {
   setMeta("name", "twitter:title", title);
   setMeta("name", "twitter:description", description);
   setMeta("name", "twitter:url", canonicalUrl);
-};
-
-const TOKEN_LINE = /^@@TOKEN\d+@@$/;
-const headingTag = (level) => `h${level <= 2 ? 2 : Math.min(6, level)}`;
-const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-export const markdownToHtml = (markdown) => {
-  const tokens = [];
-  const stash = (html) => `@@TOKEN${tokens.push(html) - 1}@@`;
-  const source = escapeHtml(markdown.replace(/\r\n?/g, "\n"))
-    .replace(/```(\w+)?\n([\s\S]*?)```/g, (_, language, code) =>
-      (language || "").toLowerCase() === "math"
-        ? stash(`<div class="math-block">\\[${code}\\]</div>`)
-        : stash(
-            `<pre class="terminal"><code data-language="${language || "text"}">${code}</code></pre>`,
-          ),
-    )
-    .replace(
-      /^\\\[((?:.|\n)*?)\\\]$/gm,
-      (_, math) => stash(`<div class="math-block">\\[${math}\\]</div>`),
-    )
-    .replace(/`([^`\n]+)`/g, (_, code) => stash(`<code>${code}</code>`));
-
-  const inline = (text) =>
-    text
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
-
-  const lines = source.split("\n");
-  const html = [];
-  const paragraph = [];
-  const flush = () => {
-    if (!paragraph.length) return;
-    html.push(`<p>${paragraph.map(inline).join("<br>")}</p>`);
-    paragraph.length = 0;
-  };
-
-  let index = 0;
-  while (index < lines.length) {
-    const line = lines[index];
-    if (!line.trim()) {
-      flush();
-      index++;
-      continue;
-    }
-    if (TOKEN_LINE.test(line)) {
-      flush();
-      html.push(line);
-      index++;
-      continue;
-    }
-    const heading = /^(#{1,6}) (.+)$/.exec(line);
-    if (heading) {
-      flush();
-      const tag = headingTag(heading[1].length);
-      html.push(`<${tag} id="${slug(heading[2])}">${inline(heading[2])}</${tag}>`);
-      index++;
-      continue;
-    }
-    if (line.startsWith("&gt; ")) {
-      flush();
-      const quote = [];
-      while (index < lines.length && lines[index].startsWith("&gt; ")) {
-        quote.push(lines[index].slice(5));
-        index++;
-      }
-      html.push(`<blockquote>${quote.map(inline).join("<br>")}</blockquote>`);
-      continue;
-    }
-    const bullet = /^[-*] /.test(line);
-    const pattern = bullet ? /^[-*] / : /^\d+\. /;
-    if (bullet || pattern.test(line)) {
-      flush();
-      const items = [];
-      while (index < lines.length && pattern.test(lines[index])) {
-        items.push(`<li>${inline(lines[index].replace(pattern, ""))}</li>`);
-        index++;
-      }
-      const tag = bullet ? "ul" : "ol";
-      html.push(`<${tag}>${items.join("")}</${tag}>`);
-      continue;
-    }
-    paragraph.push(line);
-    index++;
-  }
-  flush();
-  return html.join("").replace(/@@TOKEN(\d+)@@/g, (_, token) => tokens[Number(token)]);
 };
 
 const MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";

@@ -12,6 +12,7 @@ import Footer from "../../components/Footer.astro";
   spa={false}
 >
   <meta slot="headScripts" http-equiv="refresh" content="0; url=search.html" />
+  <meta slot="headScripts" name="robots" content="noindex, follow" />
   <script slot="headScripts" is:inline>location.replace(`search.html${location.search}`);</script>
   <section class="quest-hero quest-wrap">
     <p class="eyebrow">SAVE HISTORY</p>

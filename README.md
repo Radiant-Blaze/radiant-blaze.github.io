@@ -115,7 +115,7 @@ The content is owned in Markdown and JSON, while Astro turns the repository into
 - A current Node.js installation.
 - npm, included with Node.js.
 
-The GitHub Actions workflow uses Node.js 26. Check Node compatibility for your local environment before installing dependencies.
+The GitHub Actions workflows use Node.js 24. Check Node compatibility for your local environment before installing dependencies.
 
 ### Install
 
@@ -153,6 +153,7 @@ npm run check:search-projection
 npm run check:ctf-projection
 npm run test:year-search
 npm run test:portfolio
+npm run test:player-stats
 ```
 
 Additional parity, compatibility, and Astro route checks are also defined in `package.json`.
@@ -243,10 +244,11 @@ Portfolio pages are configured centrally in `content/portfolio/config.json`. It 
 The repository deploys through `.github/workflows/deploy.yml`.
 
 1. Pushes to the `main` branch trigger the workflow.
-2. `actions/checkout` checks out the repository.
-3. Node.js 26 is configured and dependencies are installed with `npm ci`.
-4. `npm run build` generates the static site in `dist/`.
-5. The build artifact is uploaded and deployed to the `github-pages` environment.
+2. The `verify` job reuses `.github/workflows/ci.yml`: dependency audit, content validation, the full test suite, route/parity checks and the projection checks against a built preview must all pass.
+3. `actions/checkout` checks out the repository.
+4. Node.js 24 is configured and dependencies are installed with `npm ci`.
+5. `npm run build` generates the static site in `dist/`.
+6. The build artifact is uploaded and deployed to the `github-pages` environment.
 
 The workflow can also be started manually through GitHub's **Run workflow** action.
 

@@ -1,5 +1,5 @@
 import { extractFrontmatter, type Frontmatter } from "./frontmatter.ts";
-import { escapeHtml, protectMath } from "./html.ts";
+import { escapeHtml, isSafeUrl, protectMath } from "./html.ts";
 
 export type ConvertedMarkdown = { data: Frontmatter; body: string; html: string };
 
@@ -22,7 +22,7 @@ export function convertMarkdown(source: string): ConvertedMarkdown {
       if (lang.toLowerCase() === "math") {
         output.push(`<div class="math-block">\\[${code.join("\n")}\\]</div>`);
       } else {
-        output.push(`<pre><code${lang ? ` data-language="${escapeHtml(lang)}"` : ""}>${code.join("\n")}</code></pre>`);
+        output.push(`<pre tabindex="0"><code${lang ? ` data-language="${escapeHtml(lang)}"` : ""}>${code.join("\n")}</code></pre>`);
       }
       continue;
     }
@@ -41,8 +41,10 @@ function inline(value: string) {
   const protect = (html: string) => `\u0000INLINE${protectedValues.push(html) - 1}\u0000`;
   const protectedValue = value
     .replace(/`([^`\n]+)`/g, (_, code) => protect(`<code>${code}</code>`))
-    .replace(/!\[([^\]]*)\]\((\S+?)(?:\s+['\"]([^'\"]*)['\"])?\)/g, (_, alt, href, title) => protect(`<img src="${href}" alt="${alt}"${title ? ` title="${title}"` : ""} />`))
-    .replace(/\[([^\]]+)\]\((\S+?)(?:\s+['\"]([^'\"]*)['\"])?\)/g, (_, text, href, title) => protect(`<a href="${href}"${title ? ` title="${title}"` : ""}>${text}</a>`));
+    .replace(/!\[([^\]]*)\]\((\S+?)(?:\s+['\"]([^'\"]*)['\"])?\)/g, (_, alt, href, title) =>
+      isSafeUrl(href) ? protect(`<img src="${href}" alt="${alt}"${title ? ` title="${title}"` : ""} />`) : alt)
+    .replace(/\[([^\]]+)\]\((\S+?)(?:\s+['\"]([^'\"]*)['\"])?\)/g, (_, text, href, title) =>
+      isSafeUrl(href) ? protect(`<a href="${href}"${title ? ` title="${title}"` : ""}>${text}</a>`) : text);
   return protectedValue
     .replace(/(?<![\w.])([+-]?\d+(?:\.\d+)?)[eE]([+-]?\d+)(?![\w])/g, (_, coefficient, exponent) => `$${coefficient} \\times 10^{${exponent}}$`)
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")

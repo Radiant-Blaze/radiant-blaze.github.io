@@ -59,6 +59,13 @@ const emptyMessage = (value) => `<div class="rb-404-search-empty" role="status">
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "S"}`;
 const challengeTotal = (ctf) => ctf.challengeCount ?? ctf.challenges.length;
 
+// Filter pills are toggle buttons: the visual `is-active` class alone leaves the
+// pressed state invisible to assistive tech.
+const setPillState = (button, active) => {
+  button.classList.toggle("is-active", active);
+  button.setAttribute("aria-pressed", String(active));
+};
+
 const renderBlog = async (model) => {
   const blogQuery = (params.get("q") || "").trim();
   const article = document.querySelector("[data-markdown-post]");
@@ -263,17 +270,28 @@ const renderGlobalSearch = (posts, ctfs) => {
 
   const applyFilterClasses = () => {
     document.querySelectorAll("[data-search-filter]").forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.searchFilter === activeFilter);
+      setPillState(button, button.dataset.searchFilter === activeFilter);
     });
     document.querySelectorAll("[data-search-topic]").forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.searchTopic === "all" ? activeTopics.size === 0 : activeTopics.has(button.dataset.searchTopic));
+      setPillState(button, button.dataset.searchTopic === "all" ? activeTopics.size === 0 : activeTopics.has(button.dataset.searchTopic));
     });
     document.querySelectorAll("[data-search-year]").forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.searchYear === "all" ? !selectedYear : button.dataset.searchYear === selectedYear);
+      setPillState(button, button.dataset.searchYear === "all" ? !selectedYear : button.dataset.searchYear === selectedYear);
     });
   };
   input.value = query;
-  input.closest("form")?.addEventListener("submit", (event) => event.preventDefault());
+  const syncQueryParam = () => {
+    const url = new URL(location.href);
+    input.value ? url.searchParams.set("q", input.value) : url.searchParams.delete("q");
+    history.replaceState(null, "", url);
+  };
+  // The SCAN button submits the form; it re-runs the scan from page 1 and
+  // normalizes the URL exactly the way typing does.
+  input.closest("form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    renderSearch(input.value, true);
+    syncQueryParam();
+  });
   document.querySelectorAll("[data-search-filter]").forEach((button) => {
     button.addEventListener("click", () => {
       activeFilter = button.dataset.searchFilter;
@@ -340,11 +358,9 @@ const renderGlobalSearch = (posts, ctfs) => {
       });
     }
   };
-  input.addEventListener("input", (event) => {
-    renderSearch(event.target.value);
-    const url = new URL(location.href);
-    event.target.value ? url.searchParams.set("q", event.target.value) : url.searchParams.delete("q");
-    history.replaceState(null, "", url);
+  input.addEventListener("input", () => {
+    renderSearch(input.value);
+    syncQueryParam();
   });
   applyFilterClasses();
   renderSearch(query);

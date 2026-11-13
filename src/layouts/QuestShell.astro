@@ -7,6 +7,7 @@ interface Props {
   ogTitle?: string;
   ogDescription?: string;
   ogType?: string;
+  ogImageAlt?: string;
   viewport?: string;
   currentPage?: "blog" | "ctf" | "search" | "portfolio";
   cssVersion?: string;
@@ -24,6 +25,7 @@ const {
   ogTitle = title,
   ogDescription = description,
   ogType = "website",
+  ogImageAlt = "Radiant Blaze pixel-art city banner",
   viewport = "width=device-width,initial-scale=1.0",
   currentPage,
   cssVersion = "20261103-30",
@@ -49,10 +51,14 @@ const {
     <meta property="og:description" content={ogDescription} />
     {ogUrl && <meta property="og:url" content={ogUrl} />}
     <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta property="og:image:width" content="1500" />
+    <meta property="og:image:height" content="592" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={ogDescription} />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href={`/assets/css/style.css?v=${cssVersion}`} />
     <script src="/assets/js/astro-controls.js" is:inline></script>

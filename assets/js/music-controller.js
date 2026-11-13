@@ -7,6 +7,7 @@
 
   const SETTINGS_KEY = "radiant-blaze-music-settings";
   const SESSION_KEY = "radiant-blaze-music-session";
+  const STARTED_KEY = "radiant-blaze-music-user-started";
   const collections = [
     { id: "Portfolio and Main Page", label: "Portfolio + Main" },
     { id: "Blogs and CTFs", label: "Blogs + CTFs" },
@@ -31,6 +32,7 @@
   };
   const state = {
     preferences: readSettings(),
+    userStarted: readStarted(),
     tracks: [],
     collection: "",
     queue: [],
@@ -105,6 +107,28 @@
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.preferences));
     } catch (error) {
       console.warn("[radiant-blaze:music] Preferences could not be saved.", error);
+    }
+  }
+
+  // Automatic playback on the reading routes waits for the visitor to start
+  // music at least once. Without the opt-in a first-time reader of a writeup
+  // downloaded a ~1.5 MB track and had playback attempted at them.
+  function readStarted() {
+    try {
+      return localStorage.getItem(STARTED_KEY) === "true";
+    } catch (error) {
+      console.warn("[radiant-blaze:music] Playback history could not be read.", error);
+      return false;
+    }
+  }
+
+  function markStarted() {
+    if (state.userStarted) return;
+    state.userStarted = true;
+    try {
+      localStorage.setItem(STARTED_KEY, "true");
+    } catch (error) {
+      console.warn("[radiant-blaze:music] Playback history could not be saved.", error);
     }
   }
 
@@ -203,7 +227,7 @@
             buildQueue(track.id);
             state.queueIndex = state.queue.indexOf(track.id);
             selectTrackMetadata(track);
-            if (state.preferences.enabled && isCtfReadingRoute()) {
+            if (state.preferences.enabled && state.userStarted && isCtfReadingRoute()) {
               void loadTrack(track, { position: 0, autoplay: true });
             }
             return;
@@ -211,7 +235,7 @@
         }
         const selectedTrack = state.tracks.find((track) => track.collection === state.collection && !state.failed.has(track.id));
         if (selectedTrack) console.info("[radiant-blaze:music] Track selected.", selectedTrack.title);
-        activateCollection(state.collection, { autoplay: state.preferences.enabled && isCtfReadingRoute() });
+        activateCollection(state.collection, { autoplay: state.preferences.enabled && state.userStarted && isCtfReadingRoute() });
       });
     return state.manifestPromise;
   }
@@ -356,6 +380,7 @@
       if (!(target instanceof Element)) return;
       const collectionButton = target.closest("[data-collection]");
       if (collectionButton) {
+        markStarted();
         selectCollection(collectionButton.dataset.collection);
         return;
       }
@@ -363,6 +388,7 @@
       if (trackButton) {
         const track = state.tracks.find((item) => item.id === trackButton.dataset.trackId);
         if (track) {
+          markStarted();
           state.preferences.enabled = true;
           saveSettings();
           if (track.collection !== state.collection) state.collection = track.collection;
@@ -382,13 +408,14 @@
           if (state.playing) {
             pausePlayback();
           } else {
+            markStarted();
             state.preferences.enabled = true;
             saveSettings();
             void startPlayback();
           }
           break;
-        case "previous": previousTrack(); break;
-        case "next": void nextTrack(); break;
+        case "previous": markStarted(); previousTrack(); break;
+        case "next": markStarted(); void nextTrack(); break;
         case "mute": toggleMute(); break;
         case "shuffle":
           state.preferences.shuffle = !state.preferences.shuffle;
@@ -420,15 +447,18 @@
           saveSettings();
           pausePlayback();
         } else {
+          markStarted();
           state.preferences.enabled = true;
           saveSettings();
           void startPlayback();
         }
       } else if (event.code === "ArrowRight") {
         event.preventDefault();
+        markStarted();
         void nextTrack();
       } else if (event.code === "ArrowLeft") {
         event.preventDefault();
+        markStarted();
         previousTrack();
       } else if (event.key.toLowerCase() === "m") {
         toggleMute();
@@ -716,7 +746,10 @@
 
   function setupMediaSession() {
     if (!("mediaSession" in navigator)) return;
-    navigator.mediaSession.setActionHandler("play", () => void startPlayback());
+    navigator.mediaSession.setActionHandler("play", () => {
+      markStarted();
+      void startPlayback();
+    });
     navigator.mediaSession.setActionHandler("pause", () => pausePlayback());
     navigator.mediaSession.setActionHandler("previoustrack", () => previousTrack());
     navigator.mediaSession.setActionHandler("nexttrack", () => void nextTrack());
@@ -750,10 +783,10 @@
       return;
     }
     if (nextCollection !== state.collection) {
-      selectCollection(nextCollection, { autoplay: state.preferences.enabled && ctfReading });
+      selectCollection(nextCollection, { autoplay: state.preferences.enabled && state.userStarted && ctfReading });
     } else if (state.current) {
       if (ctfReading) {
-        if (state.preferences.enabled && audio.paused) {
+        if (state.preferences.enabled && state.userStarted && audio.paused) {
           state.autoplayRequested = true;
           state.autoplayBlocked = false;
           state.autoplayRetryCount = 0;
@@ -1353,6 +1386,7 @@
     selectTrack: (id) => {
       const track = state.tracks.find((item) => item.id === id);
       if (track) {
+        markStarted();
         state.preferences.enabled = true;
         saveSettings();
         if (!state.queue.includes(track.id)) state.queue.splice(state.queueIndex + 1, 0, track.id);
