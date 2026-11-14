@@ -19,3 +19,24 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+--------------------------------------------------------------------------
+
+Third-Party Materials and Attribution
+
+The MIT License above covers the Radiant Blaze source code authored by the
+Radiant-Blaze project.
+
+This project may also include third-party materials, such as music,
+artwork, images, fonts, icons, and software dependencies. Those materials
+are owned by their respective creators and are NOT automatically covered
+by the MIT License above. They remain subject to their own licenses,
+copyright notices, and attribution requirements.
+
+For details, see:
+
+  docs/THIRD_PARTY_LICENSES.md  - third-party components and their licenses
+  docs/CREDITS.md               - credits and attribution information
+
+Refer to those documents and to the original sources of each third-party
+material before copying, modifying, or redistributing it.
