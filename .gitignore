@@ -2,6 +2,9 @@
 /.astro/
 /dist/
 
+# Local Python virtual environment used by the astro-tools/*.py helpers.
+/.venv/
+
 # Python bytecode from astro-tools/*.py helpers (e.g. compare_output.py).
 __pycache__/
 *.py[cod]

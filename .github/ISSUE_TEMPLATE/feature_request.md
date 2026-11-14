@@ -1,19 +1,10 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: enhancement
-assignees: ''
-type: Feature
-
----
-
----
 name: Feature Request
 about: Suggest an idea or improvement for Radiant Blaze
 title: "[FEATURE] "
 labels: enhancement
 assignees: ""
+type: Feature
 ---
 
 ## Is Your Feature Request Related to a Problem?

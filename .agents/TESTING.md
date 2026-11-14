@@ -8,6 +8,7 @@
 - `npm run test:astro-route-parity` — verifies all 23 current article/writeup routes and ordering entries.
 - `npm run test:compatibility-assets` — verifies compatibility source paths and public mapping.
 - `python astro-tools/compare_output.py` — compares the current Astro output route set and page facts using Astro route metadata.
+- `npm run check:homepage-parity` — verifies the rendered homepage against the content that drives it: the featured and latest-post tiles, the search tile, the `site.json` social links, the footer year, canonical/OG metadata, and that no legacy `home.js` loads.
 - `npm run build` — produces static `dist/` output.
 
 ## Browser smoke test

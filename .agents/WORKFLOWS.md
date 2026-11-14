@@ -18,7 +18,8 @@ npm run test:real-content
 npm run test:content-sync
 npm run test:astro-route-parity
 npm run test:compatibility-assets
+npm run check:homepage-parity
 python astro-tools/compare_output.py
 ```
 
-Recommended order: make the change, run the focused test, run `content:check` for content changes, run route parity for route/data changes, run the relevant projection/compatibility checks, run the full focused suite, build, then test `npm run preview` in a browser. Stop/restart the dev server when configuration or integration changes require a clean process. A successful build does not replace browser testing.
+Recommended order: make the change, run the focused test, run `content:check` for content changes, run route parity for route/data changes, run `npm run build` and start `npm run preview` before the projection and compatibility checks (they probe the built site), run the full focused suite, then test `npm run preview` in a browser. Stop/restart the dev server when configuration or integration changes require a clean process. A successful build does not replace browser testing.

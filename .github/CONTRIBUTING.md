@@ -32,7 +32,7 @@ Issues may be used for reporting bugs, sharing suggestions, or discussing improv
 
 The project source code is distributed under the MIT License.
 
-Third-party assets, music, fonts, artwork, and dependencies remain subject to their respective licenses. See `CREDITS.md` and `THIRD_PARTY_LICENSES.md` for details.
+Third-party assets, music, fonts, artwork, and dependencies remain subject to their respective licenses. See `docs/CREDITS.md` and `docs/THIRD_PARTY_LICENSES.md` for details.
 
 ## Contact
 

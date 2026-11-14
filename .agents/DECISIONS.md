@@ -15,3 +15,5 @@
 13. Do not clean up `backup/` or compatibility files merely because they look old.
 14. Understand compatibility contracts before simplifying architecture.
 15. Astro source/configuration and actual scripts override these notes if they diverge.
+16. Static assets live in `public/`; Astro serves them in development and copies them into `dist/`, so the integration no longer copies an `assets/` directory itself. `.nojekyll` is the only file copied from the repository root.
+17. The repository root holds only tool-mandated files. Contributor documentation lives in `docs/`, GitHub community health files live in `.github/`, and static assets live in `public/`.

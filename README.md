@@ -87,18 +87,20 @@ The content is owned in Markdown and JSON, while Astro turns the repository into
 
 ```text
 .
-├── .github/workflows/deploy.yml   # GitHub Pages build and deploy workflow
-├── assets/
-│   ├── fonts/                     # Pixel font assets
-│   └── music/                     # Audio playlists and track metadata
+├── .github/workflows/             # CI verification and GitHub Pages deployment
 ├── astro-tools/                   # Content synchronization and project checks
 ├── content/
 │   ├── posts/                     # Markdown blog posts and ordering indexes
 │   ├── ctfs/                      # CTF event metadata and Markdown writeups
 │   ├── portfolio/                 # Portfolio configuration and Markdown entries
 │   └── site.json                  # Shared site metadata
-├── public/
-│   └── images/readme/             # README banner and website previews
+├── docs/                          # Contributor documentation and attribution
+├── public/                        # Copied verbatim into dist/ by Astro
+│   ├── assets/                    # Site CSS, JavaScript, fonts, music, and SVGs
+│   ├── images/readme/             # README banner and website previews
+│   ├── favicon.svg                # Site icon
+│   ├── og-image.png               # Social preview image
+│   └── robots.txt                 # Crawler directives
 ├── src/
 │   ├── layouts/                   # Shared article and archive shells
 │   ├── lib/                       # Content projection and Markdown tooling
@@ -255,7 +257,7 @@ The workflow can also be started manually through GitHub's **Run workflow** acti
 ## Credits
 
 - **Pixel font**: the bundled Press Start 2P font files are used by the site's retro interface; source attribution is not stated in the repository metadata.
-- **Music**: track metadata and attribution are maintained in `assets/music/metadata.json`. Tracks are organized for portfolio/homepage, archive, and article-reading contexts.
+- **Music**: track metadata and attribution are maintained in `public/assets/music/metadata.json`. Tracks are organized for portfolio/homepage, archive, and article-reading contexts.
 - **Artwork**: the README banner and website artwork are stored under `public/images/`.
 - **Libraries**: Astro powers the static site, with `js-yaml` used for frontmatter parsing.
 

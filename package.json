@@ -18,6 +18,7 @@
     "test:portfolio": "node astro-tools/test-portfolio.mjs",
     "test:player-stats": "node astro-tools/test-player-stats.mjs",
     "check:ctf-projection": "node astro-tools/check_ctf_projection.mjs",
+    "check:homepage-parity": "python astro-tools/check_homepage_parity.py",
     "check:phase5h": "node astro-tools/check_phase5h.mjs",
     "check:phase5i": "node astro-tools/check_phase5i.mjs",
     "check:phase5j": "node astro-tools/check_phase5j.mjs",

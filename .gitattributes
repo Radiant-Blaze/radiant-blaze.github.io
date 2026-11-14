@@ -1,0 +1,34 @@
+# Line-ending policy.
+#
+# Every committed text blob in this repository is already LF, and
+# `.prettierrc.json` already requires `endOfLine: "lf"`, so declaring the policy
+# here changes no existing content: it only stops CRLF from re-entering the
+# index through Windows checkouts.
+* text=auto eol=lf
+
+# Binary assets. `text=auto` detects these by content, but the explicit rules
+# document the intent, cover the audio formats `public/assets/music/README.md`
+# advertises, and keep the attribute independent of the detection heuristic.
+# SVG is deliberately absent: the site's SVGs are text and should stay readable
+# in diffs.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.opus binary
+*.m4a binary
+*.aac binary
+*.flac binary
+*.webm binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.docx binary
+*.pdf binary
+*.zip binary

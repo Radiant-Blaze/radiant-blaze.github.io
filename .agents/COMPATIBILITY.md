@@ -22,6 +22,6 @@ The active fallback modules are:
 /legacy/assets/js/content.js
 ```
 
-`assets/js/list-utils.js` is also copied to `/legacy/assets/js/list-utils.js`; it is active source under `assets/`, not under `backup/`.
+`public/assets/js/list-utils.js` is also copied to `/legacy/assets/js/list-utils.js`; it is active source under `public/assets/`, not under `backup/`.
 
-`assets/js/astro-pages.js` dynamically requests fallback modules when required. Removing or casually renaming these files would break compatibility fallback behavior and public URLs. Preserve relative imports between the three compatibility modules.
+`public/assets/js/astro-pages.js` dynamically requests fallback modules when required. Removing or casually renaming these files would break compatibility fallback behavior and public URLs. Preserve relative imports between the three compatibility modules.

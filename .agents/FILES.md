@@ -39,7 +39,7 @@
 - `astro-tools/source-assets.mjs` — dev middleware and build-time static/compatibility asset copying.
 - `astro-tools/test-*.mjs`, `check_*.mjs`, `compare_output.py` — focused tests and parity/projection checks.
 - `compat/legacy-assets/js/blog.js`, `ctf.js`, `content.js` — active fallback modules; preserve their relative imports.
-- `assets/js/` — active browser modules, including `astro-pages.js`, `astro-navigation.js`, `astro-controls.js`, `astro-query-model.js`, and `list-utils.js`.
+- `public/assets/js/` — active browser modules, including `astro-pages.js`, `astro-navigation.js`, `astro-controls.js`, `astro-query-model.js`, and `list-utils.js`.
 - `backup/` — historical archive, not normal source.
 - `.github/workflows/` — GitHub Pages deployment; installs dependencies, builds Astro, and uploads `dist/`.
 

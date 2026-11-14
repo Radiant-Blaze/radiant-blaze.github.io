@@ -1,17 +1,23 @@
-import { createReadStream } from "node:fs";
+import { createReadStream, statSync } from "node:fs";
 import { cp, copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const musicRoot = path.join(root, "assets", "music");
+// Static assets live in Astro's public directory, so the dev server and the
+// production build serve and copy them without middleware or extra hooks.
+const publicRoot = path.join(root, "public");
+const musicRoot = path.join(publicRoot, "assets", "music");
 const audioExtensions = new Set([".mp3", ".ogg", ".wav", ".m4a", ".aac", ".flac", ".opus", ".webm"]);
 const musicMetadataPath = path.join(musicRoot, "metadata.json");
 const musicManifestPath = "/assets/music/manifest.json";
-const copiedFiles = ["favicon.svg", "og-image.png", "robots.txt", ".nojekyll"];
+// `.nojekyll` stays at the repository root: Astro's public-directory copy is not
+// trusted with dotfiles, and GitHub Pages needs it to skip Jekyll processing.
+const copiedFiles = [".nojekyll"];
 const legacyFallbackFiles = ["blog.js", "ctf.js", "content.js"];
-// Modules that live in assets/js/ but are also served from /legacy/assets/js/
-// because the compatibility fallback imports them as same-directory siblings.
+// Modules that live in public/assets/js/ but are also served from
+// /legacy/assets/js/ because the compatibility fallback imports them as
+// same-directory siblings.
 const sharedLegacyFiles = ["list-utils.js", "markdown-renderer.js"];
 const isCompatibilityJson = (relativePath) =>
   relativePath === "posts/index.json" ||
@@ -97,10 +103,10 @@ const resolveSource = (pathname) => {
   if (pathname.startsWith(legacyJsPrefix)) {
     const filename = pathname.slice(legacyJsPrefix.length);
     if (legacyFallbackFiles.includes(filename)) return path.join(root, "compat", "legacy-assets", "js", filename);
-    if (sharedLegacyFiles.includes(filename)) return path.join(root, "assets", "js", filename);
+    if (sharedLegacyFiles.includes(filename)) return path.join(publicRoot, "assets", "js", filename);
     return null;
   }
-  for (const prefix of ["/assets/", "/content/"]) {
+  for (const prefix of ["/content/"]) {
     if (!pathname.startsWith(prefix)) continue;
     const base = path.join(root, prefix.slice(1, -1));
     const target = path.resolve(base, pathname.slice(prefix.length));
@@ -146,13 +152,44 @@ function devSourceFiles() {
         const target = resolveSource(decodedPath);
         if (!target) return next();
 
-        response.setHeader(
-          "Content-Type",
-          mimeTypes[path.extname(target).toLowerCase()] || "application/octet-stream",
-        );
+        // Serve regular files only, and answer 404 here for anything else.
+        // Falling through instead would let Vite's development resolver read a
+        // bare directory as `<dir>/index.json` and hand it back as a JavaScript
+        // module, and streaming a missing path or a directory raises
+        // ENOENT/EISDIR after the response has begun, which surfaced as a 500
+        // error overlay instead of a 404.
+        let stats = null;
+        try {
+          stats = statSync(target);
+        } catch {
+          stats = null;
+        }
+        if (!stats || !stats.isFile()) {
+          response.statusCode = 404;
+          response.setHeader("Content-Type", "text/plain; charset=utf-8");
+          response.end("Not Found");
+          return;
+        }
+
         const stream = createReadStream(target);
-        stream.on("error", next);
-        stream.pipe(response);
+        let streaming = false;
+        // Commit the headers only once the file has opened, so nothing is sent
+        // for a path that turns out to be unreadable.
+        stream.once("open", () => {
+          streaming = true;
+          response.setHeader(
+            "Content-Type",
+            mimeTypes[path.extname(target).toLowerCase()] || "application/octet-stream",
+          );
+          stream.pipe(response);
+        });
+        stream.once("error", () => {
+          // The path passed the check above, so this is a read race. Fall
+          // through while no header has been sent; otherwise drop the response
+          // so a half-written body cannot look like a complete file.
+          if (streaming) response.destroy();
+          else next();
+        });
       });
     },
   };
@@ -167,7 +204,9 @@ export function sourceAssetsIntegration() {
       },
       async "astro:build:done"({ dir }) {
         const output = fileURLToPath(dir);
-        await cp(path.join(root, "assets"), path.join(output, "assets"), { recursive: true });
+        // `public/assets` is already copied verbatim by Astro, so only the
+        // generated music manifest needs an explicit directory and write.
+        await mkdir(path.join(output, "assets", "music"), { recursive: true });
         await writeFile(
           path.join(output, "assets", "music", "manifest.json"),
           JSON.stringify(await createMusicManifest()),
@@ -182,7 +221,7 @@ export function sourceAssetsIntegration() {
             copyFile(path.join(root, "compat", "legacy-assets", "js", file), path.join(legacyJsOutput, file)),
           ),
           ...sharedLegacyFiles.map((file) =>
-            copyFile(path.join(root, "assets", "js", file), path.join(legacyJsOutput, file)),
+            copyFile(path.join(publicRoot, "assets", "js", file), path.join(legacyJsOutput, file)),
           ),
         ]);
         const contentRoot = path.join(root, "content");

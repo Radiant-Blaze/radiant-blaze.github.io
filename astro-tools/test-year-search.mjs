@@ -3,7 +3,7 @@ import {
   buildYearIndex,
   filterGlobalRecords,
   getRecordYear,
-} from "../assets/js/astro-query-model.js";
+} from "../public/assets/js/astro-query-model.js";
 
 const records = [
   { type: "post", date: "2026-03-10", item: { title: "Toolkit", category: "Linux", tags: ["terminal"] } },

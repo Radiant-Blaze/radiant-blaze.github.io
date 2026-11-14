@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { pageSlice } from "../assets/js/list-utils.js";
+import { pageSlice } from "../public/assets/js/list-utils.js";
 import {
   getJson,
   getText,

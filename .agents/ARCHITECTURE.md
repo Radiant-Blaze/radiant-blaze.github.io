@@ -1,6 +1,6 @@
 # Architecture
 
-Astro is configured for static output in `astro.config.mjs`, with `src/` as the source directory and `dist/` as the output directory. `astro-tools/source-assets.mjs` copies active assets, compatibility modules, content compatibility files, and root static files during `astro:build:done`.
+Astro is configured for static output in `astro.config.mjs`, with `src/` as the source directory and `dist/` as the output directory. `public/` is Astro's public directory: its assets are served during development and copied verbatim into `dist/` by Astro. `astro-tools/source-assets.mjs` serves the `content/` compatibility files in development and, during `astro:build:done`, copies compatibility modules, the `content/` compatibility tree, and the root `.nojekyll` file.
 
 ## Content and routes
 
@@ -28,7 +28,7 @@ Math runs in the browser through the existing MathJax/typesetting behavior. Pipe
 
 ## Browser behavior
 
-Astro renders shells and article pages at build time. Browser JavaScript in `assets/js/` handles navigation, read-model projections, search/filtering, pagination, theme state, music state, and fallback navigation. Query parameters drive blog, CTF, archive/search, event, topic, category, and page views. `astro-pages.js` and `astro-navigation.js` are the current navigation controllers; `astro-controls.js` handles controls.
+Astro renders shells and article pages at build time. Browser JavaScript in `public/assets/js/` handles navigation, read-model projections, search/filtering, pagination, theme state, music state, and fallback navigation. Query parameters drive blog, CTF, archive/search, event, topic, category, and page views. `astro-pages.js` and `astro-navigation.js` are the current navigation controllers; `astro-controls.js` handles controls.
 
 Compatibility fallback modules are requested dynamically from `/legacy/assets/js/` only when the fallback behavior is needed. Their source is in `compat/legacy-assets/js/`, not `backup/`.
 

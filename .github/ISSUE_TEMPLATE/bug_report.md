@@ -1,19 +1,10 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: bug
-assignees: ''
-type: Bug
-
----
-
----
 name: Bug Report
 about: Report something that isn't working as expected
 title: "[BUG] "
 labels: bug
 assignees: ""
+type: Bug
 ---
 
 ## Describe the Bug

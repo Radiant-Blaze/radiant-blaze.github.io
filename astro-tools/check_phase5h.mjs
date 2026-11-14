@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { pageSlice, searchableText } from "../assets/js/list-utils.js";
+import { pageSlice, searchableText } from "../public/assets/js/list-utils.js";
 import {
   buildGlobalRecords,
   filterGlobalRecords,
   matchesBlogPost,
-} from "../assets/js/astro-query-model.js";
+} from "../public/assets/js/astro-query-model.js";
 import { getJson, getText, searchText } from "./read-model-test-utils.mjs";
 
 const model = await getJson("/content/runtime-read-model.json");
