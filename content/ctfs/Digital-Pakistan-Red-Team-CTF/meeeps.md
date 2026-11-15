@@ -15,7 +15,7 @@ description: A 32-bit little-endian MIPS menu program with an unchecked read, an
 
 | Item | Value |
 |---|---|
-| Service | `nc 52.146.88.61 36608` |
+| Service | `nc <ip> <port>` |
 | Architecture | MIPS32r2, little-endian (`mipsel`), o32 ABI, PIE |
 | Files | `meeeps`, `libc.so.6`, `ld.so.1`, `serve.sh`, `Dockerfile.dist`, `docker-compose.yml`, `flag.txt` (local test flag) |
 
@@ -85,11 +85,11 @@ flowchart TD
     S4 --> S4r --> S4c --> S5 --> F
 
     %% ---------- Roles ----------
-    classDef target fill:var(--panel),stroke:var(--accent-cyan),color:var(--text)
-    classDef attacker fill:var(--panel),stroke:var(--accent-pink),color:var(--text)
-    classDef vuln fill:var(--panel),stroke:var(--accent-orange),stroke-width:3px,color:var(--text)
-    classDef note fill:var(--panel),stroke:var(--muted),stroke-dasharray:4 2,color:var(--muted)
-    classDef flag fill:var(--panel),stroke:var(--accent-pink),stroke-width:3px,color:var(--text)
+    classDef target fill:#272044,stroke:#65e7e3,color:#fff7de
+    classDef attacker fill:#272044,stroke:#ff5e9d,color:#fff7de
+    classDef vuln fill:#272044,stroke:#ffb347,stroke-width:3px,color:#fff7de
+    classDef note fill:#272044,stroke:#baaed6,stroke-dasharray:4 2,color:#baaed6
+    classDef flag fill:#272044,stroke:#ff5e9d,stroke-width:3px,color:#fff7de
 ```
 
 The flow is linear, matching the executed exploit. The libc page-offset check and the `store` bounds check passed on every run, so the chain has no branches.
@@ -371,7 +371,7 @@ BIN = './pwn-meeeps/'                  # directory holding meeeps and libc.so.6
 exe  = ELF(BIN + 'meeeps', checksec=False)
 libc = ELF(BIN + 'libc.so.6', checksec=False)
 
-HOST, PORT = '52.146.88.61', 36608
+HOST, PORT = '<ip>', int('<port>')
 
 TABLE_OFF = 0x200c0                    # table[] lives at PIE_base + 0x200c0
 GP_OFF    = 0x28010                    # $gp = PIE_base + 0x28010

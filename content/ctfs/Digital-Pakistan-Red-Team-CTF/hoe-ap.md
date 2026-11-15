@@ -9,13 +9,12 @@ tags: [pwn, heap, custom-allocator, binary-exploitation, ctf]
 author: Radiant Blaze
 description: A handle-only heap shared by two forked actors. A split that never shrinks the allocated cell's span creates overlapping cells, leaking the session key and handing out the internal actor record, whose function-pointer hook is then hijacked into a shell.
 ---
-
 ## Challenge Overview
 
-| | |
-|---|---|
-| **Target** | `nc 52.146.88.61 38563` |
-| **Files** | `hoe_ap`, `libc.so.6`, `ld-linux-x86-64.so.2` |
+|                     |                                                         |
+| ------------------- | ------------------------------------------------------- |
+| **Target**    | `nc <ip> <port>`                               |
+| **Files**     | `hoe_ap`, `libc.so.6`, `ld-linux-x86-64.so.2`     |
 | **Objective** | Execute a shell on the remote service and read the flag |
 
 The challenge statement sets the scene:
@@ -24,7 +23,6 @@ The challenge statement sets the scene:
 >
 > No pointers leave the pool. You only ever get a handle.
 >
-> Suffering ends in 16 minutes.
 
 The binary implements a **handle-based memory pool**: user code never receives a raw pointer,
 only a small integer *handle*. Two forked processes ("actor A" and "actor B") share one pool
@@ -38,7 +36,7 @@ filesystem.
 flowchart TD
     %% ---------- Target ----------
     T0["Target: hoe-ap<br/>stripped PIE · Full RELRO · NX · Canary<br/>glibc 2.43 shipped with the challenge"]:::target
-    T1["Attacker: connect to the service<br/>nc 52.146.88.61 38563"]:::attacker
+    T1["Attacker: connect to the service<br/>nc &lt;ip&gt; &lt;port&gt;"]:::attacker
     T2["Target: handle-only pool in a MAP_SHARED mmap<br/>289 cells × 0x20 · freelists[6] · zone_used[3] · 48 turns<br/>cell = tier, live, link, span, magic, holder"]:::target
 
     %% ---------- Reconnaissance ----------
@@ -93,12 +91,12 @@ flowchart TD
     S5r -.-> N3
 
     %% ---------- Roles ----------
-    classDef target fill:var(--panel),stroke:var(--accent-cyan),color:var(--text)
-    classDef attacker fill:var(--panel),stroke:var(--accent-pink),color:var(--text)
-    classDef decision fill:var(--panel),stroke:var(--accent-orange),color:var(--text)
-    classDef vuln fill:var(--panel),stroke:var(--accent-orange),stroke-width:3px,color:var(--text)
-    classDef note fill:var(--panel),stroke:var(--muted),stroke-dasharray:4 2,color:var(--muted)
-    classDef flag fill:var(--panel),stroke:var(--accent-pink),stroke-width:3px,color:var(--text)
+    classDef target fill:#272044,stroke:#65e7e3,color:#fff7de
+    classDef attacker fill:#272044,stroke:#ff5e9d,color:#fff7de
+    classDef decision fill:#272044,stroke:#ffb347,color:#fff7de
+    classDef vuln fill:#272044,stroke:#ffb347,stroke-width:3px,color:#fff7de
+    classDef note fill:#272044,stroke:#baaed6,stroke-dasharray:4 2,color:#baaed6
+    classDef flag fill:#272044,stroke:#ff5e9d,stroke-width:3px,color:#fff7de
 ```
 
 The free-list pick is the only branch, and the exploit never predicts it — it branches on the handle the program prints. The session key, the PIE base and the libc base are all read out of the pool, so the `magic` check, ASLR and the allocator's randomisation are bypassed with data rather than guesses.
@@ -135,11 +133,11 @@ The protections can be summarised with pwntools:
 The supplied `libc.so.6` is the exact library used by the remote service (Ubuntu glibc 2.43),
 which gives us reliable offsets:
 
-| Symbol | Offset in libc |
-|--------|----------------|
-| `puts` | `0x8e860` |
-| `system` | `0x5c2e0` |
-| `"/bin/sh"` | `0x1db799` |
+| Symbol        | Offset in libc |
+| ------------- | -------------- |
+| `puts`      | `0x8e860`    |
+| `system`    | `0x5c2e0`    |
+| `"/bin/sh"` | `0x1db799`   |
 
 ### The program: two actors, one pool
 
@@ -188,26 +186,26 @@ base + 0x2420   pool struct
 
 Each cell is laid out like this:
 
-| Offset | Size | Field |
-|--------|------|-------|
-| `0x00` | 1 | `tier` — size class, `0..5` |
-| `0x01` | 1 | `live` — 1 while allocated |
-| `0x02` | 2 | `link` — next free cell index (freelist link, `0xffff` = end) |
-| `0x04` | 2 | `span` — number of *data* bytes available at `+0x08` |
-| `0x06` | 1 | `magic` — `tier ^ key`, an anti-tamper checksum |
-| `0x07` | 1 | `holder` — 1 = actor A, 2 = actor B, 0 = nobody |
-| `0x08` | 24 | data area |
+| Offset   | Size | Field                                                              |
+| -------- | ---- | ------------------------------------------------------------------ |
+| `0x00` | 1    | `tier` — size class, `0..5`                                   |
+| `0x01` | 1    | `live` — 1 while allocated                                      |
+| `0x02` | 2    | `link` — next free cell index (freelist link, `0xffff` = end) |
+| `0x04` | 2    | `span` — number of *data* bytes available at `+0x08`        |
+| `0x06` | 1    | `magic` — `tier ^ key`, an anti-tamper checksum               |
+| `0x07` | 1    | `holder` — 1 = actor A, 2 = actor B, 0 = nobody                 |
+| `0x08` | 24   | data area                                                          |
 
 The size classes (tiers) are powers of two cells:
 
-| Tier | Name | Cells | `span` (data bytes) |
-|------|------|-------|---------------------|
-| 0 | `nano` | 1 | 24 |
-| 1 | `tiny` | 2 | 56 |
-| 2 | `small` | 4 | 120 |
-| 3 | `mid` | 8 | 248 |
-| 4 | `wide` | 16 | 504 |
-| 5 | `bulk` | 32 | 1016 |
+| Tier | Name      | Cells | `span` (data bytes) |
+| ---- | --------- | ----- | --------------------- |
+| 0    | `nano`  | 1     | 24                    |
+| 1    | `tiny`  | 2     | 56                    |
+| 2    | `small` | 4     | 120                   |
+| 3    | `mid`   | 8     | 248                   |
+| 4    | `wide`  | 16    | 504                   |
+| 5    | `bulk`  | 32    | 1016                  |
 
 Because a cell's data area is `cells * 0x20 - 8` bytes, a multi-cell allocation reaches into
 the *headers* of the following cells — which is exactly what the bug will let us abuse.
@@ -216,16 +214,16 @@ the *headers* of the following cells — which is exactly what the bug will let 
 
 Both actors expose the same menu; the command numbers differ slightly in meaning:
 
-| # | Actor A | Actor B |
-|---|---------|---------|
-| 1 | `take` (tier, label) | `take` (tier, label) |
-| 2 | `drop` (handle) | `drop` (handle) |
+| # | Actor A                                        | Actor B                                      |
+| - | ---------------------------------------------- | -------------------------------------------- |
+| 1 | `take` (tier, label)                         | `take` (tier, label)                       |
+| 2 | `drop` (handle)                              | `drop` (handle)                            |
 | 3 | `write` — read `span` bytes into the cell | `read` — print `span` bytes of the cell |
-| 4 | `audit` — print tier/span/holder/link | `verify` — per-zone live count + a digest |
-| 5 | `sweep` — free every cell held by A | `sync` — `call [pool+8]([pool+0x10])` |
-| 6 | `grant` — hand a handle to A or B | `grant` |
-| 7 | `tiers` — list size classes | `tiers` |
-| 0 | idle | idle |
+| 4 | `audit` — print tier/span/holder/link       | `verify` — per-zone live count + a digest |
+| 5 | `sweep` — free every cell held by A         | `sync` — `call [pool+8]([pool+0x10])`   |
+| 6 | `grant` — hand a handle to A or B           | `grant`                                    |
+| 7 | `tiers` — list size classes                 | `tiers`                                    |
+| 0 | idle                                           | idle                                         |
 
 ### Integrity checks
 
@@ -331,11 +329,11 @@ freelist[4] -> R (X+1) -> cell 0 -> END
 Cell 0 is special: it is the **actor record** created at startup, not a normal allocation, and
 its "data" area holds the pointers used by the `sync` command:
 
-| Offset | Contents |
-|--------|----------|
+| Offset    | Contents                                                          |
+| --------- | ----------------------------------------------------------------- |
 | `+0x08` | `hook` — function pointer (`print_status`, PIE + `0x15d0`) |
-| `+0x10` | argument pointer (`"pool nominal"`, PIE + `0x32c0`) |
-| `+0x18` | `puts` (from libc) |
+| `+0x10` | argument pointer (`"pool nominal"`, PIE + `0x32c0`)           |
+| `+0x18` | `puts` (from libc)                                              |
 
 Actor A writes the remainder's header back through `X`, keeping `tier`, `span` and `magic`
 consistent (so the allocator's integrity check still passes) while setting `link = 0`.
@@ -414,22 +412,22 @@ the flag was actually at `/flag.txt`.
 
 ### Turn plan
 
-| # | Actor | Command | Purpose |
-|---|-------|---------|---------|
-| 1 | A | `take` tier 5 | allocate a 32-cell bulk block `X` |
-| 2 | A | `drop` `X` | push `X` onto `freelist[5]` |
-| 3 | A | `take` tier 0 | get `X` back with its stale `span`; split creates `R = X+1` |
-| 4 | A | `grant` `X` → B | let B read the block |
-| 5 | B | `read` `X` | 1016 bytes; `R`'s header at offset `0x18`; recover `key` |
-| 6 | B | `grant` `X` → A | hand the block back to the writer |
-| 7 | A | `write` `X` | rewrite `R`'s header: valid tier/span/magic, `link = 0` |
-| 8 | A | `take` tier 4 | free list is `R -> cell0`; may return `R` or `cell0` |
-| 9 | A | `take` tier 4 (if needed) | returns **handle 0** |
-| 10 | A | `grant` `0` → B | |
-| 11 | B | `read` `0` | leak `hook`, argument pointer, `puts` |
-| 12 | B | `grant` `0` → A | |
-| 13 | A | `write` `0` | `hook = system`, argument = `"/bin/sh"` |
-| 14 | B | `sync` | `call [pool+8]([pool+0x10])` → shell |
+| #  | Actor | Command                     | Purpose                                                           |
+| -- | ----- | --------------------------- | ----------------------------------------------------------------- |
+| 1  | A     | `take` tier 5             | allocate a 32-cell bulk block `X`                               |
+| 2  | A     | `drop` `X`              | push `X` onto `freelist[5]`                                   |
+| 3  | A     | `take` tier 0             | get `X` back with its stale `span`; split creates `R = X+1` |
+| 4  | A     | `grant` `X` → B        | let B read the block                                              |
+| 5  | B     | `read` `X`              | 1016 bytes; `R`'s header at offset `0x18`; recover `key`    |
+| 6  | B     | `grant` `X` → A        | hand the block back to the writer                                 |
+| 7  | A     | `write` `X`             | rewrite `R`'s header: valid tier/span/magic, `link = 0`       |
+| 8  | A     | `take` tier 4             | free list is `R -> cell0`; may return `R` or `cell0`        |
+| 9  | A     | `take` tier 4 (if needed) | returns **handle 0**                                        |
+| 10 | A     | `grant` `0` → B        |                                                                   |
+| 11 | B     | `read` `0`              | leak `hook`, argument pointer, `puts`                         |
+| 12 | B     | `grant` `0` → A        |                                                                   |
+| 13 | A     | `write` `0`             | `hook = system`, argument = `"/bin/sh"`                       |
+| 14 | B     | `sync`                    | `call [pool+8]([pool+0x10])` → shell                           |
 
 Thirteen to fourteen commands out of the 48-turn budget, depending on which node the random
 free-list pick returns first.
@@ -480,7 +478,7 @@ import sys, time
 context.arch = 'amd64'
 CHAL = './pwn-hoe_ap'
 LOCAL = not (len(sys.argv) > 1 and sys.argv[1] == 'remote')
-HOST, PORT = '52.146.88.61', 38563
+HOST, PORT = '<ip>', int('<port>')
 
 LIBC_PUTS   = 0x8e860
 LIBC_SYSTEM = 0x5c2e0

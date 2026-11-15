@@ -29,7 +29,7 @@ Although the mechanism is cryptographic, the challenge is classified as programm
 ```mermaid
 flowchart TD
     %% ---------- Target ----------
-    A[("Target: Helios Vault<br/>52.146.88.61:36412")]:::target
+    A[("Target: Helios Vault<br/>&lt;ip&gt;:&lt;port&gt;")]:::target
     B["Connect with nc<br/>read header JSON"]:::attacker
     C["Header: 50 rounds, 20 s window<br/>reply: secret in [0, prime)"]:::target
     D["Recon: threshold secret sharing<br/>secret = f(0), degree t-1"]:::recon
@@ -55,12 +55,12 @@ flowchart TD
     I -->|"status with flag"| J
 
     %% ---------- Roles ----------
-    classDef target fill:var(--panel),stroke:var(--accent-cyan),color:var(--text)
-    classDef attacker fill:var(--panel),stroke:var(--accent-pink),color:var(--text)
-    classDef recon fill:var(--panel),stroke:var(--muted),color:var(--text)
-    classDef vuln fill:var(--panel),stroke:var(--accent-orange),stroke-width:3px,color:var(--text)
-    classDef decision fill:var(--panel),stroke:var(--accent-orange),color:var(--text)
-    classDef flag fill:var(--panel),stroke:var(--accent-pink),stroke-width:3px,color:var(--text)
+    classDef target fill:#272044,stroke:#65e7e3,color:#fff7de
+    classDef attacker fill:#272044,stroke:#ff5e9d,color:#fff7de
+    classDef recon fill:#272044,stroke:#baaed6,color:#fff7de
+    classDef vuln fill:#272044,stroke:#ffb347,stroke-width:3px,color:#fff7de
+    classDef decision fill:#272044,stroke:#ffb347,color:#fff7de
+    classDef flag fill:#272044,stroke:#ff5e9d,stroke-width:3px,color:#fff7de
 ```
 
 The chain is linear: connect, read the banner, interpolate every round, answer it, and repeat fifty times.
@@ -70,7 +70,7 @@ The chain is linear: connect, read the banner, interpolate every round, answer i
 A first connection reveals the protocol directly, with no files to download:
 
 ```bash
-nc 52.146.88.61 36412
+nc <ip> <port>
 ```
 
 The server opens with a header line:
@@ -124,7 +124,7 @@ The script connects once, reads each round, interpolates `f(0)`, and writes the 
 # solve.py - recover the Shamir secret (f(0)) for every round
 import socket, json
 
-HOST, PORT = "52.146.88.61", 36412
+HOST, PORT = "<ip>", int("<port>")
 
 def recover(p, shares):
     # Lagrange interpolation evaluated at x = 0 over GF(p)

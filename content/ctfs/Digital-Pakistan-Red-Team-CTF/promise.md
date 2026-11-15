@@ -9,17 +9,15 @@ tags: [crypto, knapsack, continued-fractions, number-theory, modular-inverse, ct
 author: Radiant Blaze
 description: A knapsack-style KEM whose public key is a set of primes' modular inverses shifted by one common secret. Recover every prime with continued fractions, rebuild the private key, and unmask the flag.
 ---
-
 # Promise
 
-
-| Item | Value |
-|---|---|
-| Service | `nc 52.146.88.61 35628` |
-| Handout | `chall.py` (Python 3, `pycryptodome`) + an instance dump (`params`, `pk`, `c1`, `c2`, `enc`) |
-| Parameters | `n = 150`, `t = 20`, `b = 40`, `beta = 5` |
-| Sizes | `p_i` prime in `[2^40, 2^45)`, `g` in `[2^1802, 2^1803)`, 20 non-zero multipliers below `2^40` |
-| Primitives | knapsack-like KEM, continued-fraction ("rational reconstruction") decryption, `SHA-256` + `SHAKE-256` |
+| Item       | Value                                                                                                      |
+| ---------- | ---------------------------------------------------------------------------------------------------------- |
+| Service    | `nc <ip> <port>`                                                                                       |
+| Handout    | `chall.py` (Python 3, `pycryptodome`) + an instance dump (`params`, `pk`, `c1`, `c2`, `enc`) |
+| Parameters | `n = 150`, `t = 20`, `b = 40`, `beta = 5`                                                          |
+| Sizes      | `p_i` prime in `[2^40, 2^45)`, `g` in `[2^1802, 2^1803)`, 20 non-zero multipliers below `2^40`   |
+| Primitives | knapsack-like KEM, continued-fraction ("rational reconstruction") decryption, `SHA-256` + `SHAKE-256`  |
 
 The service prints one instance per connection:
 
@@ -49,14 +47,14 @@ The objective: given `pk`, `c1`, `c2`, recover the plaintext vector `e`, derive 
 flowchart TD
     %% ---------- Target ----------
     T0["Target: promise KEM<br/>t_i = (p_i^-1 - u) mod g<br/>prints pk, c1, c2, enc"]:::target
-    A1["Attacker: connect and capture<br/>nc 52.146.88.61 35628"]:::attacker
+    A1["Attacker: connect and capture<br/>nc &lt;ip&gt; &lt;port&gt;"]:::attacker
 
     %% ---------- The leak ----------
     V1{{"LEAK: (t_i - t_r)/(t_j - t_r)<br/>= (n_i p_j)/(n_j p_i) * (1 + O(2^-1800))<br/>num and den below 2^138"}}:::vuln
 
     %% ---------- Step 1: primes ----------
-    S1["Attacker: CF of each ratio<br/>take last convergent with den &lt; 2^140"]:::attacker
-    S2["Attacker: gcd of spike denominators<br/>for fixed i over all j<br/>=&gt; p_i exactly"]:::attacker
+    S1["Attacker: CF of each ratio<br/>take last convergent with den < 2^140"]:::attacker
+    S2["Attacker: gcd of spike denominators<br/>for fixed i over all j<br/>=> p_i exactly"]:::attacker
     S2r["Target data: all 150 primes p_i recovered"]:::target
 
     %% ---------- Step 2: private key ----------
@@ -66,7 +64,7 @@ flowchart TD
 
     %% ---------- Step 3: plaintext ----------
     S5["Attacker: s = (c1 + u c2) mod g<br/>CF reconstructs den = P, num = sum e_i P/p_i"]:::attacker
-    S6["Attacker: e_i = num * (P/p_i)^-1 mod p_i<br/>(e_i &lt; 2^40 &lt; p_i)"]:::attacker
+    S6["Attacker: e_i = num * (P/p_i)^-1 mod p_i<br/>(e_i < 2^40 < p_i)"]:::attacker
 
     %% ---------- Step 4: flag ----------
     S7["Attacker: key = sha256(1|e|(c1,c2))<br/>flag = enc XOR shake_256(key)"]:::attacker
@@ -79,10 +77,10 @@ flowchart TD
     S4r --> S5 --> S6 --> S7 --> F
 
     %% ---------- Roles ----------
-    classDef target fill:var(--panel),stroke:var(--accent-cyan),color:var(--text)
-    classDef attacker fill:var(--panel),stroke:var(--accent-pink),color:var(--text)
-    classDef vuln fill:var(--panel),stroke:var(--accent-orange),stroke-width:3px,color:var(--text)
-    classDef flag fill:var(--panel),stroke:var(--accent-pink),stroke-width:3px,color:var(--text)
+    classDef target fill:#272044,stroke:#65e7e3,color:#fff7de
+    classDef attacker fill:#272044,stroke:#ff5e9d,color:#fff7de
+    classDef vuln fill:#272044,stroke:#ffb347,stroke-width:3px,color:#fff7de
+    classDef flag fill:#272044,stroke:#ff5e9d,stroke-width:3px,color:#fff7de
 ```
 
 The chain is linear: public key -> all primes -> `g` -> `u` -> `e` -> key -> flag. No lattice reduction and no search are needed anywhere.
@@ -174,13 +172,13 @@ eps  =  O( p_r / (g * n_x) )           roughly 2^-1800
 
 So the known rational `(t_i - t_r)/(t_j - t_r)` is approximated by `(n_i * p_j)/(n_j * p_i)` with
 
-| quantity | size |
-|---|---|
-| `K_i` | `< 2^46` |
-| `n_x` | `< 2^92` |
-| numerator `n_i * p_j` | `< 2^138` |
-| denominator `n_j * p_i` | `< 2^138` |
-| approximation error | about `2^-1800` |
+| quantity                  | size              |
+| ------------------------- | ----------------- |
+| `K_i`                   | `< 2^46`        |
+| `n_x`                   | `< 2^92`        |
+| numerator `n_i * p_j`   | `< 2^138`       |
+| denominator `n_j * p_i` | `< 2^138`       |
+| approximation error       | about `2^-1800` |
 
 For a fraction `a/b` with `b < 2^138`, a random rational is only guaranteed accuracy around `1/b^2 = 2^-276`. The observed error is more than a thousand bits better, so by **Legendre's theorem** (a rational within `1/(2b^2)` of `x` must be a convergent of the continued fraction of `x`) this fraction *is* a convergent of `(t_i - t_r)/(t_j - t_r)`.
 

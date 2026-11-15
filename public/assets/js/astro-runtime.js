@@ -91,7 +91,7 @@ export const typesetMath = (root = document.querySelector(".quest-article, [data
 
 const MERMAID_SRC = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
 const DIAGRAM_BLOCK = 'code[data-language="mermaid"]';
-// Fallback values mirror style.css; colors are read from the live theme first.
+// Literal fallback colors keep fences portable; the site maps them to live theme tokens.
 const DIAGRAM_TOKENS = {
   "--panel": { key: "panel", fallback: "#272044" },
   "--text": { key: "text", fallback: "#fff7de" },
@@ -100,6 +100,10 @@ const DIAGRAM_TOKENS = {
   "--accent-orange": { key: "orange", fallback: "#ffb347" },
   "--accent-cyan": { key: "cyan", fallback: "#65e7e3" },
 };
+
+const DIAGRAM_FALLBACK_KEYS = Object.fromEntries(
+  Object.values(DIAGRAM_TOKENS).map(({ key, fallback }) => [fallback.toLowerCase(), key]),
+);
 let mermaidReady;
 let mermaidApi = null;
 let diagramSeq = 0;
@@ -117,10 +121,12 @@ const diagramTokens = () => {
 
 const applyDiagramTokens = (source) => {
   const tokens = diagramTokens();
-  return source.replace(/var\((--[\w-]+)\)/g, (reference, name) => {
-    const key = DIAGRAM_TOKENS[name]?.key;
-    return key ? tokens[key] : reference;
-  });
+  return source.replace(/^[ \t]*classDef\b.*$/gm, (definition) =>
+    definition.replace(/#[\da-f]{6}\b/gi, (fallback) => {
+      const key = DIAGRAM_FALLBACK_KEYS[fallback.toLowerCase()];
+      return key ? tokens[key] : fallback;
+    }),
+  );
 };
 
 const diagramConfig = () => {
