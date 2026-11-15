@@ -11,6 +11,49 @@ Radiant Blaze is a continuously maintained personal website. Security updates ar
 
 Only the latest maintained version is eligible for security fixes.
 
+## Dependency and CI Automation
+
+Dependabot checks npm packages and GitHub Actions weekly on Monday at 09:00
+Pakistan time. npm minor and patch updates are grouped separately for production
+and development dependencies. GitHub Actions minor and patch updates are grouped
+together. Major updates stay in separate pull requests for review.
+
+Version updates have a seven-day default cooldown. npm overrides that default
+with a 30-day major, seven-day minor, and three-day patch cooldown. GitHub
+Actions currently supports only the default cooldown in Dependabot, so its
+updates use seven days for all version levels. Cooldowns apply to version
+updates, not vulnerability security updates.
+
+The existing CI workflow runs on pushes to every branch, pull requests to any
+branch, and manual dispatch. It installs the lockfile with `npm ci`, audits
+dependencies, builds the Astro site with Node.js 24, and runs the repository's
+existing content and compatibility checks. The Pages deployment workflow stays
+separate and deploys only from `main` (or manual dispatch), after its reusable
+CI verification succeeds.
+
+Pull requests also run GitHub's Dependency Review Action in the existing CI
+workflow. It compares dependency changes against the base branch and fails for
+new high- or critical-severity vulnerabilities in runtime or development
+dependencies. The action's default license check remains enabled; there are no
+repository-specific license allow/deny rules at this time.
+
+## GitHub Repository Security Settings
+
+These features are controlled in repository settings, not by workflow or
+Dependabot YAML. At the time this policy was updated, the repository settings
+reported:
+
+- Dependency graph: enabled.
+- Dependabot alerts: enabled.
+- Dependabot security updates: enabled.
+- Secret scanning and push protection: enabled.
+- CodeQL: GitHub's default code-scanning setup is configured. No separate
+  CodeQL workflow is needed.
+
+Repository owners must manage these settings in GitHub **Settings → Security
+and analysis**. YAML changes alone cannot enable them, and availability may
+depend on repository visibility, plan, or organization policy.
+
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability in Radiant Blaze, please report it responsibly.

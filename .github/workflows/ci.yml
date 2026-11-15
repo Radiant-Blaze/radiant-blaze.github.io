@@ -1,15 +1,10 @@
 name: CI - Verify
 
-# Runs for branch pushes and pull requests, and is reused by the deploy workflow
-# as its `verify` job, so a GitHub Pages deployment can only happen after these
+# Runs for every push and pull request, and is reused by the deploy workflow as
+# its `verify` job, so a GitHub Pages deployment can only happen after these
 # checks pass.
-#
-# `main` is deliberately excluded from the push trigger: the deploy workflow
-# calls this workflow for every main push, so triggering here as well would run
-# the whole suite twice per push.
 on:
   push:
-    branches-ignore: [main]
   pull_request:
   workflow_dispatch:
   workflow_call:
@@ -26,6 +21,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          fail-on-scopes: runtime,development
+
   verify:
     name: Verify
     runs-on: ubuntu-latest
