@@ -28,14 +28,22 @@ The existing CI workflow runs on pushes to every branch, pull requests to any
 branch, and manual dispatch. It installs the lockfile with `npm ci`, audits
 dependencies, builds the Astro site with Node.js 24, and runs the repository's
 existing content and compatibility checks. The Pages deployment workflow stays
-separate and deploys only from `main` (or manual dispatch), after its reusable
-CI verification succeeds.
+separate and deploys only from `main` (including manual dispatches made from
+`main`), after its reusable CI verification succeeds.
 
 Pull requests also run GitHub's Dependency Review Action in the existing CI
 workflow. It compares dependency changes against the base branch and fails for
 new high- or critical-severity vulnerabilities in runtime or development
 dependencies. The action's default license check remains enabled; there are no
 repository-specific license allow/deny rules at this time.
+
+Dependabot pull requests targeting `main` can be auto-merged with squash after
+the current head commit passes both CI verification and Dependency Review.
+Only patch and minor updates are eligible, including security updates at those
+update levels. Major updates remain manual. Failed checks, conflicts, or
+changed pull request heads prevent the workflow from enabling auto-merge. It
+does not check out or execute pull request code and does not approve pull
+requests.
 
 ## GitHub Repository Security Settings
 
@@ -49,10 +57,16 @@ reported:
 - Secret scanning and push protection: enabled.
 - CodeQL: GitHub's default code-scanning setup is configured. No separate
   CodeQL workflow is needed.
+- GitHub auto-merge: enabled.
+- The active `main-protection` ruleset requires pull requests, up-to-date
+  branches, and the `Verify / Dependency review` and `Verify / Verify` checks.
+  It also blocks force pushes and branch deletion. The Dependabot auto-merge
+  workflow requests native auto-merge only after both required checks pass.
 
 Repository owners must manage these settings in GitHub **Settings → Security
 and analysis**. YAML changes alone cannot enable them, and availability may
-depend on repository visibility, plan, or organization policy.
+depend on repository visibility, plan, or organization policy. The GitHub
+auto-merge setting is under **Settings → General → Pull Requests**.
 
 ## Reporting a Vulnerability
 

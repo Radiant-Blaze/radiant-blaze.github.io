@@ -1,0 +1,103 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review, edited]
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  auto-merge:
+    name: Auto-merge eligible updates
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Fetch Dependabot update metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@08eff52bf64351f401fb50d4972fa95b9f2c2d1b # v3.1.0
+        with:
+          github-token: ${{ github.token }}
+
+      - name: Wait for CI and Dependency Review
+        id: ci
+        if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          repository="repos/${GITHUB_REPOSITORY}"
+          workflow_id="$(gh api "${repository}/actions/workflows/ci.yml" --jq '.id')"
+          deadline=$((SECONDS + 1800))
+
+          while (( SECONDS < deadline )); do
+            pr_state="$(gh api "${repository}/pulls/${PR_NUMBER}" --jq '.state')"
+            pr_base="$(gh api "${repository}/pulls/${PR_NUMBER}" --jq '.base.ref')"
+            pr_head="$(gh api "${repository}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+
+            if [[ "$pr_state" != "open" || "$pr_base" != "main" || "$pr_head" != "$PR_HEAD_SHA" ]]; then
+              echo "The pull request was closed, retargeted, or updated; this run will not enable auto-merge."
+              exit 0
+            fi
+
+            runs="$(gh api "${repository}/actions/workflows/${workflow_id}/runs?head_sha=${PR_HEAD_SHA}&event=pull_request&per_page=100")"
+            run_id="$(jq -r '.workflow_runs[0].id // empty' <<< "$runs")"
+
+            if [[ -n "$run_id" ]]; then
+              run_status="$(jq -r '.workflow_runs[0].status' <<< "$runs")"
+              run_conclusion="$(jq -r '.workflow_runs[0].conclusion // empty' <<< "$runs")"
+
+              if [[ "$run_status" == "completed" ]]; then
+                if [[ "$run_conclusion" != "success" ]]; then
+                  echo "::error::CI workflow did not succeed for the current Dependabot commit."
+                  exit 1
+                fi
+
+                jobs="$(gh api "${repository}/actions/runs/${run_id}/jobs?per_page=100")"
+                verify_conclusion="$(jq -r '[.jobs[] | select(.name == "Verify / Verify")][0].conclusion // empty' <<< "$jobs")"
+                review_conclusion="$(jq -r '[.jobs[] | select(.name == "Verify / Dependency review")][0].conclusion // empty' <<< "$jobs")"
+
+                if [[ "$verify_conclusion" != "success" || "$review_conclusion" != "success" ]]; then
+                  echo "::error::Both Verify and Dependency review must succeed before auto-merge."
+                  exit 1
+                fi
+
+                echo "CI and Dependency Review passed for ${PR_HEAD_SHA}."
+                echo "passed=true" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+            fi
+
+            sleep 15
+          done
+
+          echo "::error::CI and Dependency Review did not complete successfully within 30 minutes."
+          exit 1
+
+      - name: Enable native squash auto-merge
+        if: (steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor') && steps.ci.outputs.passed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          set -euo pipefail
+          current_head="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+          if [[ "$current_head" != "$PR_HEAD_SHA" ]]; then
+            echo "::error::The pull request changed after validation; refusing to enable auto-merge."
+            exit 1
+          fi
+
+          gh pr merge --auto --squash "$PR_URL"
