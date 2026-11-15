@@ -47,7 +47,7 @@ for (const route of [
 }
 
 const home = await getText("/");
-assert.ok(home.includes("astro feature") || home.includes("Hackel"));
+assert.ok(home.includes("data-latest-post"), "homepage renders the Astro-projected feature tile");
 assert.ok(!home.includes("/assets/js/home.js"));
 
 console.log(JSON.stringify({
