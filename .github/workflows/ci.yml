@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   dependency-review:
-    name: Dependency review
+    name: Verify / Dependency review
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -35,7 +35,7 @@ jobs:
           fail-on-scopes: runtime,development
 
   verify:
-    name: Verify
+    name: Verify / Verify
     runs-on: ubuntu-latest
     env:
       # `npm run preview` binds 127.0.0.1; the checks must probe that address so
