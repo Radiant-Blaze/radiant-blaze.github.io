@@ -1,0 +1,15 @@
+{
+  "title": "Digital Pakistan Red Team CTF",
+  "event": "Digital Pakistan",
+  "date": "2026-11-14",
+  "difficulty": 4,
+  "description": "Writeups for the Red Team CTF challenges hosted on the Digital Pakistan platform.",
+  "challenges":
+  [
+    "hoe-ap.md",
+    "helios-vault.md",
+    "meeeps.md",
+    "promise.md",
+    "spec-warden.md"
+  ]
+}

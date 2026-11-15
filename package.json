@@ -22,6 +22,7 @@
     "check:phase5h": "node astro-tools/check_phase5h.mjs",
     "check:phase5i": "node astro-tools/check_phase5i.mjs",
     "check:phase5j": "node astro-tools/check_phase5j.mjs",
+    "check:mermaid": "node astro-tools/check-mermaid.mjs",
     "content:sync": "node astro-tools/content-sync/index.mjs",
     "content:check": "node astro-tools/content-sync/index.mjs --check",
     "test:content-sync": "node astro-tools/content-sync/test.mjs",

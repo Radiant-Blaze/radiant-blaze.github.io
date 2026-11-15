@@ -2677,6 +2677,27 @@ footer {
 .quest-article pre code[data-language="text"]::before {
   content: "● ● ●  TERMINAL OUTPUT";
 }
+/* Diagram source stays readable when JavaScript is off or the CDN is blocked. */
+.quest-article pre code[data-language="mermaid"]::before {
+  content: "● ● ●  DIAGRAM SOURCE";
+}
+.quest-article pre[hidden] {
+  display: none;
+}
+.quest-article .diagram {
+  background: var(--panel);
+  border: 3px solid var(--text);
+  box-shadow: 5px 5px 0 var(--shadow);
+  margin: 28px 0;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 17px;
+}
+.quest-article .diagram svg {
+  display: block;
+  margin: 0 auto;
+  max-width: none;
+}
 .quest-article table {
   border-collapse: collapse;
   display: block;

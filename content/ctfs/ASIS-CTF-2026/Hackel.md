@@ -306,8 +306,6 @@ The training data already reveals the feature used by the classifier, and the en
 
 Therefore, we do not need to reverse the group presentation or perform any complicated algebraic manipulation.
 
----
-
 ## 8. Why the Group Relations Are a Red Herring
 
 The challenge deliberately provides a lot of intimidating mathematical material:
@@ -361,8 +359,6 @@ Does the word end in b?
 
 The complicated group structure is therefore mostly camouflage for a much simpler classification leak.
 
----
-
 ## 9. Why the Training Samples Give It Away
 
 The zero samples look like:
@@ -408,8 +404,6 @@ regardless of how many `a`s precede it.
 
 The challenge effectively provides the encoding rule through the supervised examples.
 
----
-
 ## 10. Final Flag
 
 The recovered 496-bit stream decodes to:
@@ -423,8 +417,6 @@ Therefore, the final flag is:
 ```text
 ASIS{sEm1d!r3c7_gr0uP_pr3S3nt4T10n____k3y___r3C0verY_4TtacK!!}
 ```
-
----
 
 ## TL;DR
 

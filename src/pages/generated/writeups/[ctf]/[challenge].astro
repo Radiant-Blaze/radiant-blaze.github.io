@@ -39,7 +39,6 @@ const previous = eventChallengeFiles[challengeNumber - 1];
 const following = eventChallengeFiles[challengeNumber + 1];
 const eventQuery = new URLSearchParams({ ctf: ctfId }).toString();
 const challengeUrl = (file: string) => writeupRoute(ctfId, file);
-const pointsHtml = escapeHtml(pointsText);
 const solves = solvesValue ? `<li>SOLVES <strong>${escapeHtml(solvesValue)}</strong></li>` : "";
 const flag = flagValue ? `<h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(flagValue)}</p>` : "";
 const renderedBody = renderMarkdown(entry.body ?? "");
@@ -61,7 +60,7 @@ const tagsForEvent = challengeTags
   .map((tag) => `<a href="/pages/ctf.html?${eventQuery}"># ${escapeHtml(tag).toUpperCase()}</a>`)
   .join("");
 const related = `${previous ? `<a href="${challengeUrl(previous)}">← PREVIOUS CHALLENGE</a>` : "<span>← PREVIOUS CHALLENGE</span>"}<span>CHALLENGE ${challengeNumber + 1} / ${eventChallengeFiles.length}</span>${following ? `<a href="${challengeUrl(following)}">NEXT CHALLENGE →</a>` : "<span>NEXT CHALLENGE →</span>"}`;
-const sidebar = hasMath ? "" : `<aside class="sidebar"><section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section><section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(event.data.event ?? eventTitle)}</strong></li><li>CATEGORY <strong>${escapeHtml(category)}</strong></li><li>POINTS <strong>${pointsHtml}</strong></li><li>DIFFICULTY <strong class="difficulty">${stars}</strong></li>${solves}</ul>${flag}</section><section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">${tagsForEvent}</nav></section></aside>`;
+const sidebar = hasMath ? "" : `<aside class="sidebar"><section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section><section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(event.data.event ?? eventTitle)}</strong></li><li>DIFFICULTY <strong class="difficulty">${stars}</strong></li>${solves}</ul>${flag}</section><section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">${tagsForEvent}</nav></section></aside>`;
 ---
 <ArticleShell title={`${title} · ${eventTitle} · Radiant Blaze`} description={description} canonical={`https://radiant-blaze.github.io${route}`} type="writeup">
   <p class="ctf-back quest-wrap"><a href={`/pages/ctf.html?${eventQuery}`}>← {eventTitle.toUpperCase()}</a></p>

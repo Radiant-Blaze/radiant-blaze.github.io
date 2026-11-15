@@ -30,8 +30,6 @@ There are seven rounds in total.
 
 At first glance this looks like a complicated cryptographic construction. However, the oracle is actually a small differentiable mathematical model with only 60 continuous parameters. This makes it possible to recover the hidden parameters using numerical optimization.
 
----
-
 # The Oracle
 
 The important part of the challenge is:
@@ -122,8 +120,6 @@ F(X)= \sum_{c=0}^{2} \sum_i p_i(x_i^TB_c).
 
 So despite the fancy terminology, the server is simply evaluating a differentiable nonlinear function.
 
----
-
 # Recovering the First Secret Information
 
 The first weakness appears when we submit a sequence containing only one vector.
@@ -185,8 +181,6 @@ Bsum[1] = 2.913068203874
 Bsum[2] = 3.455141027440
 Bsum[3] = 2.914002707811
 ```
-
----
 
 # Turning the Oracle Into a Regression Problem
 
@@ -255,8 +249,6 @@ This reduces the optimization problem from 60 parameters to:
 \boxed{56\text{ parameters}}
 ```
 
----
-
 # Building the Reduced Model
 
 The solver uses:
@@ -277,8 +269,6 @@ def unpack_params(params, Bsum):
 ```
 
 This guarantees that the fitted parameters always satisfy the leaked constraint.
-
----
 
 # Analytical Jacobian
 
@@ -355,8 +345,6 @@ else:
 
 This gives the optimizer an exact 56-parameter Jacobian.
 
----
-
 # Collecting Training Data
 
 We generate random sequences with values in the same range as the challenge:
@@ -388,8 +376,6 @@ Together with the four basis-vector queries:
 oracle calls are required per round.
 
 This is far below the server's limit of 1200 queries.
-
----
 
 # Pipelining the Oracle Queries
 
@@ -438,8 +424,6 @@ This significantly improves reliability and speed against the remote service.
 
 It also helped avoid the connection failures encountered with the earlier one-query-at-a-time implementation.
 
----
-
 # Nonlinear Least Squares
 
 After collecting the training data, we have pairs:
@@ -486,8 +470,6 @@ The parameter bounds are known from the challenge:
 
 This is extremely useful because it prevents the optimizer from wandering into meaningless parameter regions.
 
----
-
 # Multiple Restarts
 
 Nonlinear optimization is not guaranteed to find the correct solution from every starting point.
@@ -520,8 +502,6 @@ maxerr=1.7764e-15
 ```
 
 which is effectively exact compared with the server's tolerance of $1 \times 10^{-6}$.
-
----
 
 # Predicting the Challenge
 
@@ -561,8 +541,6 @@ The server checks:
 \max_i |\hat y_i-y_i| < 10^{-6}.
 ```
 
----
-
 # Round-by-Round Attack
 
 The entire process is repeated for every round.
@@ -587,8 +565,6 @@ true_A, true_B = init_ensemble()
 ```
 
 so parameters from one round cannot simply be reused for the next.
-
----
 
 # Why the Challenge Is Breakable
 
@@ -643,8 +619,6 @@ Only 56 independent parameters remain after exploiting the `Bsum` leak.
 ### No noise
 
 Even tiny optimization errors can be detected and corrected because the oracle returns precise values.
-
----
 
 # Final Solver Structure
 

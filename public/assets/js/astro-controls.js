@@ -2,6 +2,8 @@
   const THEME_KEY = "radiant-blaze-theme";
   const root = document.documentElement;
 
+  let appliedTheme = null;
+
   const applyTheme = (theme) => {
     const light = theme === "light";
     root.classList.toggle("light-theme", light);
@@ -10,6 +12,12 @@
       button.checked = light;
       button.setAttribute("aria-label", `Switch to ${light ? "dark" : "light"} theme`);
     });
+    if (appliedTheme !== theme) {
+      appliedTheme = theme;
+      // Consumers that bake theme colours into the DOM re-render on this event
+      // instead of waiting for a reload.
+      dispatchEvent(new CustomEvent("radiantblaze:themechange", { detail: { theme } }));
+    }
   };
 
   let initialTheme = "dark";

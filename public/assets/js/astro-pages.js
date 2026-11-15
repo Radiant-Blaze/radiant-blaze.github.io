@@ -5,11 +5,12 @@ import {
   initReadingProgress,
   markdownToHtml,
   postPageUrl,
+  renderDiagrams,
   socialHtml,
   typesetMath,
   updatePageMetadata,
   writeupPageUrl,
-} from "./astro-runtime.js";
+} from "./astro-runtime.js?v=20261115-1";
 import {
   buildYearIndex,
   buildGlobalRecords,
@@ -384,6 +385,7 @@ const renderPostArticle = (article, post) => {
   const tags = document.querySelector("[data-post-tags]");
   if (tags) tags.innerHTML = (post.tags || []).map((tag) => `<a href="search.html?topic=${encodeURIComponent(tag.toLowerCase())}"># ${escapeHtml(tag).toUpperCase()}</a>`).join("");
   typesetMath(article);
+  renderDiagrams(article);
 };
 
 const categoryCounts = (challenges) => {
@@ -418,7 +420,7 @@ const eventSidebar = (ctf) => {
 const challengeMeta = (ctf, challenge) => {
   const solves = challenge.solves ? `<li>SOLVES <strong>${escapeHtml(challenge.solves)}</strong></li>` : "";
   const flag = challenge.flag ? `<h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(challenge.flag)}</p>` : "";
-  return `<h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(ctf.event || ctf.title)}</strong></li><li>CATEGORY <strong>${escapeHtml((challenge.category || "MISC").toUpperCase())}</strong></li><li>POINTS <strong>${escapeHtml(challenge.points || "—")}</strong></li><li>DIFFICULTY <strong class="difficulty">${difficultyStars(challenge.difficulty)}</strong></li>${solves}</ul>${flag}`;
+  return `<h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(ctf.event || ctf.title)}</strong></li><li>DIFFICULTY <strong class="difficulty">${difficultyStars(challenge.difficulty)}</strong></li>${solves}</ul>${flag}`;
 };
 
 const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
@@ -573,6 +575,7 @@ const renderWriteup = (ctf, challengeFile) => {
     initReadingProgress();
   }
   typesetMath(article);
+  renderDiagrams(article);
 };
 
 const renderCtf = (model) => {
