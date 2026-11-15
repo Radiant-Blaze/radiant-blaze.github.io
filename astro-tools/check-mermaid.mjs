@@ -304,9 +304,11 @@ const testSpaNavigation = async (session) => {
     `),
   );
   await session.waitFor(run('return diagramSvgs().length > 0'), "diagram after SPA navigation into a generated writeup");
-  const generated = await session.evaluate(run(`return { sentinel: window.__spaSentinel, svgs: diagramSvgs().length };`));
+  const generated = await session.evaluate(
+    run(`return { sentinel: window.__spaSentinel, blocks: diagramBlocks().length, svgs: diagramSvgs().length };`),
+  );
   assert.equal(generated.sentinel, "alive", "SPA navigation into a writeup did not reload the document");
-  assert.ok(generated.svgs > 0, "the diagram rendered after SPA navigation");
+  assert.equal(generated.svgs, generated.blocks, "each diagram rendered once after SPA navigation");
 
   // Client-rendered writeup path (astro-pages.js) through the same router.
   const clientRoute = `/pages/writeup.html?ctf=${encodeURIComponent(CTF)}&challenge=meeeps.md`;
@@ -321,10 +323,10 @@ const testSpaNavigation = async (session) => {
   );
   await session.waitFor(run(`return !!document.querySelector('[data-writeup] code[data-language="mermaid"]') && diagramSvgs().length > 0`), "diagram in the client-rendered writeup view");
   const clientRendered = await session.evaluate(
-    run(`return { sentinel: window.__spaSentinel, svgs: diagramSvgs().length, hidden: [...diagramBlocks()].every((code) => code.closest("pre").hidden) };`),
+    run(`return { sentinel: window.__spaSentinel, blocks: diagramBlocks().length, svgs: diagramSvgs().length, hidden: [...diagramBlocks()].every((code) => code.closest("pre").hidden) };`),
   );
   assert.equal(clientRendered.sentinel, "alive", "client-rendered navigation kept the document");
-  assert.ok(clientRendered.svgs > 0, "the diagram rendered in the client-rendered writeup view");
+  assert.equal(clientRendered.svgs, clientRendered.blocks, "each diagram rendered once in the client-rendered writeup view");
   assert.ok(clientRendered.hidden, "the source block is hidden after client-side rendering");
   return [generated.svgs, clientRendered.svgs];
 };

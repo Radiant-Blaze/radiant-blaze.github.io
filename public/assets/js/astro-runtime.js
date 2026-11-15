@@ -104,6 +104,7 @@ let mermaidReady;
 let mermaidApi = null;
 let diagramSeq = 0;
 const diagramFigures = new WeakMap();
+const diagramRenders = new WeakMap();
 
 const diagramTokens = () => {
   const styles = getComputedStyle(document.documentElement);
@@ -181,19 +182,29 @@ const pendingDiagramBlocks = (root) =>
 // Renders one block and swaps it in. The source `<pre>` is kept, and only
 // hidden once an SVG exists, so a syntax error or a blocked CDN leaves the
 // readable code block in place.
-const drawDiagram = async (code) => {
+const drawDiagram = (code) => {
   const pre = code.closest("pre");
-  if (!pre || pre.dataset.diagram) return;
-  const { svg, bindFunctions } = await mermaidApi.render(`mermaid-diagram-${++diagramSeq}`, applyDiagramTokens(code.textContent));
-  const figure = document.createElement("div");
-  figure.className = "diagram";
-  figure.setAttribute("role", "img");
-  figure.innerHTML = svg;
-  pre.dataset.diagram = "rendered";
-  diagramFigures.set(pre, figure);
-  bindFunctions?.(figure);
-  pre.after(figure);
-  pre.hidden = true;
+  if (!pre || pre.dataset.diagram) return Promise.resolve();
+  const pending = diagramRenders.get(pre);
+  if (pending) return pending;
+  const render = (async () => {
+    try {
+      const { svg, bindFunctions } = await mermaidApi.render(`mermaid-diagram-${++diagramSeq}`, applyDiagramTokens(code.textContent));
+      const figure = document.createElement("div");
+      figure.className = "diagram";
+      figure.setAttribute("role", "img");
+      figure.innerHTML = svg;
+      pre.dataset.diagram = "rendered";
+      diagramFigures.set(pre, figure);
+      bindFunctions?.(figure);
+      pre.after(figure);
+      pre.hidden = true;
+    } finally {
+      diagramRenders.delete(pre);
+    }
+  })();
+  diagramRenders.set(pre, render);
+  return render;
 };
 
 export const renderDiagrams = async (root) => {
