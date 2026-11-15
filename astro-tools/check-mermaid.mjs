@@ -182,7 +182,19 @@ const PAGE_HELPERS = `
   };
 `;
 
-const run = (body) => `(() => { ${PAGE_HELPERS} ${body} })()`;
+const UNSAFE_JS_FRAGMENT_CHARACTERS = {
+  "<": "\\u003C",
+  ">": "\\u003E",
+  "&": "\\u0026",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+};
+
+const escapeUnsafeJsFragment = (str) =>
+  JSON.stringify(str).replace(/[<>&\u2028\u2029]/g, (character) => UNSAFE_JS_FRAGMENT_CHARACTERS[character]);
+
+const run = (body) =>
+  `(() => { ${PAGE_HELPERS} return eval("(function(){" + ${escapeUnsafeJsFragment(body)} + "})")(); })()`;
 
 const consoleWarnings = (session) => {
   const messages = [];
