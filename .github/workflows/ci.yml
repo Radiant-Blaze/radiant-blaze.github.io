@@ -89,6 +89,7 @@ jobs:
 
       - name: Projection checks against the built site
         run: |
+          export ASTRO_PREVIEW_URL="${ASTRO_PREVIEW_URL:-http://127.0.0.1:4321}"
           if [ -z "$ASTRO_PREVIEW_URL" ]; then
             echo "::error::ASTRO_PREVIEW_URL is not set"
             exit 1
