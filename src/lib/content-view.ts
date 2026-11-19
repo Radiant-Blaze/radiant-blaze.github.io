@@ -104,7 +104,8 @@ export async function renderContentView(markdown: string): Promise<ContentView> 
   const headingStack: TocNode[] = [];
 
   const html = renderedHtml.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/gi, (_match, sourceLevel, inner) => {
-    const headingText = decodeCodeEntities(inner.replace(/<[^>]+>/g, "")).trim();
+    const doc = new DOMParser().parseFromString(`<body>${inner}</body>`, "text/html");
+    const headingText = decodeCodeEntities(doc.body.textContent ?? "").trim();
     const level = Number(sourceLevel) === 1 ? 2 : Number(sourceLevel);
     const slug = headingText
       .normalize("NFKD")
