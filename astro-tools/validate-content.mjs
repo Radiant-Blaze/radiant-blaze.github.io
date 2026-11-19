@@ -542,7 +542,7 @@ const main = async () => {
   const routes = new Map();
   for (const post of posts) {
     try {
-      const view = await renderContentView(post.body);
+      const view = await renderContentView(post.body, { highlightCode: false });
       rendered.set(post.file, view);
       routes.set(routeForPost(path.join(root, post.file)), { file: post.file, headings: view.headings });
     } catch (caught) {
@@ -551,7 +551,7 @@ const main = async () => {
   }
   for (const writeup of writeups) {
     try {
-      const view = await renderContentView(writeup.body);
+      const view = await renderContentView(writeup.body, { highlightCode: false });
       rendered.set(writeup.file, view);
       routes.set(routeForWriteup(writeup.eventId, path.basename(writeup.file)), { file: writeup.file, headings: view.headings });
     } catch (caught) {

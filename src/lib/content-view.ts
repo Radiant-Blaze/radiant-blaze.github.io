@@ -97,8 +97,13 @@ async function highlightCodeBlocks(markdownHtml: string) {
   return html.join("");
 }
 
-export async function renderContentView(markdown: string): Promise<ContentView> {
-  const renderedHtml = await highlightCodeBlocks(renderMarkdown(markdown));
+export async function renderContentView(
+  markdown: string,
+  options: { highlightCode?: boolean } = {},
+): Promise<ContentView> {
+  const renderedHtml = options.highlightCode === false
+    ? renderMarkdown(markdown)
+    : await highlightCodeBlocks(renderMarkdown(markdown));
   const usedHeadingIds = new Set<string>();
   const headings: TocNode[] = [];
   const headingStack: TocNode[] = [];
