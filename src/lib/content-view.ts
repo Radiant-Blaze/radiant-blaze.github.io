@@ -45,6 +45,30 @@ function decodeCodeEntities(value: string) {
     .replace(/&amp;/g, "&");
 }
 
+function extractTextContent(html: string) {
+  let text = "";
+  let inTag = false;
+  let quote = "";
+
+  for (const character of html) {
+    if (!inTag) {
+      if (character === "<") inTag = true;
+      else text += character;
+      continue;
+    }
+
+    if (quote) {
+      if (character === quote) quote = "";
+    } else if (character === '"' || character === "'") {
+      quote = character;
+    } else if (character === ">") {
+      inTag = false;
+    }
+  }
+
+  return text;
+}
+
 async function highlightCodeBlocks(markdownHtml: string) {
   const { codeToHtml } = await import("shiki");
   const codePattern = /<pre tabindex="0"><code([^>]*)>([\s\S]*?)<\/code><\/pre>/gi;
@@ -109,7 +133,7 @@ export async function renderContentView(
   const headingStack: TocNode[] = [];
 
   const html = renderedHtml.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/gi, (_match, sourceLevel, inner) => {
-    const headingText = decodeCodeEntities(inner.replace(/<[^>]+>/g, "")).trim();
+    const headingText = decodeCodeEntities(extractTextContent(inner)).trim();
     const level = Number(sourceLevel) === 1 ? 2 : Number(sourceLevel);
     const slug = headingText
       .normalize("NFKD")
