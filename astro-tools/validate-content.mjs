@@ -272,7 +272,7 @@ export function inspectMarkdown(body, file) {
   return issues;
 }
 
-const decodeHtml = (value) => value.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+const decodeHtml = (value) => value.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
 
 export function inspectLinks({ html, route, headings, routes, assetExists, headingsForRoute }) {
   const issues = [];
