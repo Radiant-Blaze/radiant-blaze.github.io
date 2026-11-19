@@ -1,4 +1,3 @@
-import { codeToHtml } from "shiki";
 import { escapeHtml, renderMarkdown } from "./markdown.ts";
 
 export type TocNode = {
@@ -47,6 +46,7 @@ function decodeCodeEntities(value: string) {
 }
 
 async function highlightCodeBlocks(markdownHtml: string) {
+  const { codeToHtml } = await import("shiki");
   const codePattern = /<pre tabindex="0"><code([^>]*)>([\s\S]*?)<\/code><\/pre>/gi;
   const blocks = [...markdownHtml.matchAll(codePattern)];
   const html: string[] = [];
@@ -109,8 +109,7 @@ export async function renderContentView(
   const headingStack: TocNode[] = [];
 
   const html = renderedHtml.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/gi, (_match, sourceLevel, inner) => {
-    const doc = new DOMParser().parseFromString(`<body>${inner}</body>`, "text/html");
-    const headingText = decodeCodeEntities(doc.body.textContent ?? "").trim();
+    const headingText = decodeCodeEntities(inner.replace(/<[^>]+>/g, "")).trim();
     const level = Number(sourceLevel) === 1 ? 2 : Number(sourceLevel);
     const slug = headingText
       .normalize("NFKD")
