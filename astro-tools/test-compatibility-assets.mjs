@@ -4,11 +4,9 @@ import path from "node:path";
 
 const root = process.cwd();
 const compatRoot = path.join(root, "compat/legacy-assets/js");
-const backupRoot = path.join(root, "backup/assets/js");
 const compatibility = ["blog.js", "ctf.js", "content.js"];
 for (const file of compatibility) {
   await access(path.join(compatRoot, file));
-  await assert.rejects(access(path.join(backupRoot, file)));
 }
 await access(path.join(root, "public/assets/js/list-utils.js"));
 await access(path.join(root, "public/assets/js/markdown-renderer.js"));

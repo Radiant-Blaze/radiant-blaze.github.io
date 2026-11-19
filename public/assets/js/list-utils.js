@@ -54,9 +54,14 @@ export const recordTopics = (item = {}, ctf) =>
     .filter(Boolean)
     .map(normalizeTopic);
 
-export const difficultyStars = (value) => {
-  const difficulty = Math.max(0, Math.min(5, Number.parseInt(String(value ?? "0"), 10) || 0));
-  return "★".repeat(difficulty) + "☆".repeat(5 - difficulty);
+const DIFFICULTY_TIERS = ["UNRATED", "EASY", "MEDIUM", "HARD", "INSANE", "EXTREME"];
+
+export const difficultyMeter = (value) => {
+  const level = Math.max(0, Math.min(5, Number.parseInt(String(value ?? "0"), 10) || 0));
+  const tier = DIFFICULTY_TIERS[level];
+  const bars = Array.from({ length: 5 }, (_, index) => `<i${index < level ? ' class="on"' : ""}></i>`).join("");
+  const label = `Difficulty: ${tier}, ${level} of 5`;
+  return `<span class="difficulty-meter" data-level="${level}" role="img" aria-label="${label}" title="${label}"><span class="difficulty-meter__bars" aria-hidden="true">${bars}</span><span class="difficulty-meter__label" aria-hidden="true">${tier}</span></span>`;
 };
 
 export const syncSearchForm = ({ query, inputSelector, hidden = [] }) => {

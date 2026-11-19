@@ -15,6 +15,8 @@ export default defineConfig({
   outDir: "./dist",
   output: "static",
   build: { format: "file" },
+  // The floating toolbar sits over page content during local previews.
+  devToolbar: { enabled: false },
   vite: {
     resolve: { alias: viteCompat },
   },

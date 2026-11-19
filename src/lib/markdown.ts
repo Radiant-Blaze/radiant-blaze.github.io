@@ -12,7 +12,13 @@ export function encodePath(value: string) {
 
 export function formatDate(value: Date | string) {
   const date = value instanceof Date ? value : new Date(`${value}T00:00:00`);
-  return new Intl.DateTimeFormat("en", { month: "short", day: "2-digit", year: "numeric", timeZone: "UTC" }).format(date).toUpperCase();
+  if (Number.isNaN(date.getTime())) return String(value);
+  const parts = new Map(
+    new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
+      .formatToParts(date)
+      .map((item) => [item.type, item.value]),
+  );
+  return `${parts.get("day")}-${parts.get("month")}-${parts.get("year")}`;
 }
 
 /** Compatibility entry point for existing Astro pages; the implementation is the new converter. */

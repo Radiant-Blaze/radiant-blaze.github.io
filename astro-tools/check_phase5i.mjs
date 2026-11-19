@@ -48,7 +48,8 @@ assert.match(postPage, /<pre tabindex="0"><code data-language="(?:python|text|sh
 const queryShells = ["/pages/post.html", "/pages/writeup.html"];
 for (const route of queryShells) {
   const html = await getText(route);
-  assert.ok(html.includes("astro-pages.js"), `${route} uses Astro query-shell controller`);
+  assert.ok(html.includes("legacy-redirect.js"), `${route} uses the legacy compatibility redirect`);
+  assert.ok(!html.includes("astro-pages.js"), `${route} does not load the listing controller`);
   assert.ok(!html.includes("/assets/js/blog.js") && !html.includes("/assets/js/ctf.js"));
 }
 
@@ -59,6 +60,6 @@ console.log(JSON.stringify({
   nextLinksChecked: checkedNext,
   frontMatterMatchesLegacyParser: true,
   fourBacktickAndMathOutput: true,
-  queryShellsAstroOwned: true,
+  queryShellsRedirectOnly: true,
   failures: 0,
 }, null, 2));

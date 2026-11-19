@@ -2,46 +2,38 @@ import {
   escapeHtml,
   formatDate,
   getReadModel,
-  initReadingProgress,
-  markdownToHtml,
   postPageUrl,
-  renderDiagrams,
   socialHtml,
-  typesetMath,
   updatePageMetadata,
   writeupPageUrl,
-} from "./astro-runtime.js?v=20261115-1";
+} from "./astro-runtime.js?v=20261119-4";
 import {
   buildYearIndex,
   buildGlobalRecords,
   filterGlobalRecords,
   matchesBlogPost,
   searchCtfRecords,
-} from "./astro-query-model.js";
+} from "./astro-query-model.js?v=20261117-2";
 import {
   DEFAULT_PAGE_SIZE,
-  difficultyStars,
+  difficultyMeter,
   normalizeTopic,
   pageMeta,
   pageSlice,
   paginationHtml,
   recordTopics,
   syncSearchForm,
-} from "./list-utils.js";
+} from "./list-utils.js?v=20261117-2";
 
 const params = new URLSearchParams(location.search);
 const requestedPage = Math.max(1, parseInt(params.get("pg"), 10) || 1);
-const fallbackToLegacy = async (moduleName) => {
-  const moduleUrl = new URL(`/legacy/assets/js/${moduleName}.js?fallback=${Date.now()}`, location.origin);
-  await import(moduleUrl.href);
-};
 
 const listingTags = (tags = []) => tags.map((tag) => `<span class="listing-tag">#${escapeHtml(tag).toUpperCase()}</span>`).join("");
 const postCard = (post) =>
   `<article class="quest-card listing-entry listing-entry--post"><div class="listing-entry__main"><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="listing-tags">${listingTags(post.tags)}</div><div class="quest-meta"><span>${formatDate(post.date)}</span><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div></div><a class="listing-entry__action pixel-button start-button" href="${postPageUrl(post.file)}">READ POST →</a></article>`;
 
 const writeupCard = (ctf, challenge) =>
-  `<article class="quest-card listing-entry listing-entry--writeup"><div class="listing-entry__main"><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><p class="listing-event">${escapeHtml(ctf.title).toUpperCase()}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="listing-tags">${listingTags(challenge.tags)}</div><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(challenge.points || "—")}</b> PTS</span><span class="difficulty" title="Difficulty">${difficultyStars(challenge.difficulty)}</span></div></div><a class="listing-entry__action pixel-button start-button" href="${writeupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></article>`;
+  `<article class="quest-card listing-entry listing-entry--writeup"><div class="listing-entry__main"><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><p class="listing-event">${escapeHtml(ctf.title).toUpperCase()}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="listing-tags">${listingTags(challenge.tags)}</div><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(challenge.points || "—")}</b> PTS</span><span>${difficultyMeter(challenge.difficulty)}</span></div></div><a class="listing-entry__action pixel-button start-button" href="${writeupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></article>`;
 
 const ctfViewportVariant = (_ctf, index = 0) => {
   const variants = ["rain", "pulse", "stars", "crt-tv", "glitch"];
@@ -51,9 +43,9 @@ const ctfViewportVariant = (_ctf, index = 0) => {
 const ctfCard = (ctf, index = 0) => {
   const challengeCount = ctf.challengeCount ?? ctf.challenges.length;
   const difficulty = Math.max(0, Math.min(5, parseInt(ctf.difficulty, 10) || 0));
-  const stars = difficultyStars(difficulty);
+  const stars = difficultyMeter(difficulty);
   const viewportVariant = ctfViewportVariant(ctf, index);
-  return `<article class="quest-card listing-entry listing-entry--event"><div class="event-viewport event-viewport--${viewportVariant}" aria-hidden="true"><img class="event-viewport__screen" src="/assets/ctf-animations/${viewportVariant}.svg" alt="" /></div><div class="listing-entry__main"><div class="event-kicker"><span class="quest-number">CTF EVENT</span></div><h2>${escapeHtml(ctf.title)}</h2><p class="listing-event">${escapeHtml(ctf.event || "INDEPENDENT EVENT")}</p><p>${escapeHtml(ctf.description || "")}</p><div class="event-stats"><span>${formatDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span><b class="difficulty" title="Difficulty">${stars}</b> DIFFICULTY</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT <span aria-hidden="true">→</span></a></article>`;
+  return `<article class="quest-card listing-entry listing-entry--event"><div class="event-viewport event-viewport--${viewportVariant}" aria-hidden="true"><img class="event-viewport__screen" src="/assets/ctf-animations/${viewportVariant}.svg" alt="" /></div><div class="listing-entry__main"><div class="event-kicker"><span class="quest-number">CTF EVENT</span></div><h2>${escapeHtml(ctf.title)}</h2><p class="listing-event">${escapeHtml(ctf.event || "INDEPENDENT EVENT")}</p><p>${escapeHtml(ctf.description || "")}</p><div class="event-stats"><span>${formatDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span class="event-difficulty">${stars} DIFFICULTY</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT <span aria-hidden="true">→</span></a></article>`;
 };
 
 const emptyMessage = (value) => `<div class="rb-404-search-empty" role="status"><p class="rb-404-status">SYSTEM ERROR // 404</p><div class="rb-404-tv-wrap" role="img" aria-label="Retro television displaying a lost signal"><div class="rb-404-tv"><div class="rb-404-antenna" aria-hidden="true"><span class="rb-404-antenna-shadow"></span><span class="rb-404-antenna-left"></span><span class="rb-404-antenna-right"></span><i class="rb-404-tip-left"></i><i class="rb-404-tip-right"></i></div><div class="rb-404-display"><div class="rb-404-screen"><span>NO SIGNAL</span><b>404</b></div><div class="rb-404-screen-pattern" aria-hidden="true"></div></div><div class="rb-404-controls" aria-hidden="true"><span class="rb-404-button rb-404-button-one"></span><span class="rb-404-button rb-404-button-two"></span><div class="rb-404-speakers"><i></i><i></i><i></i><i></i><i></i></div></div><div class="rb-404-base" aria-hidden="true"><span></span><span></span></div></div></div><strong class="rb-404-search-title">${value}</strong><small>TRY ANOTHER TAG OR SEARCH TERM.</small></div>`;
@@ -67,16 +59,9 @@ const setPillState = (button, active) => {
   button.setAttribute("aria-pressed", String(active));
 };
 
-const renderBlog = async (model) => {
+const renderBlog = (model) => {
   const blogQuery = (params.get("q") || "").trim();
-  const article = document.querySelector("[data-markdown-post]");
-  const requestedPost = params.get("post") || article?.dataset.markdownPost || "";
-  const postsByFile = new Map(model.posts.map((post) => [post.file, post]));
-  if (requestedPost && !postsByFile.has(requestedPost)) {
-    await fallbackToLegacy("blog");
-    return;
-  }
-  const posts = requestedPost ? [postsByFile.get(requestedPost)] : model.posts;
+  const posts = model.posts;
   const currentCategory = params.get("category");
   const currentYear = params.get("year");
   const blurbs = model.site.categoryBlurbs || {};
@@ -177,8 +162,7 @@ const renderBlog = async (model) => {
       : posts;
     const groups = scoped.reduce((result, post) => {
       const month = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" })
-        .format(new Date(`${post.date}T00:00:00`))
-        .toUpperCase();
+        .format(new Date(`${post.date}T00:00:00`));
       result[month] = [...(result[month] || []), post];
       return result;
     }, {});
@@ -195,7 +179,6 @@ const renderBlog = async (model) => {
   });
 
   if (isSearchPage) renderGlobalSearch(posts, model.ctfs);
-  if (article) renderPostArticle(article, posts[0]);
 };
 
 const renderGlobalSearch = (posts, ctfs) => {
@@ -367,27 +350,6 @@ const renderGlobalSearch = (posts, ctfs) => {
   renderSearch(query);
 };
 
-const renderPostArticle = (article, post) => {
-  if (!post) return;
-  const canonicalUrl = new URL(location.href);
-  canonicalUrl.search = "";
-  canonicalUrl.searchParams.set("post", post.file);
-  canonicalUrl.hash = "";
-  updatePageMetadata({ title: `${post.title} · Radiant Blaze`, description: post.description, canonicalUrl: canonicalUrl.href });
-  article.innerHTML = markdownToHtml(post.body);
-  const related = [
-    `<a href="blog.html?category=${encodeURIComponent(post.category)}">MORE ${escapeHtml(post.category).toUpperCase()} POSTS</a>`,
-    ...(post.tags || []).slice(0, 2).map((tag) => `<a href="search.html?topic=${encodeURIComponent(tag.toLowerCase())}">MORE ${escapeHtml(tag).toUpperCase()}</a>`),
-  ];
-  article.insertAdjacentHTML("beforeend", `<nav class="article-related" aria-label="Related content">${related.join("")}</nav>`);
-  const header = document.querySelector("[data-post-header]");
-  if (header) header.innerHTML = `<p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h1 class="quest-title">${escapeHtml(post.title).toUpperCase()}</h1><div class="article-info"><span>READ TIME: <b>${escapeHtml(post.estimatedPlayTime).toUpperCase()}</b></span><span>${formatDate(post.date)}</span><span>BY <b>${escapeHtml(post.author).toUpperCase()}</b></span></div>`;
-  const tags = document.querySelector("[data-post-tags]");
-  if (tags) tags.innerHTML = (post.tags || []).map((tag) => `<a href="search.html?topic=${encodeURIComponent(tag.toLowerCase())}"># ${escapeHtml(tag).toUpperCase()}</a>`).join("");
-  typesetMath(article);
-  renderDiagrams(article);
-};
-
 const categoryCounts = (challenges) => {
   const counts = {};
   challenges.forEach((challenge) => {
@@ -399,33 +361,24 @@ const countRows = (counts) => Object.entries(counts).sort((left, right) => right
 const searchResults = (ctfs, term) => searchCtfRecords(ctfs, term);
 const searchResultCard = (result) => result.type === "ctf" ? ctfCard(result.ctf) : writeupCard(result.ctf, result.challenge);
 
-const arenaSidebar = (ctfs) => {
-  const writeups = ctfs.reduce((total, ctf) => total + challengeTotal(ctf), 0);
-  const hasLoadedChallenges = ctfs.some((ctf) => ctf.challenges.length);
-  const points = ctfs.reduce((total, ctf) => total + ctf.challenges.reduce((sum, challenge) => sum + (parseInt(challenge.points, 10) || 0), 0), 0);
-  const pointsRow = hasLoadedChallenges ? `<li>POINTS BANKED <strong>${points.toLocaleString()}</strong></li>` : "";
-  const categories = hasLoadedChallenges ? `<section class="pixel-panel"><h2>BY CATEGORY</h2><ul class="stat-list">${countRows(categoryCounts(ctfs.flatMap((ctf) => ctf.challenges)))}</ul></section>` : "";
-  return `<section class="pixel-panel"><h2>ARENA STATS</h2><ul class="stat-list"><li>EVENTS <strong>${ctfs.length}</strong></li><li>WRITEUPS <strong>${writeups}</strong></li>${pointsRow}</ul></section>${categories}`;
-};
-
 const eventSidebar = (ctf) => {
   const points = ctf.challenges.reduce((sum, challenge) => sum + (parseInt(challenge.points, 10) || 0), 0);
   const isFullEvent = ctf.challenges.length === challengeTotal(ctf);
   const pointsLabel = isFullEvent ? "TOTAL POINTS" : "PAGE POINTS";
   const categoryLabel = isFullEvent ? "BY CATEGORY" : "BY PAGE CATEGORY";
   const source = ctf.url ? `<section class="pixel-panel"><h2>SOURCE</h2><nav class="region-list"><a href="${escapeHtml(ctf.url)}" target="_blank" rel="noopener">VISIT EVENT SITE</a></nav></section>` : "";
-  return `<section class="pixel-panel"><h2>EVENT DATA</h2><ul class="stat-list"><li>ORGANIZER <strong>${escapeHtml(ctf.event || "—")}</strong></li><li>DATE <strong>${formatDate(ctf.date)}</strong></li><li>CHALLENGES <strong>${challengeTotal(ctf)}</strong></li><li>${pointsLabel} <strong>${points.toLocaleString()}</strong></li><li>DIFFICULTY <strong class="difficulty">${difficultyStars(ctf.difficulty)}</strong></li></ul></section><section class="pixel-panel"><h2>${categoryLabel}</h2><ul class="stat-list">${countRows(categoryCounts(ctf.challenges))}</ul></section>${source}`;
+  return `<section class="pixel-panel"><h2>EVENT DATA</h2><ul class="stat-list"><li>ORGANIZER <strong>${escapeHtml(ctf.event || "—")}</strong></li><li>DATE <strong>${formatDate(ctf.date)}</strong></li><li>CHALLENGES <strong>${challengeTotal(ctf)}</strong></li><li>${pointsLabel} <strong>${points.toLocaleString()}</strong></li><li>DIFFICULTY ${difficultyMeter(ctf.difficulty)}</li></ul></section><section class="pixel-panel"><h2>${categoryLabel}</h2><ul class="stat-list">${countRows(categoryCounts(ctf.challenges))}</ul></section>${source}`;
 };
 
-const challengeMeta = (ctf, challenge) => {
-  const solves = challenge.solves ? `<li>SOLVES <strong>${escapeHtml(challenge.solves)}</strong></li>` : "";
-  const flag = challenge.flag ? `<h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(challenge.flag)}</p>` : "";
-  return `<h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(ctf.event || ctf.title)}</strong></li><li>DIFFICULTY <strong class="difficulty">${difficultyStars(challenge.difficulty)}</strong></li>${solves}</ul>${flag}`;
-};
+const arenaAside = document.querySelector("[data-ctf-aside]");
+const arenaAsideDefault = arenaAside?.innerHTML ?? "";
 
-const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
+const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage, fullCtf) => {
   const list = document.querySelector("[data-ctf-list]");
   if (!list) return;
+  // Inside one event the aside shows that event's record instead of the
+  // site-wide player card, using the unsliced event so totals stay CTF-wide.
+  if (arenaAside) arenaAside.innerHTML = ctf ? eventSidebar(fullCtf || ctf) : arenaAsideDefault;
   const title = document.querySelector("[data-ctf-title]");
   const intro = document.querySelector("[data-ctf-intro]");
   const count = document.querySelector("[data-ctf-count]");
@@ -537,54 +490,13 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage) => {
   renderEvents();
 };
 
-const renderWriteup = (ctf, challengeFile) => {
-  const article = document.querySelector("[data-writeup]");
-  if (!article) return;
-  const header = document.querySelector("[data-writeup-header]");
-  const back = document.querySelector("[data-writeup-back]");
-  const challenge = ctf?.challenges.find((item) => item.file === challengeFile);
-  if (!challenge) {
-    if (header) header.innerHTML = '<p class="quest-number">WRITEUP NOT FOUND</p><h1 class="quest-title">404</h1>';
-    if (back) back.innerHTML = '<a href="ctf.html">← ALL CTF EVENTS</a>';
-    article.innerHTML = '<p>That challenge writeup isn\'t in the archive. <a href="ctf.html">Return to the CTF arena.</a></p>';
-    return;
-  }
-
-  const category = (challenge.category || "MISC").toUpperCase();
-  const canonical = new URL(location.href);
-  canonical.search = "";
-  canonical.searchParams.set("ctf", ctf.id);
-  canonical.searchParams.set("challenge", challenge.file);
-  canonical.hash = "";
-  updatePageMetadata({ title: `${challenge.title} · ${ctf.title} · Radiant Blaze`, description: challenge.description || `CTF writeup for ${challenge.title} from ${ctf.title}.`, canonicalUrl: canonical.href });
-  if (back) back.innerHTML = `<a href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">← ${escapeHtml(ctf.title.toUpperCase())}</a>`;
-  if (header) header.innerHTML = `<p class="quest-number">${escapeHtml(ctf.title.toUpperCase())} · ${escapeHtml(category)}</p><h1 class="quest-title">${escapeHtml(challenge.title.toUpperCase())}</h1><div class="article-info"><span>POINTS: <b>${escapeHtml(challenge.points || "—")}</b></span><span>DIFFICULTY: <b class="difficulty">${difficultyStars(challenge.difficulty)}</b></span>${challenge.solves ? `<span>SOLVES: <b>${escapeHtml(challenge.solves)}</b></span>` : ""}<span>BY <b>${escapeHtml((challenge.author || "Radiant Blaze").toUpperCase())}</b></span></div>`;
-  article.innerHTML = markdownToHtml(challenge.body);
-  const layout = article.closest(".article-layout");
-  const hasMath = /```math\b|\\\[|\\\(|\$\$/i.test(challenge.body);
-  layout?.querySelector(":scope > .sidebar")?.remove();
-  layout?.classList.toggle("article-layout--full-width", hasMath);
-  const challengeIndex = ctf.challengeFiles.indexOf(challenge.file);
-  const previous = ctf.challengeFiles[challengeIndex - 1];
-  const next = ctf.challengeFiles[challengeIndex + 1];
-  const link = (file, label) => file ? `<a href="${writeupPageUrl(ctf.id, file)}">${label}</a>` : `<span>${label}</span>`;
-  article.insertAdjacentHTML("beforeend", `<nav class="article-related" aria-label="Related writeups">${link(previous, "← PREVIOUS CHALLENGE")}<span>CHALLENGE ${challengeIndex + 1} / ${ctf.challengeFiles.length}</span>${link(next, "NEXT CHALLENGE →")}</nav>`);
-  if (layout && !hasMath) {
-    const tags = challenge.tags.map((tag) => `<a href="ctf.html?ctf=${encodeURIComponent(ctf.id)}"># ${escapeHtml(tag).toUpperCase()}</a>`).join("");
-    layout.insertAdjacentHTML("beforeend", `<aside class="sidebar"><section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section><section class="pixel-panel">${challengeMeta(ctf, challenge)}</section><section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">${tags}</nav></section></aside>`);
-    initReadingProgress();
-  }
-  typesetMath(article);
-  renderDiagrams(article);
-};
-
 const renderCtf = (model) => {
   const query = (params.get("q") || "").trim();
   const requestedId = params.get("ctf");
-  const challengeFile = params.get("challenge");
   const selectedYear = params.get("year") || "";
-  const article = document.querySelector("[data-writeup]");
   let requestedCtf = requestedId ? model.ctfs.find((ctf) => ctf.id === requestedId) : null;
+  // Kept unsliced for the sidebar: pagination replaces requestedCtf below.
+  const fullCtf = requestedCtf;
   const validYear = /^\d{4}$/.test(selectedYear) ? Number(selectedYear) : null;
   let visibleCtfs = selectedYear
     ? model.ctfs.filter((ctf) => {
@@ -594,18 +506,12 @@ const renderCtf = (model) => {
     : model.ctfs;
   if (!requestedId && !query) {
     visibleCtfs = selectedYear ? visibleCtfs : model.ctfs;
-  } else if (requestedId && requestedCtf && !query && !article) {
+  } else if (requestedId && requestedCtf && !query) {
     const { start } = pageMeta(challengeTotal(requestedCtf), requestedPage);
     const challengeByFile = new Map(requestedCtf.challenges.map((challenge) => [challenge.file, challenge]));
     const files = requestedCtf.challengeFiles.slice(start, start + DEFAULT_PAGE_SIZE);
     requestedCtf = { ...requestedCtf, challenges: files.map((file) => challengeByFile.get(file)).filter(Boolean) };
     visibleCtfs = [requestedCtf];
-  } else if (requestedId && requestedCtf && article && challengeFile && !query) {
-    const challenge = requestedCtf.challenges.find((item) => item.file === challengeFile);
-    if (challenge) {
-      requestedCtf = { ...requestedCtf, challenges: [challenge] };
-      visibleCtfs = [requestedCtf];
-    }
   } else if (requestedId && requestedCtf) {
     visibleCtfs = [requestedCtf];
   }
@@ -620,30 +526,31 @@ const renderCtf = (model) => {
       { selector: "[data-ctf-search-year]", value: selectedYear },
     ],
   });
-  renderArena(visibleCtfs, requestedCtf, requestedId, query, requestedPage);
-  if (selectedYear && !requestedId && !query && !article) {
+  renderArena(visibleCtfs, requestedCtf, requestedId, query, requestedPage, fullCtf);
+  if (selectedYear && !requestedId && !query) {
     const title = document.querySelector("[data-ctf-title]");
     const intro = document.querySelector("[data-ctf-intro]");
     if (title) title.textContent = `YEAR: ${selectedYear}`;
     if (intro) intro.textContent = `CTF events from ${selectedYear}.`;
   }
-  if (article) renderWriteup(requestedCtf, challengeFile);
 };
 
-const fallbackModule = async () => {
-  const hasCtf = Boolean(document.querySelector("[data-ctf-list], [data-writeup]"));
-  await fallbackToLegacy(hasCtf ? "ctf" : "blog");
+const renderReadModelError = () => {
+  const list = document.querySelector("[data-quest-list], [data-ctf-list]");
+  if (list) list.innerHTML = emptyMessage("THE ARCHIVE COULD NOT BE LOADED.");
+  document.querySelectorAll("[data-blog-count], [data-ctf-count], [data-record-count]")
+    .forEach((element) => { element.textContent = "ARCHIVE UNAVAILABLE"; });
 };
 
 let model;
 try {
   model = await getReadModel();
-} catch {
-  await fallbackModule();
+} catch (error) {
+  console.error("[radiant-blaze:pages] Read model could not be loaded.", error);
+  renderReadModelError();
 }
 
 if (model) {
-  if (document.querySelector("[data-ctf-list], [data-writeup]")) renderCtf(model);
-  else await renderBlog(model);
-  initReadingProgress();
+  if (document.querySelector("[data-ctf-list]")) renderCtf(model);
+  else renderBlog(model);
 }

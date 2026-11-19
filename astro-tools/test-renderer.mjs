@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { getPostPresentation, getWriteupPresentation } from "../src/lib/article-metadata.ts";
 import { convertMarkdown, renderMarkdown } from "../src/lib/markdown.ts";
+import { renderContentView } from "../src/lib/content-view.ts";
 
 assert.equal(getPostPresentation({}).title, "Untitled Post");
 assert.equal(getWriteupPresentation({}, "odd-name.md", "Example Event").title, "odd-name");
@@ -50,7 +51,7 @@ assert.match(converted.html, /<table>[\s\S]*<th>Name<\/th>[\s\S]*<td>1<\/td>/);
 assert.match(converted.html, /<pre tabindex="0"><code data-language="js">const value = 1 &lt; 2;<\/code><\/pre>/);
 assert.match(converted.html, /\$\|x\|\$/);
 assert.match(converted.html, /P\(A \\mid B\)/);
-assert.match(converted.html, /\\\{x \\mid x > 0\\\}/);
+assert.match(converted.html, /\\\{x \\mid x &gt; 0\\\}/);
 assert.match(converted.html, /<div class="math-block">[\s\S]*\\left\| x \\right\|[\s\S]*<\/div>/);
 assert.doesNotMatch(converted.html, /<p><div class="math-block">/);
 
@@ -59,7 +60,26 @@ assert.match(fencedMath.html, /<div class="math-block">[\s\S]*\\\[p_i = \\frac\{
 assert.doesNotMatch(fencedMath.html, /<p><div class="math-block">/);
 assert.match(convertMarkdown("The error is 1e-6.").html, /\$1 \\times 10\^{-6\}\$/);
 assert.equal(convertMarkdown("```text\n1e-6\n```").html, '<pre tabindex="0"><code data-language="text">1e-6</code></pre>');
+const annotatedFence = convertMarkdown('```python title="exploit.py" {1,3-4}\nprint(1)\nprint(2)\n```');
+assert.match(
+  annotatedFence.html,
+  /<code data-language="python" data-filename="exploit\.py" data-highlight="1,3-4">/,
+  "fence metadata is preserved on the code element",
+);
 assert.equal(convertMarkdown("Existing $1e-6$ stays math.").html, '<p>Existing <span class="math-inline">$1e-6$</span> stays math.</p>');
 assert.equal(renderMarkdown("# Delegated"), "<h1>Delegated</h1>");
+
+const annotatedView = await renderContentView('```python title="solve.py" {2}\na = 1\nb = 2\n```');
+assert.match(annotatedView.html, /data-filename="solve\.py"/, "filename survives Shiki highlighting");
+assert.match(annotatedView.html, /class="line is-highlighted"/, "selected lines are highlighted");
+assert.match(annotatedView.html, /data-highlight="2"/, "highlight spec survives highlighting");
+const leadHeading = await renderContentView("# Report title\n\n## First section");
+assert.match(leadHeading.html, /<h2 id="report-title" class="writeup-lead">Report title<\/h2>/, "authored H1 is marked as the report lead");
+assert.match(leadHeading.html, /<h2 id="first-section">First section<\/h2>/, "a normal section heading is not demoted");
+const unsafeMathHeading = await renderContentView("# $<img src=x onerror=alert(1)>$");
+assert.doesNotMatch(unsafeMathHeading.html, /<img\b/i, "math content cannot inject HTML into rendered headings");
+const unsafeHtmlHeading = await renderContentView("# <script>alert(1)</script>");
+assert.doesNotMatch(unsafeHtmlHeading.html, /<script\b/i, "raw HTML cannot inject elements into rendered headings");
+assert.match(unsafeHtmlHeading.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/, "escaped heading text remains visible");
 
 console.log("Renderer integration fixtures passed.");

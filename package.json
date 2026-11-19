@@ -25,12 +25,15 @@
     "check:mermaid": "node astro-tools/check-mermaid.mjs",
     "content:sync": "node astro-tools/content-sync/index.mjs",
     "content:check": "node astro-tools/content-sync/index.mjs --check",
+    "content:validate": "node --experimental-strip-types astro-tools/validate-content.mjs",
+    "test:content-validation": "node --experimental-strip-types astro-tools/test-content-validation.mjs",
     "test:content-sync": "node astro-tools/content-sync/test.mjs",
     "test:astro-route-parity": "node astro-tools/test-astro-route-parity.mjs",
     "test:compatibility-assets": "node astro-tools/test-compatibility-assets.mjs"
   },
   "dependencies": {
     "astro": "^7.4.11",
-    "js-yaml": "^5.5.0"
+    "js-yaml": "^5.5.0",
+    "mermaid": "12.3.0"
   }
 }

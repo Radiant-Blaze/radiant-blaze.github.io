@@ -1,0 +1,9 @@
+---
+interface Props {
+  html: string;
+  label: string;
+}
+
+const { html, label } = Astro.props;
+---
+<nav class="article-related" aria-label={label} set:html={html}></nav>

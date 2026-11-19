@@ -15,14 +15,30 @@ export function convertMarkdown(source: string): ConvertedMarkdown {
     if (/^\u0000MATH\d+\u0000$/.test(line)) { output.push(line); i++; continue; }
     const fence = /^(\s*)(`{3,}|~{3,})([^\n]*)$/.exec(line);
     if (fence) {
-      const marker = fence[2][0], size = fence[2].length, lang = fence[3].trim(); i++;
+      const marker = fence[2][0], size = fence[2].length;
+      const info = fence[3]
+        .trim()
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, "&");
+      i++;
+      const infoMatch = /^([^\s{]+)([\s\S]*)$/.exec(info);
+      const lang = infoMatch ? infoMatch[1] : "";
+      const meta = infoMatch ? infoMatch[2].trim() : "";
+      const filename = /(?:title|file)=["']([^"']+)["']/.exec(meta)?.[1] ?? "";
+      const highlight = /\{\s*([\d,\s-]+)\s*\}/.exec(meta)?.[1]?.replace(/\s+/g, "") ?? "";
       const code: string[] = [];
       while (i < lines.length && !new RegExp(`^\\s*${marker}{${size},}\\s*$`).test(lines[i])) code.push(lines[i++]);
       i++;
       if (lang.toLowerCase() === "math") {
         output.push(`<div class="math-block">\\[${code.join("\n")}\\]</div>`);
       } else {
-        output.push(`<pre tabindex="0"><code${lang ? ` data-language="${escapeHtml(lang)}"` : ""}>${code.join("\n")}</code></pre>`);
+        const attrs = [
+          lang ? ` data-language="${escapeHtml(lang)}"` : "",
+          filename ? ` data-filename="${escapeHtml(filename)}"` : "",
+          highlight ? ` data-highlight="${escapeHtml(highlight)}"` : "",
+        ].join("");
+        output.push(`<pre tabindex="0"><code${attrs}>${code.join("\n")}</code></pre>`);
       }
       continue;
     }

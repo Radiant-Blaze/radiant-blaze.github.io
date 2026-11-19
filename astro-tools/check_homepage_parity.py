@@ -7,11 +7,11 @@ rendered page back over HTTP and asserts that projection, plus the head and
 shell-independence contracts the page promises.
 
 This replaces a migration-era "legacy vs Astro" comparison. The pre-Astro
-homepage still exists under `backup/`, but it is a frozen archive with a
-pre-revamp DOM (`h3` tile titles, and a `data-social` nav that `home.js` filled
-in at runtime), and `.agents/DECISIONS.md` keeps `backup/` out of the build and
-validation graph. Comparing the two can no longer pass by design, so only the
-contracts that describe the current page are asserted here.
+homepage lived under the retired `backup/` archive (a frozen pre-revamp DOM
+with `h3` tile titles and a `data-social` nav that `home.js` filled in at
+runtime) and is now available only in Git history. Comparing the two could no
+longer pass by design, so only the contracts that describe the current page are
+asserted here.
 
 Needs a running preview of the build:
 
@@ -88,8 +88,11 @@ def parse_frontmatter(relative_path):
 
 
 def format_date(value):
+    # Mirrors `formatDate` in `src/lib/markdown.ts` (en-GB day-month-year), which
+    # the homepage tiles use. The old uppercase "NOV 14, 2026" contract belonged
+    # to the removed `formatHomeDate` helper.
     parsed = date.fromisoformat(value)
-    return f"{MONTHS[parsed.month - 1]} {parsed.day}, {parsed.year}"
+    return f"{parsed.day:02d}-{MONTHS[parsed.month - 1].title()}-{parsed.year}"
 
 
 def page_url(prefix, value):

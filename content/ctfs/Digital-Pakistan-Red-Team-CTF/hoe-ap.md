@@ -471,7 +471,7 @@ The flag was read from `/flag.txt` with the shell obtained in step 6:
 > Run `python3 exploit.py` for the local reproduction; use `python3 exploit.py remote` to attack
 > the remote service.
 
-```python
+```python title="exploit.py"
 from pwn import *
 import sys, time
 
