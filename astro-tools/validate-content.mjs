@@ -198,7 +198,7 @@ export function parseFenceInfo(info) {
 
 const slugify = (text) =>
   text
-    .replace(/<[^>]+>/g, "")
+    .replace(/[<>]/g, "")
     .replace(/&[a-z#0-9]+;/gi, " ")
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
