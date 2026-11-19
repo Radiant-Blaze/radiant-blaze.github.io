@@ -78,5 +78,8 @@ assert.match(leadHeading.html, /<h2 id="report-title" class="writeup-lead">Repor
 assert.match(leadHeading.html, /<h2 id="first-section">First section<\/h2>/, "a normal section heading is not demoted");
 const unsafeMathHeading = await renderContentView("# $<img src=x onerror=alert(1)>$");
 assert.doesNotMatch(unsafeMathHeading.html, /<img\b/i, "math content cannot inject HTML into rendered headings");
+const unsafeHtmlHeading = await renderContentView("# <script>alert(1)</script>");
+assert.doesNotMatch(unsafeHtmlHeading.html, /<script\b/i, "raw HTML cannot inject elements into rendered headings");
+assert.match(unsafeHtmlHeading.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/, "escaped heading text remains visible");
 
 console.log("Renderer integration fixtures passed.");
