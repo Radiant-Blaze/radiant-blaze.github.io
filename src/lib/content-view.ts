@@ -129,7 +129,7 @@ export async function renderContentView(
     else headings.push(node);
     headingStack.push(node);
 
-    return `<h${level} id="${id}"${Number(sourceLevel) === 1 ? ' class="writeup-lead"' : ""}>${inner}</h${level}>`;
+    return `<h${level} id="${id}"${Number(sourceLevel) === 1 ? ' class="writeup-lead"' : ""}>${escapeHtml(headingText)}</h${level}>`;
   });
 
   return { html, headings };
