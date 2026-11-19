@@ -21,8 +21,8 @@ export function protectMath(source: string) {
   const values: string[] = [];
   const stash = (value: string) => `\u0000MATH${values.push(value) - 1}\u0000`;
   const protectedSource = source
-    .replace(/\\\[[\s\S]*?\\\]/g, (m) => stash(`<div class="math-block">${m}</div>`))
-    .replace(/\$\$[\s\S]*?\$\$/g, (m) => stash(`<div class="math-block">${m}</div>`))
-    .replace(/(?<!\\)\$[^\n$]+?\$/g, (m) => stash(`<span class="math-inline">${m}</span>`));
+    .replace(/\\\[[\s\S]*?\\\]/g, (m) => stash(`<div class="math-block">${escapeHtml(m)}</div>`))
+    .replace(/\$\$[\s\S]*?\$\$/g, (m) => stash(`<div class="math-block">${escapeHtml(m)}</div>`))
+    .replace(/(?<!\\)\$[^\n$]+?\$/g, (m) => stash(`<span class="math-inline">${escapeHtml(m)}</span>`));
   return { source: protectedSource, restore: (html: string) => html.replace(/\u0000MATH(\d+)\u0000/g, (_, i) => values[Number(i)]) };
 }

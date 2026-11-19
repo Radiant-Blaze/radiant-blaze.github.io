@@ -51,7 +51,7 @@ assert.match(converted.html, /<table>[\s\S]*<th>Name<\/th>[\s\S]*<td>1<\/td>/);
 assert.match(converted.html, /<pre tabindex="0"><code data-language="js">const value = 1 &lt; 2;<\/code><\/pre>/);
 assert.match(converted.html, /\$\|x\|\$/);
 assert.match(converted.html, /P\(A \\mid B\)/);
-assert.match(converted.html, /\\\{x \\mid x > 0\\\}/);
+assert.match(converted.html, /\\\{x \\mid x &gt; 0\\\}/);
 assert.match(converted.html, /<div class="math-block">[\s\S]*\\left\| x \\right\|[\s\S]*<\/div>/);
 assert.doesNotMatch(converted.html, /<p><div class="math-block">/);
 
@@ -76,5 +76,7 @@ assert.match(annotatedView.html, /data-highlight="2"/, "highlight spec survives 
 const leadHeading = await renderContentView("# Report title\n\n## First section");
 assert.match(leadHeading.html, /<h2 id="report-title" class="writeup-lead">Report title<\/h2>/, "authored H1 is marked as the report lead");
 assert.match(leadHeading.html, /<h2 id="first-section">First section<\/h2>/, "a normal section heading is not demoted");
+const unsafeMathHeading = await renderContentView("# $<img src=x onerror=alert(1)>$");
+assert.doesNotMatch(unsafeMathHeading.html, /<img\b/i, "math content cannot inject HTML into rendered headings");
 
 console.log("Renderer integration fixtures passed.");

@@ -43,7 +43,7 @@ assert.match(result.html, /<div class="math-block">[\s\S]*\\\[p_i = \\frac\{e\^\
 assert.match(result.html, /<ul><li>parent<ul><li>child<\/li><\/ul><\/li><\/ul>/);
 assert.match(result.html, /\$\|x\|\$/);
 assert.match(result.html, /P\(A \\mid B\)/);
-assert.match(result.html, /\\\{x \\mid x > 0\\\}/);
+assert.match(result.html, /\\\{x \\mid x &gt; 0\\\}/);
 assert.match(result.html, /<div class="math-block">[\s\S]*\\left\|[\s\S]*<\/div>/);
 assert.doesNotMatch(result.html, /<p><div class="math-block">/);
 assert.match(result.html, /<blockquote>/);
@@ -68,6 +68,9 @@ for (const hostile of [
   assert.doesNotMatch(html, /javascript:|vbscript:|data:/i, `scheme leaked for ${hostile}`);
   assert.doesNotMatch(html, /<(?:a|img)\b/i, `unsafe element rendered for ${hostile}`);
 }
+const unsafeMath = convertMarkdown("# $<img src=x onerror=alert(1)>$").html;
+assert.doesNotMatch(unsafeMath, /<img\b/i, "HTML in math is escaped rather than emitted as an element");
+assert.match(unsafeMath, /&lt;img src=x onerror=alert\(1\)&gt;/, "math remains visible as escaped text");
 // Safe destinations keep rendering as links and images.
 assert.match(convertMarkdown("[s](https://example.test/a?b=1&c=2)").html, /<a href="https:\/\/example\.test\/a\?b=1&amp;c=2">s<\/a>/);
 assert.match(convertMarkdown("[s](mailto:a@b.test)").html, /<a href="mailto:a@b\.test">s<\/a>/);
