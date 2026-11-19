@@ -103,13 +103,10 @@
       return;
 
     const url = new URL(anchor.href, location.href);
-    if (
-      url.origin !== location.origin ||
-      (url.pathname === location.pathname &&
-        url.search === location.search &&
-        url.hash === location.hash)
-    )
-      return;
+    // Leaving the site, or jumping inside the current document (TOC links,
+    // footnotes), loads nothing the shell could dismiss the overlay for.
+    if (url.origin !== location.origin) return;
+    if (url.pathname === location.pathname && url.search === location.search) return;
 
     show();
   });

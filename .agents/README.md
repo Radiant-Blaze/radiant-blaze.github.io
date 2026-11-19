@@ -6,7 +6,7 @@
 - `FILES.md`: important-file map.
 - `ROUTES.md`: public URL contracts.
 - `CONTENT.md`: Markdown, frontmatter, indexes, and converter.
-- `COMPATIBILITY.md`: active fallback assets and historical backup boundary.
+- `COMPATIBILITY.md`: active fallback assets and the retired-backup boundary.
 - `WORKFLOWS.md`: development and validation commands.
 - `TESTING.md`: automated and browser checks.
 - `DECISIONS.md`: migration guardrails.

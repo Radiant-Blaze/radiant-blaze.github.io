@@ -1,0 +1,24 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  headerClass: string;
+  titleClass?: string;
+  descriptionClass?: string;
+}
+
+const {
+  title,
+  description,
+  headerClass,
+  titleClass,
+  descriptionClass,
+} = Astro.props;
+---
+<header class:list={[headerClass, "content-header", "quest-wrap"]}>
+  <slot name="eyebrow" />
+  <h1 class={titleClass}>{title}</h1>
+  {description && <p class={descriptionClass}>{description}</p>}
+  <slot name="meta" />
+  <slot name="tags" />
+</header>

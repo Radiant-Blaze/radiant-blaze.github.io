@@ -1,5 +1,6 @@
 ---
-import { formatHomeDate, getHomepageProjection } from "../lib/home-data";
+import { getHomepageProjection } from "../lib/home-data";
+import { formatDate } from "../lib/markdown";
 import Footer from "../components/Footer.astro";
 
 const { latestWriteup, latestPost } = await getHomepageProjection();
@@ -11,7 +12,7 @@ const feature = latestWriteup ?? latestPost ?? {
   dateLabel: "AUG 29, 2026",
   category: "CRYPTO",
 };
-const featureDate = "dateLabel" in feature ? feature.dateLabel : formatHomeDate(feature.date);
+const featureDate = "dateLabel" in feature ? feature.dateLabel : formatDate(feature.date);
 ---
 <!doctype html>
 <html lang="en" class="dark-theme">
@@ -41,8 +42,8 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatHomeDate(
     <link rel="stylesheet" href="/assets/css/style.css?v=20261115-1" />
     <script src="/assets/js/astro-controls.js?v=20261115-1" is:inline></script>
     <script defer src="/assets/js/music-controller.js?v=20261104-20" is:inline></script>
-    <script src="/assets/js/page-loader.js" defer is:inline></script>
-    <script defer src="/assets/js/astro-navigation.js" is:inline></script>
+    <script src="/assets/js/page-loader.js?v=20261117-1" defer is:inline></script>
+    <script defer src="/assets/js/astro-navigation.js?v=20261117-2" is:inline></script>
   </head>
   <body>
     <main class="game-screen">
@@ -73,7 +74,7 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatHomeDate(
         <div class="status-panel-header"><div class="status-status"><span class="status-light" aria-hidden="true"></span><span class="panel-title">LIVE LOADOUT</span></div><span class="loading-dots" aria-hidden="true">→</span></div>
         <div class="status-panel-grid">
           <a class="feature-tile feature-tile--primary" href={feature.href} data-latest-post aria-label={`Read the latest ${feature.type.toLowerCase()}: ${feature.title}`}><p class="quest-number">LATEST {feature.type}</p><h2>{feature.title}</h2><p>{feature.description}</p><div class="quest-meta"><span>{featureDate}</span><span><b>{feature.category.toUpperCase()}</b></span></div></a>
-          {latestPost && <a class="feature-tile" href={latestPost.href} aria-label={`Read the latest post: ${latestPost.title}`}><p class="quest-number">LATEST POST</p><h2>{latestPost.title}</h2><p>{latestPost.description}</p><div class="quest-meta"><span>{formatHomeDate(latestPost.date)}</span><span><b>{latestPost.category.toUpperCase()}</b></span></div></a>}
+          {latestPost && <a class="feature-tile" href={latestPost.href} aria-label={`Read the latest post: ${latestPost.title}`}><p class="quest-number">LATEST POST</p><h2>{latestPost.title}</h2><p>{latestPost.description}</p><div class="quest-meta"><span>{formatDate(latestPost.date)}</span><span><b>{latestPost.category.toUpperCase()}</b></span></div></a>}
           <a class="feature-tile" href="pages/search.html" aria-label="Search the archive"><p class="quest-number">SEARCH ARCHIVE</p><h2>Search the archive</h2><p>Browse every post, writeup, and tag in one place to find the exact material you need.</p><div class="quest-meta"><span>NOW</span><span><b>DISCOVER</b></span></div></a>
         </div>
       </section>

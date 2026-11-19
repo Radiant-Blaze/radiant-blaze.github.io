@@ -256,7 +256,7 @@ The workflow can also be started manually through GitHub's **Run workflow** acti
 
 ## Credits
 
-- **Pixel font**: the bundled Press Start 2P font files are used by the site's retro interface; source attribution is not stated in the repository metadata.
+- **Fonts**: bundled typefaces live in `public/assets/fonts/` with their license files. Press Start K (codeman38 freeware) drives the site's headings, with Press Start 2P (SIL OFL 1.1) as the base interface face; Jersey 25 (SIL OFL 1.1) carries blog body copy, November (Tepid Monkey Fonts freeware) carries code, and SF Pixelate (ShyFoundry Freeware EULA) carries interface labels. Attribution details are in `docs/THIRD_PARTY_LICENSES.md`.
 - **Music**: track metadata and attribution are maintained in `public/assets/music/metadata.json`. Tracks are organized for portfolio/homepage, archive, and article-reading contexts.
 - **Artwork**: the README banner and website artwork are stored under `public/images/`.
 - **Libraries**: Astro powers the static site, with `js-yaml` used for frontmatter parsing.

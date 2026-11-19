@@ -1,25 +1,27 @@
 ---
 import { getOrderedArticles, type OrderedWriteup, writeupRoute } from "../../../../lib/article-data";
 import { getWriteupPresentation } from "../../../../lib/article-metadata";
-import ArticleShell from "../../../../layouts/ArticleShell.astro";
-import { escapeHtml, formatDate, renderMarkdown } from "../../../../lib/markdown";
+import ContentHeader from "../../../../components/content/ContentHeader.astro";
+import ContentViewer from "../../../../components/content/ContentViewer.astro";
+import { renderContentView, renderTocHtml } from "../../../../lib/content-view";
+import { difficultyMeterHtml } from "../../../../lib/difficulty";
+import { escapeHtml, formatDate } from "../../../../lib/markdown";
 
 export async function getStaticPaths() {
   const { writeups } = await getOrderedArticles();
-  return writeups.map((writeup: OrderedWriteup, index: number) => ({
+  return writeups.map((writeup: OrderedWriteup) => ({
     params: {
       ctf: writeup.ctfId,
       challenge: writeup.challengeFile.replace(/\.md$/i, ""),
     },
     props: {
       ...writeup,
-      challengeIndex: index,
       eventChallengeFiles: writeup.challengeFiles,
     },
   }));
 }
 
-const { ctfId, challengeFile, entry, event, challengeIndex, eventChallengeFiles } = Astro.props;
+const { ctfId, challengeFile, entry, event, eventChallengeFiles } = Astro.props;
 const challenge = entry.data;
 const eventTitle = event.data.title;
 const {
@@ -27,7 +29,7 @@ const {
   description,
   category,
   points: pointsText,
-  stars,
+  difficulty,
   solves: solvesValue,
   flag: flagValue,
   tags: challengeTags,
@@ -39,37 +41,47 @@ const previous = eventChallengeFiles[challengeNumber - 1];
 const following = eventChallengeFiles[challengeNumber + 1];
 const eventQuery = new URLSearchParams({ ctf: ctfId }).toString();
 const challengeUrl = (file: string) => writeupRoute(ctfId, file);
-const solves = solvesValue ? `<li>SOLVES <strong>${escapeHtml(solvesValue)}</strong></li>` : "";
-const flag = flagValue ? `<h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(flagValue)}</p>` : "";
-const renderedBody = renderMarkdown(entry.body ?? "");
-// The page header owns the challenge title. Remove only a content H1 that
-// duplicates it; other writeup-level H1 sections remain meaningful content,
-// but are demoted so the page has one document title and a stable hierarchy.
-let firstContentHeading = true;
-const body = renderedBody.replace(/<h1>([\s\S]*?)<\/h1>/gi, (_match, inner) => {
-  const headingText = inner.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").trim();
-  if (firstContentHeading && headingText.localeCompare(title.trim(), undefined, { sensitivity: "accent" }) === 0) {
-    firstContentHeading = false;
-    return "";
-  }
-  firstContentHeading = false;
-  return `<h2>${inner}</h2>`;
-});
-const hasMath = /```math\b|\\\[|\\\(|\$\$/i.test(entry.body ?? "");
+const { html: body, headings } = await renderContentView(entry.body ?? "");
+const tocHtml = renderTocHtml(headings, "This writeup has no section headings.");
+const related = `${previous ? `<a href="${challengeUrl(previous)}">← PREVIOUS CHALLENGE</a>` : "<span>FIRST CHALLENGE</span>"}<span>CHALLENGE ${challengeNumber + 1} / ${eventChallengeFiles.length}</span>${following ? `<a href="${challengeUrl(following)}">NEXT CHALLENGE →</a>` : "<span>LAST CHALLENGE</span>"}`;
 const tagsForEvent = challengeTags
-  .map((tag) => `<a href="/pages/ctf.html?${eventQuery}"># ${escapeHtml(tag).toUpperCase()}</a>`)
+  .map((tag) => `<a href="/pages/ctf.html?${eventQuery}"># ${escapeHtml(tag)}</a>`)
   .join("");
-const related = `${previous ? `<a href="${challengeUrl(previous)}">← PREVIOUS CHALLENGE</a>` : "<span>← PREVIOUS CHALLENGE</span>"}<span>CHALLENGE ${challengeNumber + 1} / ${eventChallengeFiles.length}</span>${following ? `<a href="${challengeUrl(following)}">NEXT CHALLENGE →</a>` : "<span>NEXT CHALLENGE →</span>"}`;
-const sidebar = hasMath ? "" : `<aside class="sidebar"><section class="pixel-panel"><div class="hp-label"><span>READING PROGRESS</span><span>WRITEUP</span></div><div class="hp-track"><span class="hp-fill" data-hp></span></div></section><section class="pixel-panel"><h2>CHALLENGE DATA</h2><ul class="stat-list"><li>EVENT <strong>${escapeHtml(event.data.event ?? eventTitle)}</strong></li><li>DIFFICULTY <strong class="difficulty">${stars}</strong></li>${solves}</ul>${flag}</section><section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">${tagsForEvent}</nav></section></aside>`;
+const flagHtml = flagValue ? `<section class="writeup-flag"><h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(flagValue)}</p></section>` : "";
 ---
-<ArticleShell title={`${title} · ${eventTitle} · Radiant Blaze`} description={description} canonical={`https://radiant-blaze.github.io${route}`} type="writeup">
-  <p class="ctf-back quest-wrap"><a href={`/pages/ctf.html?${eventQuery}`}>← {eventTitle.toUpperCase()}</a></p>
-  <header class="article-header quest-wrap">
-    <p class="quest-number">{eventTitle.toUpperCase()} · {category}</p>
-    <h1 class="quest-title">{title.toUpperCase()}</h1>
-    <div class="article-info"><span>POINTS: <b>{pointsText}</b></span><span>DIFFICULTY: <b class="difficulty">{stars}</b></span>{solvesValue && <span>SOLVES: <b>{solvesValue}</b></span>}<span>BY <b>{author.toUpperCase()}</b></span></div>
-  </header>
-  <div class={`page-grid article-layout${hasMath ? " article-layout--full-width" : ""} quest-wrap`}>
-    <article class="quest-article"><Fragment set:html={body} /><nav class="article-related" aria-label="Related writeups" set:html={related}></nav></article><Fragment set:html={sidebar} />
-  </div>
-</ArticleShell>
+<ContentViewer
+  title={`${title} · ${eventTitle} · Radiant Blaze`}
+  description={description}
+  canonical={`https://radiant-blaze.github.io${route}`}
+  type="writeup"
+  body={body}
+  tocHtml={tocHtml}
+  tocLabel="Writeup contents"
+  relatedHtml={related}
+  relatedLabel="Related writeups"
+  flagHtml={flagHtml}
+  layoutClass="writeup-layout"
+  sidebarClass="writeup-sidebar"
+  articleClass="writeup-article"
+  sidebarLabel="Writeup navigation and challenge details"
+>
+  <nav slot="before" class="writeup-breadcrumb quest-wrap" aria-label="Breadcrumb"><a href={`/pages/ctf.html?${eventQuery}`}>CTF CHALLENGES</a><span aria-hidden="true">/</span><span>{eventTitle}</span></nav>
+  <ContentHeader
+    slot="header"
+    title={title}
+    description={description}
+    headerClass="writeup-header"
+    descriptionClass="writeup-description"
+  >
+    <p slot="eyebrow" class="writeup-event">{eventTitle}</p>
+    <div slot="meta" class="writeup-meta" aria-label="Challenge details">
+      <span class="writeup-category">{category}</span>
+      <span><b>{pointsText}</b> points</span>
+      <span><Fragment set:html={difficultyMeterHtml(difficulty)} /></span>
+      {solvesValue && <span><b>{solvesValue}</b> solves</span>}
+      <span>Published {formatDate(event.data.date)}</span>
+      <span>By {author}</span>
+    </div>
+    {challengeTags.length > 0 && <nav slot="tags" class="writeup-tags" aria-label="Challenge tags" set:html={tagsForEvent} />}
+  </ContentHeader>
+</ContentViewer>

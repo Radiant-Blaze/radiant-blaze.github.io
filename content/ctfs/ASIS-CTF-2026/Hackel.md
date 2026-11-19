@@ -237,7 +237,7 @@ print(flag.decode())
 
 A convenient complete solver is:
 
-```python
+```python title="solve.py" {11-14,19-22}
 encrypted_words = [
     # Paste the 496 encrypted words here.
 ]

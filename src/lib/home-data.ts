@@ -6,17 +6,6 @@ import {
   type HomeFeature,
 } from "./home-selection";
 
-export function formatHomeDate(date: Date) {
-  const dateOnly = date.toISOString().slice(0, 10);
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
-    .format(new Date(`${dateOnly}T00:00:00`))
-    .toUpperCase();
-}
-
 export async function getHomepageProjection() {
   const { posts, writeups } = await getOrderedArticles();
 

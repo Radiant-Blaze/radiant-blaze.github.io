@@ -4,7 +4,7 @@
 
 - `/` — home.
 - `/pages/blog.html`, `/pages/ctf.html`, `/pages/search.html`, `/pages/archive.html` — listing/search shells.
-- `/pages/post.html`, `/pages/writeup.html` — compatibility/query shells.
+- `/pages/post.html`, `/pages/writeup.html` — redirect-only compatibility shells for legacy query URLs.
 - `/generated/posts/...` — Astro-generated post routes.
 - `/generated/writeups/{event}/...` — Astro-generated writeup routes.
 - `/content/posts/index.json`, `/content/ctfs/index.json`, `/content/ctfs/{event}/ctf.json` — compatibility metadata endpoints.

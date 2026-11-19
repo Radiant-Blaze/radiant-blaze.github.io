@@ -1,0 +1,64 @@
+---
+import ArticleShell from "../../layouts/ArticleShell.astro";
+import ContentNavigation from "./ContentNavigation.astro";
+import ContentTOC from "./ContentTOC.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  type: "post" | "writeup";
+  body: string;
+  tocHtml: string;
+  tocLabel: string;
+  relatedHtml: string;
+  relatedLabel: string;
+  flagHtml?: string;
+  layoutClass: string;
+  sidebarClass: string;
+  articleClass?: string;
+  sidebarLabel: string;
+  progressLabel?: string;
+  showProgress?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  type,
+  body,
+  tocHtml,
+  tocLabel,
+  relatedHtml,
+  relatedLabel,
+  flagHtml = "",
+  layoutClass,
+  sidebarClass,
+  articleClass,
+  sidebarLabel,
+  progressLabel = "ARTICLE",
+  showProgress = true,
+} = Astro.props;
+---
+<ArticleShell {title} {description} {canonical} {type}>
+  <slot name="before" />
+  <slot name="header" />
+  <div class:list={[layoutClass, "content-layout", "quest-wrap"]}>
+    <article class:list={["quest-article", "content-article", articleClass]} data-content-article>
+      <Fragment set:html={body} />
+      <Fragment set:html={flagHtml} />
+      <ContentNavigation label={relatedLabel} html={relatedHtml} />
+    </article>
+    <aside class:list={["content-sidebar", sidebarClass]} aria-label={sidebarLabel}>
+      {showProgress && (
+        <section class="pixel-panel content-progress">
+          <div class="hp-label"><span>READING PROGRESS</span><span>{progressLabel}</span></div>
+          <div class="hp-track"><span class="hp-fill" data-hp></span></div>
+        </section>
+      )}
+      <ContentTOC html={tocHtml} label={tocLabel} />
+      <slot name="sidebar" />
+    </aside>
+  </div>
+</ArticleShell>

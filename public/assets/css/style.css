@@ -27,7 +27,49 @@
     U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
+/* Bundled display, terminal, and UI faces. Each is self-hosted as WOFF2 at the
+   single weight the site uses, so no unused weight is downloaded:
+   - Press Start K (codeman38 freeware): display headings, including the hero.
+   - Jersey 25 (SIL OFL 1.1): readable pixel sans for blog body copy.
+   - November (Tepid Monkey Fonts freeware): monospaced pixel face for terminals
+     and code.
+   - SF Pixelate (ShyFoundry Freeware EULA): chunky bold face for arcade-style
+     interface labels. */
+@font-face {
+  font-family: "Jersey 25";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/jersey-25/jersey-25-regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "November";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/november/november-regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "SF Pixelate";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/sf-pixelate/sf-pixelate-bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Press Start K";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/press-start/press-start-k.woff2") format("woff2");
+}
+
 :root {
+  --font-display: "Press Start K", "Press Start 2P", monospace;
+  --font-ui: "SF Pixelate", "Press Start 2P", monospace;
+  --font-terminal: "November", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --font-code: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
   --dark-ink: #171329;
   --dark-panel: #272044;
   --dark-shadow: #0b0815;
@@ -69,12 +111,22 @@ body {
     color 0.25s;
 }
 
+/* The pixel grid lives on the root element's canvas, so no page-level rule,
+   stacking context, or stale body class can remove it. */
 .dark-theme {
-  background: var(--dark-ink);
+  background-color: var(--dark-ink);
+  background-image:
+    linear-gradient(var(--dark-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dark-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
   color: var(--dark-text);
 }
 .light-theme {
-  background: var(--light-ink);
+  background-color: var(--light-ink);
+  background-image:
+    linear-gradient(var(--light-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--light-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
   color: var(--light-text);
 }
 
@@ -87,22 +139,6 @@ body {
   isolation: isolate;
 }
 
-.game-screen::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--dark-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--dark-grid) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-.light-theme .game-screen::before {
-  background-image:
-    linear-gradient(var(--light-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--light-grid) 1px, transparent 1px);
-}
 
 .top-bar,
 .hero,
@@ -199,7 +235,7 @@ footer {
   padding: 9px 12px;
   border: 2px solid transparent;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 11px;
   text-decoration: none;
   transition:
     transform 0.12s steps(2, end),
@@ -213,7 +249,7 @@ footer {
   color: var(--accent-orange);
   content: attr(data-nav-index);
   font-family: monospace;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: bold;
   letter-spacing: 0.12em;
   line-height: 1;
@@ -406,7 +442,7 @@ footer {
 }
 .level-label {
   color: var(--accent-cyan);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   margin: 0 0 23px;
 }
@@ -746,6 +782,7 @@ footer {
   .quest-nav a {
     min-width: 0;
     padding: 8px 10px;
+    font-size: 10px;
     white-space: nowrap;
   }
 
@@ -1418,21 +1455,6 @@ footer {
     background-position: 100% 0;
   }
 }
-.quest-screen::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image:
-    linear-gradient(var(--dark-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--dark-grid) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-.light-theme .quest-screen::before {
-  background-image:
-    linear-gradient(var(--light-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--light-grid) 1px, transparent 1px);
-}
 .quest-wrap {
   width: min(100% - 40px, 1180px);
   margin: auto;
@@ -1801,7 +1823,6 @@ footer {
 .listing-entry--event .listing-event { color: var(--accent-cyan); font-size: 7px; letter-spacing: .06em; }
 .event-stats { color: var(--muted); font-size: 7px; margin-top: 12px; }
 .event-stats b { color: var(--accent-orange); font-weight: normal; }
-.event-stats .difficulty { color: var(--accent-orange); letter-spacing: 2px; }
 .ctf-toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
 .ctf-toolbar[hidden] { display: none; }
 .ctf-select-label { display: inline-flex; align-items: center; gap: 8px; color: var(--accent-orange); font-size: 7px; }
@@ -1882,11 +1903,6 @@ footer {
 .quest-meta b {
   color: var(--accent-orange);
   font-weight: normal;
-}
-.difficulty {
-  color: var(--accent-orange);
-  letter-spacing: 2px;
-  white-space: nowrap;
 }
 .start-button {
   display: inline-block;
@@ -2529,12 +2545,6 @@ footer {
 .article-layout {
   grid-template-columns: minmax(0, 1fr) clamp(280px, calc(250px + 4vw), 320px);
 }
-.article-layout--full-width {
-  grid-template-columns: minmax(0, 1fr);
-}
-.article-layout--full-width > .sidebar {
-  display: none !important;
-}
 .article-header {
   padding: 42px 0 25px;
   border-bottom: 4px solid var(--text);
@@ -2550,19 +2560,6 @@ footer {
 .article-info b {
   color: var(--accent-orange);
   font-weight: normal;
-}
-.mission-map {
-  padding: 19px 21px;
-  margin: 29px 0;
-}
-.mission-map ol {
-  margin: 0;
-  padding-left: 20px;
-}
-.mission-map a {
-  color: var(--muted);
-  font-size: 9px;
-  text-decoration: none;
 }
 .hp-label {
   display: flex;
@@ -2602,6 +2599,19 @@ footer {
 .listing-entry .quest-meta { margin: 0; }
 .quest-article > :first-child {
   margin-top: 0;
+}
+.content-article pre {
+  position: relative;
+}
+.content-article h2,
+.content-article h3,
+.content-article h4,
+.content-article h5,
+.content-article h6 {
+  scroll-margin-top: 5.5rem;
+}
+.content-progress {
+  margin-bottom: 1rem;
 }
 .quest-article h2 {
   color: var(--accent-orange);
@@ -2683,20 +2693,6 @@ footer {
 }
 .quest-article pre[hidden] {
   display: none;
-}
-.quest-article .diagram {
-  background: var(--panel);
-  border: 3px solid var(--text);
-  box-shadow: 5px 5px 0 var(--shadow);
-  margin: 28px 0;
-  max-width: 100%;
-  overflow-x: auto;
-  padding: 17px;
-}
-.quest-article .diagram svg {
-  display: block;
-  margin: 0 auto;
-  max-width: none;
 }
 .quest-article table {
   border-collapse: collapse;
@@ -2863,7 +2859,7 @@ footer {
   background: transparent;
   color: var(--text);
   box-shadow: 4px 4px 0 var(--accent-pink);
-  font-size: 8px;
+  font-size: 11px;
   text-decoration: none;
   transition:
     transform 0.12s,
@@ -2873,10 +2869,10 @@ footer {
 .social-icon { grid-row: 1 / -1; display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--accent-cyan); background: var(--accent-cyan); color: var(--dark-shadow); }
 .social-icon svg { width: 22px; height: 22px; fill: currentColor; shape-rendering: crispEdges; }
 .social-label { align-self: end; letter-spacing: .04em; }
-.social-kind { align-self: start; color: var(--muted); font-size: 6px; letter-spacing: .04em; }
+.social-kind { align-self: start; color: var(--muted); font-size: 9px; letter-spacing: .04em; }
 /* Placeholder entries render as badges, not links, so they must not respond to
    hover the way a real destination does. The recessed look comes from the icon
-   block alone: dimming the whole badge pushed the 6px STANDBY text to ~3.5:1,
+   block alone: dimming the whole badge pushed the 9px STANDBY text to ~3.5:1,
    below the 4.5:1 AA floor. */
 .social-link.is-pending {
   opacity: 1;
@@ -2983,6 +2979,13 @@ footer {
        widens the whole column past the viewport. `minmax(0, 1fr)` lets the
        column shrink and keeps wide blocks scrolling inside it. */
     grid-template-columns: minmax(0, 1fr);
+  }
+  .content-layout > .content-sidebar {
+    order: -1;
+  }
+  .content-sidebar > .content-toc,
+  .content-sidebar > #rb-music-root {
+    grid-column: 1 / -1;
   }
   .sidebar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3833,5 +3836,979 @@ footer {
   #rb-music-root .rb-music-pill {
     animation: none;
     transition: none;
+  }
+}
+/* ===== Focused CTF writeup reading environment =====
+   Breadcrumb, header and reading grid all carry .quest-wrap, so the page
+   gutter has a single source of truth and their edges stay in line. */
+.writeup-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 22px;
+  color: var(--muted);
+  font: 8px/1.6 "Press Start 2P", monospace;
+}
+.writeup-breadcrumb a,
+.writeup-tags a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+}
+.writeup-breadcrumb a:hover,
+.writeup-breadcrumb a:focus-visible,
+.writeup-tags a:hover,
+.writeup-tags a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+.writeup-header {
+  padding: 30px 0 24px;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+}
+.writeup-event {
+  margin: 0 0 12px;
+  color: var(--accent-cyan);
+  font: 9px/1.6 "Press Start 2P", monospace;
+  letter-spacing: .03em;
+}
+.writeup-header h1 {
+  max-width: 25ch;
+  margin: 0;
+  color: var(--text);
+  font: 700 clamp(1.8rem, 3.4vw, 2.65rem)/1.18 system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+.writeup-description {
+  max-width: 76ch;
+  margin: 13px 0 0;
+  color: var(--muted);
+  font: 1rem/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.writeup-meta,
+.writeup-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  margin-top: 17px;
+  color: var(--muted);
+  font: 0.84rem/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.writeup-meta b { color: var(--text); font-weight: 650; }
+.writeup-meta .writeup-category {
+  padding: 3px 9px;
+  border-left: 3px solid var(--accent-pink);
+  background: color-mix(in srgb, var(--accent-pink) 12%, transparent);
+  color: var(--text);
+  font-weight: 650;
+}
+/* Difficulty reads as a five-segment meter plus a tier word: star glyphs look
+   like a review rating, which is the wrong signal on a challenge. */
+.difficulty-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: .45em;
+  color: var(--accent-cyan);
+  font: 700 .62rem/1 "Press Start 2P", monospace;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.difficulty-meter__bars { display: inline-flex; gap: 2px; }
+.difficulty-meter__bars i { width: 7px; height: 9px; border-radius: 1px; background: color-mix(in srgb, var(--muted) 24%, transparent); }
+.difficulty-meter__bars i.on { background: currentColor; box-shadow: 0 0 6px color-mix(in srgb, currentColor 40%, transparent); }
+.difficulty-meter[data-level="0"] { color: var(--muted); }
+.difficulty-meter[data-level="3"] { color: var(--accent-orange); }
+.difficulty-meter[data-level="4"],
+.difficulty-meter[data-level="5"] { color: var(--accent-pink); }
+.writeup-tags { gap: 7px 14px; margin-top: 10px; font-size: .78rem; }
+.writeup-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 82ch) 248px;
+  align-items: start;
+  justify-content: space-between;
+  gap: clamp(28px, 4vw, 72px);
+  padding-top: 30px;
+  padding-bottom: 64px;
+}
+.writeup-article {
+  min-width: 0;
+  max-width: 82ch;
+  color: var(--muted);
+  font: 1.04rem/1.82 system-ui, -apple-system, "Segoe UI", sans-serif;
+  overflow-wrap: anywhere;
+}
+.writeup-article > :first-child { margin-top: 0; }
+.writeup-article > h2:first-child { margin-top: 0; }
+.writeup-article h2,
+.writeup-article h3,
+.writeup-article h4,
+.writeup-article h5,
+.writeup-article h6 {
+  scroll-margin-top: 5.5rem;
+  overflow-wrap: anywhere;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: -.015em;
+}
+.writeup-article h2 {
+  margin: 1.65em 0 .65em;
+  padding-bottom: .35em;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
+  color: var(--text);
+  font-size: 1.6rem;
+  line-height: 1.3;
+}
+.writeup-article h3 { margin: 2em 0 .55em; color: var(--accent-cyan); font-size: 1.28rem; line-height: 1.4; }
+.writeup-article h4,
+.writeup-article h5,
+.writeup-article h6 { margin: 1.7em 0 .45em; color: var(--text); font-size: 1.08rem; line-height: 1.45; }
+.writeup-article p { margin: 0 0 1.25em; }
+.writeup-article li { margin: 0 0 .5em; }
+.writeup-article ul,
+.writeup-article ol { margin: 0 0 1.35em; padding-left: 1.5em; }
+.writeup-article strong { color: var(--text); }
+.writeup-article a { color: var(--accent-cyan); text-decoration: underline; text-underline-offset: 3px; }
+.writeup-article a:hover,
+.writeup-article a:focus-visible { color: var(--accent-orange); }
+.writeup-article :not(pre) > code {
+  padding: .12em .36em;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 30%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 9%, var(--dark-shadow));
+  color: var(--accent-cyan);
+  font: .88em/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+.writeup-article pre {
+  position: relative;
+  max-width: 100%;
+  margin: 1.5em 0;
+  padding: 2.85rem 1.1rem 1.1rem;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--accent-pink) 48%, var(--muted));
+  border-radius: 5px;
+  background: #100d1a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+  color: #d6f6f3;
+  font: .88rem/1.68 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  tab-size: 4;
+  white-space: pre;
+  overscroll-behavior-x: contain;
+}
+.writeup-article pre code {
+  display: block;
+  min-width: max-content;
+  color: inherit;
+  font: inherit;
+}
+.writeup-article pre code[data-language]::before {
+  position: absolute;
+  top: .72rem;
+  left: 1rem;
+  color: var(--accent-cyan);
+  content: attr(data-language);
+  font: 700 .68rem/1.4 system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.writeup-article pre code[data-language="text"]::before { content: "TERMINAL OUTPUT"; }
+.writeup-article pre code[data-language="mermaid"]::before { content: "DIAGRAM SOURCE"; }
+.content-copy {
+  position: absolute;
+  z-index: 1;
+  top: .55rem;
+  right: .65rem;
+  min-height: 30px;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 55%, transparent);
+  border-radius: 3px;
+  background: #1c1930;
+  color: var(--text);
+  cursor: pointer;
+  font: 700 .7rem/1.4 system-ui, sans-serif;
+}
+.content-copy:hover,
+.content-copy:focus-visible { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.content-copy:focus-visible,
+.content-toc a:focus-visible { outline: 2px solid var(--accent-orange); outline-offset: 3px; }
+.writeup-article .math-block {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 35%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  box-shadow: none;
+}
+.writeup-article table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 1.5em 0;
+  overflow-x: auto;
+  border-collapse: collapse;
+  border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  font-size: .92rem;
+  overscroll-behavior-x: contain;
+}
+.writeup-article th,
+.writeup-article td { padding: .65em .85em; border: 1px solid color-mix(in srgb, var(--muted) 28%, transparent); text-align: left; vertical-align: top; }
+.writeup-article th { background: color-mix(in srgb, var(--accent-cyan) 11%, var(--panel)); color: var(--text); font-size: .85em; }
+.writeup-article td { color: var(--muted); }
+.writeup-article img { display: block; width: auto; height: auto; max-width: 100%; margin: 1.7em 0; border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); border-radius: 4px; box-shadow: none; }
+.writeup-article figure { max-width: 100%; margin: 1.7em 0; }
+.writeup-article figcaption { color: var(--muted); font: .85rem/1.6 system-ui, sans-serif; }
+.writeup-article blockquote {
+  margin: 1.5em 0;
+  padding: .85em 1.1em;
+  border: 0;
+  border-left: 3px solid var(--accent-orange);
+  background: color-mix(in srgb, var(--accent-orange) 7%, transparent);
+  color: var(--text);
+}
+.writeup-article blockquote::before { content: none; }
+.writeup-article blockquote p:last-child { margin-bottom: 0; }
+.writeup-article .article-related { margin-top: 3em; padding-top: 1.2em; border-top: 1px solid color-mix(in srgb, var(--muted) 28%, transparent); }
+.writeup-sidebar { position: static; min-width: 0; padding: .85rem; border: 1px solid color-mix(in srgb, var(--accent-cyan) 22%, var(--muted)); border-radius: 6px; background: color-mix(in srgb, var(--panel) 42%, var(--ink)); }
+.content-toc { padding: .15rem 0 1rem; border-bottom: 1px solid color-mix(in srgb, var(--muted) 28%, transparent); }
+.content-toc summary { margin-bottom: .65rem; color: var(--text); cursor: pointer; font: 700 .7rem/1.6 system-ui, sans-serif; letter-spacing: .08em; list-style: none; }
+.content-toc summary::-webkit-details-marker { display: none; }
+.content-toc summary::after { content: "−"; float: right; color: var(--accent-cyan); }
+.content-toc:not([open]) summary { margin-bottom: 0; }
+.content-toc:not([open]) summary::after { content: "+"; }
+.content-toc ol { margin: 0; padding: 0; list-style: none; }
+.content-toc__children { margin: .15rem 0 .35rem .8rem; padding-left: .65rem; border-left: 1px solid color-mix(in srgb, var(--muted) 30%, transparent); }
+.content-toc li { margin: 0; }
+.content-toc__row { display: flex; align-items: center; gap: .2rem; margin: .18rem 0; padding: .3rem .35rem .3rem .58rem; border: 1px solid color-mix(in srgb, var(--accent-cyan) 18%, transparent); border-left: 2px solid color-mix(in srgb, var(--accent-cyan) 65%, transparent); border-radius: 3px; background: color-mix(in srgb, var(--accent-cyan) 5%, transparent); }
+.content-toc__link { display: block; flex: 1; min-width: 0; padding: .18rem 0; color: var(--muted); font: .78rem/1.45 system-ui, sans-serif; text-decoration: none; overflow-wrap: anywhere; }
+.content-toc__children .content-toc__link { padding: .34rem .45rem; }
+.content-toc__children .content-toc__row { margin: 0; padding: 0; border: 0; background: none; }
+.content-toc__children .content-toc__row:hover { background: color-mix(in srgb, var(--accent-cyan) 8%, transparent); }
+.content-toc > nav > ol > li > .content-toc__row { border-color: color-mix(in srgb, var(--accent-cyan) 18%, transparent); border-left-color: color-mix(in srgb, var(--accent-cyan) 65%, transparent); background: color-mix(in srgb, var(--accent-cyan) 5%, transparent); }
+.content-toc > nav > ol > li:nth-child(3n + 2) > .content-toc__row { border-color: color-mix(in srgb, var(--accent-pink) 22%, transparent); border-left-color: color-mix(in srgb, var(--accent-pink) 68%, transparent); background: color-mix(in srgb, var(--accent-pink) 5%, transparent); }
+.content-toc > nav > ol > li:nth-child(3n) > .content-toc__row { border-color: color-mix(in srgb, var(--accent-orange) 22%, transparent); border-left-color: color-mix(in srgb, var(--accent-orange) 68%, transparent); background: color-mix(in srgb, var(--accent-orange) 5%, transparent); }
+.content-toc__row:hover { background: color-mix(in srgb, var(--accent-cyan) 11%, var(--panel)); }
+.content-toc > nav > ol > li > .content-toc__row:has(> .content-toc__link[aria-current="location"]) { border-color: color-mix(in srgb, var(--accent-pink) 65%, transparent); background: color-mix(in srgb, var(--accent-pink) 12%, var(--panel)); box-shadow: inset 0 0 14px color-mix(in srgb, var(--accent-pink) 7%, transparent); }
+.content-toc__row:has(> .content-toc__link[aria-current="location"]) > .content-toc__link { color: var(--text); }
+.content-toc__group[data-clamped="true"] > .content-toc__children > li:nth-child(n + 4) { display: none; }
+.content-toc__more {
+  display: block;
+  width: 100%;
+  margin: .1rem 0 .45rem;
+  padding: .35rem .45rem .35rem .58rem;
+  border: 0;
+  border-left: 2px dashed color-mix(in srgb, var(--accent-cyan) 40%, transparent);
+  border-radius: 0 3px 3px 0;
+  background: color-mix(in srgb, var(--accent-cyan) 6%, transparent);
+  color: var(--accent-cyan);
+  cursor: pointer;
+  font: 700 .72rem/1.4 system-ui, sans-serif;
+  letter-spacing: .04em;
+  text-align: left;
+}
+.content-toc__more:hover,
+.content-toc__more:focus-visible { background: color-mix(in srgb, var(--accent-cyan) 14%, transparent); color: var(--text); }
+.content-toc__more-close { display: none; }
+.content-toc__group[data-clamped="false"] > .content-toc__more { border-left-style: solid; border-left-color: color-mix(in srgb, var(--muted) 45%, transparent); background: transparent; color: var(--muted); }
+.content-toc__group[data-clamped="false"] > .content-toc__more .content-toc__more-open { display: none; }
+.content-toc__group[data-clamped="false"] > .content-toc__more .content-toc__more-close { display: inline; }
+.content-toc__empty { color: var(--muted); font: .8rem/1.5 system-ui, sans-serif; }
+.writeup-flag {
+  margin: 2.2rem 0 0;
+  padding: 1rem 1.15rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--accent-pink) 32%, transparent);
+  border-left: 3px solid var(--accent-pink);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent-pink) 7%, var(--panel));
+}
+.writeup-flag h2 {
+  margin: 0 0 .6rem;
+  padding: 0;
+  border: 0;
+  color: var(--accent-pink);
+  font: 700 .7rem/1.5 "Press Start 2P", monospace;
+  letter-spacing: .1em;
+}
+.writeup-flag h2::before { content: "✓ "; color: var(--accent-cyan); }
+.writeup-flag .ctf-flag {
+  margin: 0;
+  padding: .7rem .85rem;
+  border: 1px dashed color-mix(in srgb, var(--accent-cyan) 35%, transparent);
+  border-radius: 3px;
+  background: var(--ink);
+  color: var(--accent-cyan);
+  font: .82rem/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.writeup-article :focus-visible,
+.writeup-breadcrumb :focus-visible,
+.writeup-tags :focus-visible { outline: 2px solid var(--accent-orange); outline-offset: 3px; }
+@media (max-width: 1100px) {
+  .writeup-breadcrumb,
+  .writeup-header,
+  .writeup-layout { max-width: 780px; }
+  .writeup-layout { grid-template-columns: minmax(0, 1fr); }
+  .writeup-article { max-width: none; }
+  .writeup-sidebar { position: static; order: -1; width: 100%; max-height: none; overflow: visible; padding: 0; border: 0; background: transparent; }
+}
+@media (max-width: 800px) {
+  .writeup-breadcrumb,
+  .writeup-header,
+  .writeup-layout { max-width: 760px; }
+  .writeup-layout { display: flex; flex-direction: column; gap: 1.2rem; padding-top: 20px; }
+  .writeup-sidebar { position: static; order: -1; width: 100%; max-height: none; overflow: visible; }
+  .content-toc { padding: .7rem .85rem; border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent); border-radius: 4px; }
+  .content-toc summary { margin: 0; }
+  .content-toc[open] summary { margin-bottom: .55rem; }
+  .writeup-article { width: 100%; max-width: none; }
+}
+@media (max-width: 480px) {
+  .writeup-breadcrumb { padding-top: 14px; font-size: 7px; }
+  .writeup-header { padding: 22px 0 18px; }
+  .writeup-event { font-size: 8px; }
+  .writeup-header h1 { font-size: clamp(1.65rem, 8vw, 2rem); }
+  .writeup-description { font-size: .96rem; }
+  .writeup-meta { gap: 6px 12px; font-size: .78rem; }
+  .writeup-layout { padding-bottom: 42px; }
+  .writeup-article { font-size: 1rem; line-height: 1.78; }
+  .writeup-article h2 { font-size: 1.38rem; }
+  .writeup-article h3 { font-size: 1.16rem; }
+  .writeup-article pre { padding: 2.75rem .85rem .9rem; font-size: .81rem; }
+  .content-copy { right: .45rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .writeup-layout,
+  .writeup-article,
+  .content-toc { scroll-behavior: auto; }
+}
+/* Site-wide the music dock is fixed bottom-right, which would cover the
+   writeup reading column. On writeups it sits in the ToC sidebar directly
+   below the ToC and scrolls out naturally with the page. */
+body.content-document #rb-music-root {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 1rem 0 0;
+}
+body.content-document #rb-music-root .rb-music-pill {
+  width: 100%;
+}
+body.content-document #rb-music-root .rb-music-player {
+  position: static;
+  width: 100%;
+  margin-top: 1rem;
+}
+.writeup-article pre code .token.comment,
+.writeup-article pre code .comment { color: #91a1bb; font-style: italic; }
+.writeup-article pre code .token.keyword,
+.writeup-article pre code .keyword { color: #ff83b4; }
+.writeup-article pre code .token.string,
+.writeup-article pre code .string { color: #a9e88e; }
+.writeup-article pre code .token.function,
+.writeup-article pre code .function { color: #89d9ff; }
+.writeup-article pre code .token.number,
+.writeup-article pre code .number { color: #e7a6ff; }
+@media (max-width: 800px) {
+  body.writeup-document .quest-top.site-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand tools" "nav nav";
+  }
+  body.writeup-document .quest-brand { grid-area: brand; justify-self: start; }
+  body.writeup-document .quest-nav-group { display: contents; }
+  body.writeup-document .quest-nav-tools { grid-area: tools; }
+  body.writeup-document .quest-nav { grid-area: nav; }
+  body.writeup-document .quest-top.site-header:not(.is-menu-open):not(.is-menu-closing) .quest-nav { display: none; }
+}
+
+/* ===== Typography roles =====
+   Three bundled faces share the work instead of replacing Press Start 2P
+   everywhere: Jersey 25 carries display headings and blog body copy, SF
+   Pixelate carries interface labels, and November carries terminal/code text.
+   Sizes and spacing stay with the existing component rules unless a face needs
+   its own optical adjustment. */
+/* Display. Single 400 weight, so avoid synthetic bold on headings that inherit
+   a browser default of 700. */
+h1,
+.quest-title,
+.section-heading,
+.pixel-panel h2,
+.portfolio-section-heading h2,
+.portfolio-skill-group h3,
+.portfolio-snapshot-title,
+.quest-card h2,
+.feature-tile h2,
+.writeup-header h1,
+.writeup-article h1,
+.writeup-article h2,
+.writeup-article h3,
+.writeup-article h4,
+.writeup-article h5,
+.writeup-article h6,
+.quest-article h1,
+.quest-article h2,
+.quest-article h3,
+.quest-article h4,
+.quest-article h5,
+.quest-article h6 {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+/* Jersey 25 is proportionally narrower than Press Start 2P; the old negative
+   tracking was tuned for the wide monospaced face and now crowds glyphs. */
+h1,
+.quest-title,
+.writeup-header h1,
+.rb-404-hero h1 {
+  letter-spacing: -0.015em;
+}
+/* The homepage "BLAZE'S BLOGPOST" line uses the display heading face. */
+.hero h1 {
+  font-family: var(--font-display);
+  letter-spacing: -0.08em;
+}
+/* Blog reading column. Scope out .writeup-article so CTF writeups keep their
+   separate, larger system-ui reading treatment. */
+.quest-article:not(.writeup-article) {
+  font-family: var(--font-display);
+  font-size: 13px;
+  line-height: 1.85;
+}
+/* Code blocks and inline code use a normal-width system mono so YAML, Python,
+   and command output stay comfortable to read. November's compressed glyphs
+   are kept for the decorative terminal panels and flag strings. */
+.quest-article pre,
+.quest-article pre code,
+.quest-article :not(pre) > code,
+.writeup-article pre,
+.writeup-article pre code,
+.writeup-article :not(pre) > code {
+  font-family: var(--font-code);
+  font-weight: 400;
+}
+.terminal,
+.ctf-flag,
+.writeup-flag .ctf-flag {
+  font-family: var(--font-terminal);
+  font-weight: 400;
+}
+/* Nudge the two 11px terminal surfaces up a pixel to keep text comfortable. */
+.quest-article:not(.writeup-article) pre,
+.terminal {
+  font-size: 12px;
+}
+/* Interface labels: navigation, buttons, metadata, tags, and breadcrumbs. */
+.home-nav a,
+.quest-nav a,
+.portfolio-nav a,
+.pixel-button,
+.cta-button,
+.start-button,
+.level-label,
+.eyebrow,
+.quest-number,
+.article-info,
+.quest-meta,
+.listing-event,
+.listing-tag,
+.event-kicker,
+.event-stats,
+.ctf-select-label,
+.filter-pill,
+.search-toolbar > .search-pills::before,
+.top-tags::before,
+.record-count,
+.footer-stats,
+.social-link,
+.save-year,
+.save-list small,
+.writeup-breadcrumb,
+.writeup-event,
+.writeup-meta,
+.writeup-tags,
+.difficulty-meter,
+.writeup-flag h2,
+.content-toc summary,
+.content-toc__link,
+.content-toc__more,
+.content-toc__empty,
+.content-copy,
+.article-related,
+.quest-article pre code[data-language]::before,
+.writeup-article pre code[data-language]::before,
+.terminal::before {
+  font-family: var(--font-ui);
+  font-weight: 700;
+}
+/* Previous/next challenge and related-content links were 7px; size them like
+   the rest of the navigation so the labels are readable. */
+.article-related {
+  font-size: 11px;
+}
+@media (max-width: 590px) {
+  .article-related {
+    font-size: 10px;
+  }
+}
+/* The 404 console screen is UI chrome rather than body text. */
+.rb-404-screen {
+  font-family: var(--font-ui);
+  font-weight: 700;
+}
+
+/* ===== Mermaid diagram viewer =====
+   One panel style for blog posts and writeups. The frame owns the border and
+   the stage owns scrolling, so a wide SVG never widens the page. */
+.quest-article .diagram {
+  display: flex;
+  flex-direction: column;
+  margin: 28px 0;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 34%, var(--muted));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 84%, var(--ink));
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--shadow) 55%, transparent);
+  overflow: hidden;
+}
+.diagram__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--muted) 32%, transparent);
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+.diagram__label {
+  color: var(--accent-cyan);
+  font: 700 0.62rem/1 var(--font-ui);
+  letter-spacing: 0.1em;
+}
+.diagram__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+.diagram__btn {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 45%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 7%, var(--ink));
+  color: var(--text);
+  cursor: pointer;
+  font: 700 0.62rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.diagram__btn:hover {
+  border-color: var(--accent-cyan);
+  background: color-mix(in srgb, var(--accent-cyan) 16%, var(--ink));
+  color: var(--accent-cyan);
+}
+.diagram__btn:focus-visible {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+.diagram__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.diagram__btn--zoom {
+  min-width: 46px;
+}
+.diagram__stage {
+  padding: 17px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.diagram__stage svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  /* Keep labels near their rendered size; narrow viewports scroll the stage
+     instead of shrinking the chart into illegibility. */
+  min-width: max(100%, var(--diagram-min-width, 0px));
+  /* Mermaid writes an inline max-width capped at its intrinsic render width;
+     the frame is the authority so diagrams fill the available space. */
+  max-width: 100% !important;
+}
+.diagram__status {
+  min-height: 0;
+  margin: 0;
+  padding: 0 10px 6px;
+  color: var(--accent-orange);
+  font: 700 0.6rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-align: right;
+}
+.diagram__status:empty {
+  display: none;
+}
+.diagram-error {
+  margin: 24px 0 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-orange) 55%, transparent);
+  border-left: 3px solid var(--accent-orange);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent-orange) 9%, transparent);
+  color: var(--text);
+  font: 700 0.7rem/1.6 var(--font-ui);
+  letter-spacing: 0.03em;
+}
+/* Expanded view is a native modal dialog: Escape, focus return, and the
+   backdrop are handled by the platform. */
+.diagram-dialog {
+  width: min(96vw, 1400px);
+  max-width: 96vw;
+  height: min(90vh, 1100px);
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 45%, var(--muted));
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+.diagram-dialog::backdrop {
+  background: rgba(11, 8, 21, 0.82);
+}
+.diagram-dialog__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--muted) 32%, transparent);
+  background: color-mix(in srgb, var(--ink) 55%, var(--panel));
+}
+.diagram-dialog__title {
+  max-width: 42ch;
+  overflow: hidden;
+  color: var(--accent-cyan);
+  font: 700 0.66rem/1.4 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diagram-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+.diagram-dialog__viewport {
+  max-height: calc(90vh - 54px);
+  padding: 14px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.diagram-dialog__canvas {
+  width: 100%;
+  margin: 0 auto;
+}
+.diagram-dialog__canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100% !important;
+}
+@media (max-width: 480px) {
+  .diagram__bar,
+  .diagram-dialog__bar {
+    gap: 6px;
+  }
+  .diagram__btn {
+    padding: 5px 7px;
+  }
+  .diagram-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  .diagram-dialog__viewport {
+    max-height: calc(100dvh - 54px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diagram__btn {
+    transition: none;
+  }
+}
+
+/* ===== CTF writeup presentation =====
+   Scoped to the writeup reading column. Blog articles keep their existing
+   presentation. These rules add hierarchy for long investigations without
+   changing the shared ContentViewer or Markdown structure. */
+.writeup-article {
+  counter-reset: ctf-figure;
+}
+.writeup-article > p:first-of-type {
+  color: var(--text);
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+/* The page header already shows the challenge title; the authored top heading
+   is a report subtitle, not a second hero heading. The marker comes from the
+   converter, so a writeup that starts directly at "## Section" keeps normal
+   heading weight. */
+.writeup-article > h2.writeup-lead {
+  margin: 0.2rem 0 1.15rem;
+  padding: 0 0 0 0.7rem;
+  border-bottom: 0;
+  border-left: 3px solid color-mix(in srgb, var(--muted) 55%, transparent);
+  color: var(--muted);
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+.writeup-article h2 {
+  margin-top: 2.35em;
+  padding-left: 0.8rem;
+  border-left: 4px solid var(--accent-cyan);
+}
+.writeup-article h3 {
+  margin-top: 2.1em;
+  padding-left: 0.6rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent-cyan) 45%, transparent);
+}
+.writeup-article h2 + p,
+.writeup-article h3 + p {
+  margin-top: 0;
+}
+.writeup-article ol > li::marker {
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+.writeup-article ul > li::marker {
+  color: var(--accent-orange);
+}
+/* Challenge briefs and author notes. The label provides a non-color cue. */
+.writeup-article blockquote {
+  padding: 0.85rem 1.05rem;
+  border: 0;
+  border-left: 4px solid var(--accent-orange);
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-orange) 10%, transparent), transparent 78%);
+}
+.writeup-article blockquote::before {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--accent-orange);
+  content: "NOTE";
+  font: 700 0.62rem/1.3 var(--font-ui);
+  letter-spacing: 0.12em;
+}
+.writeup-article blockquote p:last-child {
+  margin-bottom: 0;
+}
+/* Requirement tables and offset tables carry exact technical values. */
+.writeup-article tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--panel) 55%, transparent);
+}
+.writeup-article th {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.writeup-article td {
+  color: color-mix(in srgb, var(--text) 78%, var(--muted));
+}
+/* Code blocks: a header strip with language/file identity, then the code.
+   Shell sessions, raw output, and source stay distinguishable by the label
+   text and the accent, so color is never the only signal. */
+.writeup-article pre {
+  padding: 2.95rem 1.15rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--accent-pink) 40%, var(--muted));
+  border-left: 4px solid var(--accent-pink);
+  border-radius: 6px;
+  background: #100d1a;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  overflow: auto;
+  overscroll-behavior-x: contain;
+}
+.writeup-article pre::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0 0 auto;
+  height: 2.45rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 24%, transparent);
+  border-radius: 5px 5px 0 0;
+  background: color-mix(in srgb, var(--ink) 55%, #000);
+  content: "";
+}
+.writeup-article pre code[data-language]::before {
+  position: absolute;
+  z-index: 2;
+  top: 0.55rem;
+  left: 0.95rem;
+  max-width: calc(100% - 7.5rem);
+  padding: 0.28rem 0.5rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 38%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 10%, #0b0815);
+  color: var(--accent-cyan);
+  content: attr(data-language);
+  font: 700 0.62rem/1.2 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.writeup-article pre code[data-filename]::before {
+  content: attr(data-language) "  /  " attr(data-filename);
+}
+.writeup-article pre:has(code[data-language="bash"]),
+.writeup-article pre:has(code[data-language="sh"]),
+.writeup-article pre:has(code[data-language="shell"]),
+.writeup-article pre:has(code[data-language="zsh"]) {
+  border-left-color: var(--accent-cyan);
+}
+.writeup-article pre:has(code[data-language="text"]),
+.writeup-article pre:has(code[data-language="console"]),
+.writeup-article pre:has(code[data-language="plaintext"]) {
+  border-left-color: var(--accent-orange);
+}
+.writeup-article pre:has(code[data-language="text"]) code[data-language]::before,
+.writeup-article pre:has(code[data-language="console"]) code[data-language]::before,
+.writeup-article pre:has(code[data-language="plaintext"]) code[data-language]::before {
+  border-color: color-mix(in srgb, var(--accent-orange) 42%, transparent);
+  background: color-mix(in srgb, var(--accent-orange) 10%, #0b0815);
+  color: var(--accent-orange);
+}
+.writeup-article .content-copy {
+  top: 0.5rem;
+  right: 0.6rem;
+  z-index: 2;
+  min-height: 26px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 42%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 8%, #0b0815);
+  color: var(--text);
+  font: 700 0.6rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+}
+.writeup-article .content-copy:hover,
+.writeup-article .content-copy:focus-visible {
+  border-color: var(--accent-cyan);
+  background: color-mix(in srgb, var(--accent-cyan) 16%, #0b0815);
+  color: var(--accent-cyan);
+}
+/* Optional line emphasis: ```lang {2,5-7} */
+.writeup-article pre code .line {
+  display: block;
+  min-width: max-content;
+}
+.writeup-article pre code .line.is-highlighted {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-pink) 17%, transparent), transparent 82%);
+  box-shadow: inset 3px 0 0 var(--accent-pink);
+}
+/* Diagrams keep their viewer; the frame gains a quiet figure label. */
+.writeup-article .diagram {
+  counter-increment: ctf-figure;
+  margin: 2.2rem 0;
+}
+.writeup-article .diagram::after {
+  align-self: flex-end;
+  padding: 0 10px 8px;
+  color: var(--muted);
+  content: "FIG. " counter(ctf-figure);
+  font: 700 0.58rem/1.2 var(--font-ui);
+  letter-spacing: 0.12em;
+}
+/* Evidence images: preserve proportions, never crop. */
+.writeup-article img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  border-radius: 4px;
+}
+.writeup-article figure {
+  margin: 2rem 0;
+}
+.writeup-article figcaption {
+  color: var(--muted);
+  font: 0.84rem/1.6 system-ui, sans-serif;
+  text-align: center;
+}
+/* Captured flag block: keep the single metadata source, make copying easy. */
+.writeup-flag {
+  border: 1px solid color-mix(in srgb, var(--accent-pink) 34%, transparent);
+  border-left: 4px solid var(--accent-pink);
+  border-radius: 0 4px 4px 0;
+}
+.writeup-flag .ctf-flag {
+  font-size: 0.92rem;
+  line-height: 1.75;
+}
+.flag-copy {
+  margin-top: 0.6rem;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 42%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 8%, #0b0815);
+  color: var(--text);
+  cursor: pointer;
+  font: 700 0.6rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+}
+.flag-copy:hover,
+.flag-copy:focus-visible {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+.flag-copy:focus-visible {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+/* Keep the ToC and music player available on long writeups. Natural document
+   order is unchanged: ToC first, music player below it. */
+@media (min-width: 1101px) {
+  .writeup-sidebar {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--muted) 55%, transparent) transparent;
+  }
+  /* Long writeups have 20+ ToC entries. A slightly denser rail keeps the
+     current entry visible without a second, oversized scroll region. */
+  .writeup-sidebar .content-toc__row {
+    margin: 0.08rem 0;
+    padding: 0.18rem 0.3rem 0.18rem 0.5rem;
+  }
+  .writeup-sidebar .content-toc__link {
+    padding: 0.1rem 0;
+  }
+  .writeup-sidebar .content-toc__children .content-toc__link {
+    padding: 0.2rem 0.4rem;
+  }
+  .writeup-sidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .writeup-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .writeup-sidebar::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--muted) 55%, transparent);
+  }
+}
+@media (max-width: 480px) {
+  .writeup-article pre {
+    padding: 2.9rem 0.85rem 0.95rem;
+  }
+  .writeup-article blockquote {
+    padding: 0.75rem 0.9rem;
   }
 }

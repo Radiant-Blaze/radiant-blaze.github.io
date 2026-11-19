@@ -1,28 +1,10 @@
 import { homePostPageUrl, homeWriteupPageUrl } from "./home-selection";
-import { escapeHtml } from "./markdown";
-
-export function formatClientDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
-    .format(new Date(`${value}T00:00:00`))
-    .toUpperCase();
-}
-
-export function formatClientMonth(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    month: "long",
-    year: "numeric",
-  })
-    .format(new Date(`${value}T00:00:00`))
-    .toUpperCase();
-}
+import { difficultyMeterHtml } from "./difficulty";
+import { escapeHtml, formatDate } from "./markdown";
 
 export function postCardHtml(post: Record<string, any>) {
   const tags = (post.tags || []).map((tag: string) => `<span class="listing-tag">#${escapeHtml(tag).toUpperCase()}</span>`).join("");
-  return `<article class="quest-card listing-entry listing-entry--post"><div class="listing-entry__main"><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="listing-tags">${tags}</div><div class="quest-meta"><span>${formatClientDate(post.date)}</span><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div></div><a class="listing-entry__action pixel-button start-button" href="${homePostPageUrl(post.file)}">READ POST →</a></article>`;
+  return `<article class="quest-card listing-entry listing-entry--post"><div class="listing-entry__main"><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="listing-tags">${tags}</div><div class="quest-meta"><span>${formatDate(post.date)}</span><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div></div><a class="listing-entry__action pixel-button start-button" href="${homePostPageUrl(post.file)}">READ POST →</a></article>`;
 }
 
 function ctfViewportVariant(_ctf: Record<string, any>, index = 0) {
@@ -31,19 +13,15 @@ function ctfViewportVariant(_ctf: Record<string, any>, index = 0) {
 }
 
 export function ctfCardHtml(ctf: Record<string, any>, index = 0) {
-  const difficulty = Math.max(0, Math.min(5, Number.parseInt(String(ctf.difficulty ?? "0"), 10) || 0));
-  const stars = "★".repeat(difficulty) + "☆".repeat(5 - difficulty);
   const challengeCount = ctf.challengeCount ?? ctf.challenges.length;
   const viewportVariant = ctfViewportVariant(ctf, index);
-  return `<article class="quest-card listing-entry listing-entry--event"><div class="event-viewport event-viewport--${viewportVariant}" aria-hidden="true"><img class="event-viewport__screen" src="/assets/ctf-animations/${viewportVariant}.svg" alt="" /></div><div class="listing-entry__main"><div class="event-kicker"><span class="quest-number">CTF EVENT</span></div><h2>${escapeHtml(ctf.title)}</h2><p class="listing-event">${escapeHtml(ctf.event || "INDEPENDENT EVENT")}</p><p>${escapeHtml(ctf.description || "")}</p><div class="event-stats"><span>${formatClientDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span><b class="difficulty" title="Difficulty">${stars}</b> DIFFICULTY</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT <span aria-hidden="true">→</span></a></article>`;
+  return `<article class="quest-card listing-entry listing-entry--event"><div class="event-viewport event-viewport--${viewportVariant}" aria-hidden="true"><img class="event-viewport__screen" src="/assets/ctf-animations/${viewportVariant}.svg" alt="" /></div><div class="listing-entry__main"><div class="event-kicker"><span class="quest-number">CTF EVENT</span></div><h2>${escapeHtml(ctf.title)}</h2><p class="listing-event">${escapeHtml(ctf.event || "INDEPENDENT EVENT")}</p><p>${escapeHtml(ctf.description || "")}</p><div class="event-stats"><span>${formatDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span class="event-difficulty">${difficultyMeterHtml(ctf.difficulty)} DIFFICULTY</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT <span aria-hidden="true">→</span></a></article>`;
 }
 
 export function writeupCardHtml(ctf: Record<string, any>, challenge: Record<string, any>) {
   const category = (challenge.category || "MISC").toUpperCase();
-  const difficulty = Math.max(0, Math.min(5, Number.parseInt(String(challenge.difficulty ?? "0"), 10) || 0));
-  const stars = "★".repeat(difficulty) + "☆".repeat(5 - difficulty);
   const tags = (challenge.tags || []).map((tag: string) => `<span class="listing-tag">#${escapeHtml(tag).toUpperCase()}</span>`).join("");
-  return `<article class="quest-card listing-entry listing-entry--writeup"><div class="listing-entry__main"><p class="quest-number">WRITEUP · ${escapeHtml(category)}</p><p class="listing-event">${escapeHtml(ctf.title).toUpperCase()}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || "")}</p><div class="listing-tags">${tags}</div><div class="quest-meta"><span>${formatClientDate(ctf.date)}</span><span><b>${escapeHtml(challenge.points || "—")}</b> PTS</span><span class="difficulty" title="Difficulty">${stars}</span></div></div><a class="listing-entry__action pixel-button start-button" href="${homeWriteupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></article>`;
+  return `<article class="quest-card listing-entry listing-entry--writeup"><div class="listing-entry__main"><p class="quest-number">WRITEUP · ${escapeHtml(category)}</p><p class="listing-event">${escapeHtml(ctf.title).toUpperCase()}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || "")}</p><div class="listing-tags">${tags}</div><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(challenge.points || "—")}</b> PTS</span><span>${difficultyMeterHtml(challenge.difficulty)}</span></div></div><a class="listing-entry__action pixel-button start-button" href="${homeWriteupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></article>`;
 }
 
 export function socialLinksHtml(social: Array<{ label: string; icon: string; url: string }>) {

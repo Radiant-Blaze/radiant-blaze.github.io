@@ -7,8 +7,7 @@ Radiant Blaze is a static Astro site for blog posts, CTF writeups, search, and r
 - `src/`: Astro pages, layouts, content configuration, data projections, and the Markdown converter.
 - `content/`: authored Markdown, JSON indexes, event metadata, and site metadata.
 - `assets/`: active browser JavaScript and other site assets copied or served by the Astro integration.
-- `compat/`: intentionally active compatibility sources. `compat/legacy-assets/js/` contains fallback modules served at preserved `/legacy/assets/js/...` URLs.
-- `backup/`: historical archive. It is not an application source directory and should not be added to the build dependency graph.
+- `compat/`: preserved compatibility sources. `compat/legacy-assets/js/` is still served at `/legacy/assets/js/...`, but the current viewer and listing controllers do not load it.
 - `docs/`: contributor documentation: `docs/commands/` development command references, `docs/CREDITS.md`, and `docs/THIRD_PARTY_LICENSES.md`.
 - `.github/`: workflows, Dependabot configuration, issue templates, and the repository community health files (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`).
 - `.agents/`: persistent context for coding-agent sessions.
@@ -42,4 +41,4 @@ static dist/
 GitHub Pages deployment
 ```
 
-`backup/` is historical material. `compat/` is active build input. `src/` is the Astro application source. Do not confuse these boundaries.
+`compat/` is active build input. `src/` is the Astro application source. Do not confuse these boundaries. The retired `backup/` archive was removed; recover it from Git history if a legacy file is ever needed.

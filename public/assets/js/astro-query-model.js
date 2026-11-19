@@ -1,4 +1,4 @@
-import { normalizeTopic, recordTopics, searchableText } from "./list-utils.js";
+import { normalizeTopic, recordTopics, searchableText } from "./list-utils.js?v=20261117-2";
 
 export const matchesBlogPost = (post, term) =>
   searchableText(

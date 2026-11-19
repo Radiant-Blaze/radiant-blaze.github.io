@@ -1,0 +1,12 @@
+---
+interface Props {
+  html: string;
+  label?: string;
+}
+
+const { html, label = "Article contents" } = Astro.props;
+---
+<details class="content-toc">
+  <summary>ON THIS PAGE</summary>
+  <nav aria-label={label} set:html={html}></nav>
+</details>

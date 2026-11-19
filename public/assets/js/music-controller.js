@@ -240,6 +240,23 @@
     return state.manifestPromise;
   }
 
+  function placeInterface(root) {
+    if (!document.body.classList.contains("content-document")) {
+      if (root.parentElement !== document.body) document.body.append(root);
+      return;
+    }
+    const sidebar = document.querySelector(".content-layout .content-sidebar");
+    if (sidebar) {
+      const toc = sidebar.querySelector(".content-toc");
+      if (toc) toc.after(root);
+      else sidebar.append(root);
+      return;
+    }
+    const footer = document.querySelector("footer.site-footer");
+    if (footer && footer.parentElement) footer.before(root);
+    else document.body.append(root);
+  }
+
   function mountInterface() {
     if (document.getElementById("rb-music-root")) return;
     const root = document.createElement("div");
@@ -311,7 +328,9 @@
         </details>
       </section>
     `;
-    document.body.append(root);
+    // Writeups keep the dock in the reading sidebar directly below the ToC so
+    // it scrolls with the page instead of covering the reading column.
+    placeInterface(root);
     for (const [index, collection] of collections.entries()) {
       const button = document.createElement("button");
       button.type = "button";
@@ -320,6 +339,13 @@
       button.textContent = `${String(index + 1).padStart(2, "0")} ${collection.label}`;
       root.querySelector("[data-collections]").append(button);
     }
+  }
+
+  function syncInterface() {
+    const root = document.getElementById("rb-music-root");
+    if (root) placeInterface(root);
+    else mountInterface();
+    render();
   }
 
   function bindEvents() {
@@ -464,7 +490,10 @@
         toggleMute();
       }
     });
-    addEventListener("radiantblaze:contentchange", () => syncRoute());
+    addEventListener("radiantblaze:contentchange", () => {
+      syncInterface();
+      syncRoute();
+    });
     addEventListener("popstate", () => queueMicrotask(syncRoute));
     addEventListener("pageshow", retryAutomaticPlayback);
     document.addEventListener("visibilitychange", retryAutomaticPlayback);
