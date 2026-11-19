@@ -3,14 +3,14 @@ import { escapeHtml, markdownToHtml } from "./markdown-renderer.js";
 // Re-exported so existing consumers keep importing both from the runtime.
 export { escapeHtml, markdownToHtml };
 
-export const formatDate = (date) =>
-  new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
-    .format(new Date(`${date}T00:00:00`))
-    .toUpperCase();
+export const formatDate = (date) => {
+  const parts = new Map(
+    new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
+      .formatToParts(new Date(`${date}T00:00:00`))
+      .map((item) => [item.type, item.value]),
+  );
+  return `${parts.get("day")}-${parts.get("month")}-${parts.get("year")}`;
+};
 
 const encodePath = (path) => path.split("/").map(encodeURIComponent).join("/");
 
@@ -69,7 +69,7 @@ export const updatePageMetadata = ({ title, description, canonicalUrl }) => {
 const MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
 let mathJaxReady;
 
-export const typesetMath = (root = document.querySelector(".quest-article, [data-writeup], [data-markdown-post]")) => {
+export const typesetMath = (root = document.querySelector(".quest-article")) => {
   if (!root || (!root.querySelector(".math-block") && !/\$[^\n$]+\$|\\\([^\n]+\\\)/.test(root.textContent || ""))) return Promise.resolve();
   if (!mathJaxReady) {
     window.MathJax = {
@@ -88,179 +88,6 @@ export const typesetMath = (root = document.querySelector(".quest-article, [data
     .then(() => window.MathJax?.typesetPromise?.([root]))
     .catch(() => {});
 };
-
-const MERMAID_SRC = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-const DIAGRAM_BLOCK = 'code[data-language="mermaid"]';
-// Literal fallback colors keep fences portable; the site maps them to live theme tokens.
-const DIAGRAM_TOKENS = {
-  "--panel": { key: "panel", fallback: "#272044" },
-  "--text": { key: "text", fallback: "#fff7de" },
-  "--muted": { key: "muted", fallback: "#baaed6" },
-  "--accent-pink": { key: "pink", fallback: "#ff5e9d" },
-  "--accent-orange": { key: "orange", fallback: "#ffb347" },
-  "--accent-cyan": { key: "cyan", fallback: "#65e7e3" },
-};
-
-const DIAGRAM_FALLBACK_KEYS = Object.fromEntries(
-  Object.values(DIAGRAM_TOKENS).map(({ key, fallback }) => [fallback.toLowerCase(), key]),
-);
-let mermaidReady;
-let mermaidApi = null;
-let diagramSeq = 0;
-const diagramFigures = new WeakMap();
-const diagramRenders = new WeakMap();
-
-const diagramTokens = () => {
-  const styles = getComputedStyle(document.documentElement);
-  const tokens = {};
-  for (const [name, { key, fallback }] of Object.entries(DIAGRAM_TOKENS)) {
-    tokens[key] = styles.getPropertyValue(name).trim() || fallback;
-  }
-  return tokens;
-};
-
-const applyDiagramTokens = (source) => {
-  const tokens = diagramTokens();
-  return source.replace(/^[ \t]*classDef\b.*$/gm, (definition) =>
-    definition.replace(/#[\da-f]{6}\b/gi, (fallback) => {
-      const key = DIAGRAM_FALLBACK_KEYS[fallback.toLowerCase()];
-      return key ? tokens[key] : fallback;
-    }),
-  );
-};
-
-const diagramConfig = () => {
-  const { panel, text, muted, pink, orange, cyan } = diagramTokens();
-  return {
-    startOnLoad: false,
-    securityLevel: "strict",
-    theme: "base",
-    // Natural SVG sizes: the article container scrolls sideways instead of
-    // shrinking a wide flowchart until its labels are unreadable.
-    flowchart: { useMaxWidth: false },
-    themeVariables: {
-      darkMode: !document.documentElement.classList.contains("light-theme"),
-      background: panel,
-      mainBkg: panel,
-      nodeBorder: pink,
-      nodeTextColor: text,
-      lineColor: muted,
-      textColor: text,
-      titleColor: text,
-      primaryColor: panel,
-      primaryTextColor: text,
-      primaryBorderColor: pink,
-      secondaryColor: panel,
-      secondaryTextColor: text,
-      secondaryBorderColor: cyan,
-      tertiaryColor: panel,
-      tertiaryTextColor: text,
-      tertiaryBorderColor: orange,
-      clusterBkg: panel,
-      clusterBorder: muted,
-      edgeLabelBackground: panel,
-      errorBkgColor: panel,
-      errorTextColor: text,
-      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-      fontSize: "13px",
-    },
-  };
-};
-
-const ensureMermaid = () => {
-  if (!mermaidReady) {
-    mermaidReady = import(MERMAID_SRC)
-      .then((module) => {
-        mermaidApi = module.default ?? module;
-        mermaidApi.initialize(diagramConfig());
-        return mermaidApi;
-      })
-      .catch(() => null);
-  }
-  return mermaidReady;
-};
-
-const pendingDiagramBlocks = (root) =>
-  [...(root ?? document).querySelectorAll(DIAGRAM_BLOCK)].filter(
-    (code) => !code.closest("pre")?.dataset.diagram,
-  );
-
-// Renders one block and swaps it in. The source `<pre>` is kept, and only
-// hidden once an SVG exists, so a syntax error or a blocked CDN leaves the
-// readable code block in place.
-const drawDiagram = (code) => {
-  const pre = code.closest("pre");
-  if (!pre || pre.dataset.diagram) return Promise.resolve();
-  const pending = diagramRenders.get(pre);
-  if (pending) return pending;
-  const render = (async () => {
-    try {
-      const { svg, bindFunctions } = await mermaidApi.render(`mermaid-diagram-${++diagramSeq}`, applyDiagramTokens(code.textContent));
-      const figure = document.createElement("div");
-      figure.className = "diagram";
-      figure.setAttribute("role", "img");
-      figure.innerHTML = svg;
-      pre.dataset.diagram = "rendered";
-      diagramFigures.set(pre, figure);
-      bindFunctions?.(figure);
-      pre.after(figure);
-      pre.hidden = true;
-    } finally {
-      diagramRenders.delete(pre);
-    }
-  })();
-  diagramRenders.set(pre, render);
-  return render;
-};
-
-export const renderDiagrams = async (root) => {
-  const blocks = pendingDiagramBlocks(root);
-  if (!blocks.length) return;
-  try {
-    const mermaid = await ensureMermaid();
-    if (!mermaid) return;
-    await Promise.all(
-      blocks.map((code) =>
-        drawDiagram(code).catch((error) => {
-          console.warn("[radiant-blaze] Diagram could not be rendered.", error);
-        }),
-      ),
-    );
-  } catch (error) {
-    console.warn("[radiant-blaze] Diagram rendering is unavailable.", error);
-  }
-};
-
-const redrawDiagrams = async () => {
-  const codes = [...document.querySelectorAll(`pre[data-diagram="rendered"] > ${DIAGRAM_BLOCK}`)];
-  if (!codes.length) return;
-  try {
-    const mermaid = await ensureMermaid();
-    if (!mermaid) return;
-    mermaid.initialize(diagramConfig());
-    for (const code of codes) {
-      const pre = code.closest("pre");
-      const figure = diagramFigures.get(pre) ?? pre.nextElementSibling;
-      if (!figure) continue;
-      try {
-        const { svg, bindFunctions } = await mermaid.render(`mermaid-diagram-${++diagramSeq}`, applyDiagramTokens(code.textContent));
-        figure.innerHTML = svg;
-        bindFunctions?.(figure);
-      } catch (error) {
-        console.warn("[radiant-blaze] Diagram could not be re-rendered.", error);
-      }
-    }
-  } catch (error) {
-    console.warn("[radiant-blaze] Diagram re-rendering is unavailable.", error);
-  }
-};
-
-addEventListener("radiantblaze:contentchange", () => {
-  void renderDiagrams(document);
-});
-addEventListener("radiantblaze:themechange", () => {
-  void redrawDiagrams();
-});
 
 export const initReadingProgress = () => {
   window.__radiantBlazeReadingProgressCleanup?.();

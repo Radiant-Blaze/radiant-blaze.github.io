@@ -1,3 +1,5 @@
+import { normalizeDifficulty } from "./difficulty.ts";
+
 type PostMetadata = {
   title?: string | null;
   description?: string | null;
@@ -36,10 +38,7 @@ export function getWriteupPresentation(
   eventTitle: string,
 ) {
   const title = data.title ?? challengeFile.replace(/\.md$/i, "");
-  const difficulty = Math.max(
-    0,
-    Math.min(5, Number.parseInt(String(data.difficulty ?? "0"), 10) || 0),
-  );
+  const difficulty = normalizeDifficulty(data.difficulty);
 
   return {
     title,
@@ -47,7 +46,6 @@ export function getWriteupPresentation(
     category: (data.category ?? "MISC").toUpperCase(),
     points: data.points ?? "—",
     difficulty,
-    stars: "★".repeat(difficulty) + "☆".repeat(5 - difficulty),
     solves: data.solves,
     flag: data.flag,
     tags: data.tags ?? [],

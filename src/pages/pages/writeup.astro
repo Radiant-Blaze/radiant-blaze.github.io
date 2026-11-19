@@ -1,21 +1,29 @@
 ---
-import QuestShell from "../../layouts/QuestShell.astro";
-import Footer from "../../components/Footer.astro";
+// Compatibility shell for the retired /pages/writeup.html?ctf=&challenge= viewer.
+// Static hosting cannot redirect query-string URLs, so this page resolves the
+// legacy query at runtime and forwards to the generated Astro writeup route.
 ---
-<QuestShell
-  title="Writeup · Radiant Blaze"
-  description="Read a capture-the-flag challenge write-up on Radiant Blaze."
-  ogTitle="CTF Writeup · Radiant Blaze"
-  ogType="article"
-  ogUrl="https://radiant-blaze.github.io/pages/writeup.html"
-  viewport="width=device-width, initial-scale=1.0"
->
-  <meta slot="headScripts" name="robots" content="noindex, follow" />
-  <p class="ctf-back quest-wrap" data-writeup-back></p>
-  <header class="article-header quest-wrap" data-writeup-header><p class="quest-number">LOADING WRITEUP...</p></header>
-  <div class="page-grid article-layout quest-wrap">
-    <article class="quest-article" data-writeup><p>LOADING WRITEUP...</p></article>
-  </div>
-  <Footer />
-</QuestShell>
-<script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261115-1" is:inline></script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, follow" />
+    <meta name="theme-color" content="#171329" />
+    <title>Writeup · Radiant Blaze</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      html { background: #171329; color: #e8e4ff; }
+      body { display: grid; min-height: 100vh; margin: 0; place-items: center; font: 14px/1.7 system-ui, sans-serif; }
+      main { width: min(100% - 40px, 420px); padding: 24px; border: 3px solid #65e7e3; background: #221c38; box-shadow: 6px 6px 0 #0b0815; }
+      a { color: #65e7e3; }
+    </style>
+    <script type="module" src="/assets/js/legacy-redirect.js?v=20261119-1" is:inline></script>
+  </head>
+  <body data-legacy-redirect="writeup">
+    <main>
+      <p>Redirecting to the published writeup…</p>
+      <p><a data-legacy-fallback href="/pages/ctf.html">Continue to the CTF arena</a></p>
+    </main>
+  </body>
+</html>

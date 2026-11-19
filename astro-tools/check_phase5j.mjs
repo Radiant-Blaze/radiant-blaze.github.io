@@ -7,8 +7,8 @@ const pages = [
   ["/pages/blog.html", "astro-pages.js"],
   ["/pages/search.html", "astro-pages.js"],
   ["/pages/ctf.html", "astro-pages.js"],
-  ["/pages/post.html", "astro-pages.js"],
-  ["/pages/writeup.html", "astro-pages.js"],
+  ["/pages/post.html", "legacy-redirect.js"],
+  ["/pages/writeup.html", "legacy-redirect.js"],
   ["/pages/archive.html", null],
 ];
 

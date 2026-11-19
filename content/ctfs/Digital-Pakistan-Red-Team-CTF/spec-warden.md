@@ -30,6 +30,8 @@ The instance port changes every session, and — as it turns out — part of the
 
 ```mermaid
 flowchart TD
+    accTitle: Relay control attack chain
+    accDescr: Attack flow from the relay control gateway through the YAML schema bypass to the maintenance console and vault key.
     %% ---------- Target ----------
     A[("Target: Relay Control Gateway<br/>nc &lt;ip&gt; &lt;port&gt;")]:::target
     B["GET /openapi.yaml<br/>read the published contract"]:::attacker
@@ -229,7 +231,7 @@ That is a complete character-by-character oracle: for each position, try every c
 
 The recovery is a simple left-to-right search. Characters are tried with lowercase letters and digits first (the key is alphanumeric), then the rest of the printable set, then control characters and a few non-ASCII code points.
 
-```python
+```python title="recover_key.py"
 #!/usr/bin/env python3
 import http.client as hc, json, os, string, time
 from concurrent.futures import ThreadPoolExecutor

@@ -36,11 +36,12 @@
 - `content/ctfs/<event>/ctf.json` — event metadata and challenge order.
 - `content/site.json` — authored site metadata.
 - `astro-tools/content-sync/` — discovery, ordering, validation, synchronization, and tests.
+- `astro-tools/validate-content.mjs`, `astro-tools/test-content-validation.mjs` — content quality checks and fixtures.
 - `astro-tools/source-assets.mjs` — dev middleware and build-time static/compatibility asset copying.
 - `astro-tools/test-*.mjs`, `check_*.mjs`, `compare_output.py` — focused tests and parity/projection checks.
-- `compat/legacy-assets/js/blog.js`, `ctf.js`, `content.js` — active fallback modules; preserve their relative imports.
+- `compat/legacy-assets/js/blog.js`, `ctf.js`, `content.js` — preserved compatibility assets served under `/legacy/`; no active page loads them.
 - `public/assets/js/` — active browser modules, including `astro-pages.js`, `astro-navigation.js`, `astro-controls.js`, `astro-query-model.js`, and `list-utils.js`.
-- `backup/` — historical archive, not normal source.
+- `src/scripts/mermaid-viewer.js` — bundled Mermaid viewer (lazy `import("mermaid")`, theme sync, viewer controls, source fallback).
 - `.github/workflows/` — GitHub Pages deployment; installs dependencies, builds Astro, and uploads `dist/`.
 
 No current application file should read generated legacy HTML or `.generated` manifests.

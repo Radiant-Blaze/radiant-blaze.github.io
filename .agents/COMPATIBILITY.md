@@ -1,18 +1,20 @@
 # Compatibility architecture
 
 ```text
-backup/
-  historical archive; not consumed by the build
-
 compat/
   intentionally maintained active compatibility source
 ```
 
-The active fallback modules are:
+The pre-Astro `backup/` archive was removed; its contents remain available in
+Git history and were never consumed by the build.
+
+The compatibility modules are:
 
 - `compat/legacy-assets/js/blog.js`
 - `compat/legacy-assets/js/ctf.js`
 - `compat/legacy-assets/js/content.js`
+
+They remain served at `/legacy/assets/js/...` for URL compatibility, but no active page dynamically loads them. Content rendering is owned by the generated Astro routes and the shared content viewer.
 
 `astro-tools/source-assets.mjs` serves/copies them as:
 
@@ -24,4 +26,4 @@ The active fallback modules are:
 
 `public/assets/js/list-utils.js` is also copied to `/legacy/assets/js/list-utils.js`; it is active source under `public/assets/`, not under `backup/`.
 
-`public/assets/js/astro-pages.js` dynamically requests fallback modules when required. Removing or casually renaming these files would break compatibility fallback behavior and public URLs. Preserve relative imports between the three compatibility modules.
+`public/assets/js/astro-pages.js` no longer loads fallback renderers; it renders listing/search surfaces only. Preserve the compatibility module imports because those files are still served as public compatibility assets.
