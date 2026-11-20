@@ -21,11 +21,14 @@
 - `src/lib/article-data.ts` — ordered collection entries and public route path helpers.
 - `src/lib/runtime-read-model.ts` — build-time read-model projection.
 - `src/lib/home-data.ts`, `home-selection.ts`, `article-metadata.ts`, `listing-html.ts`, `source-json.ts`, `source-markdown.ts` — page data, selection, metadata, listing, and compatibility helpers.
+- `src/lib/portfolio-data.ts` — project slug/detail route derivation and published-project ordering.
+- `src/lib/related-content.ts` — deterministic related-writeup selection from tags/category/event.
 - `src/lib/markdown.ts` — public Markdown rendering compatibility API; delegates to the new converter.
 - `src/lib/markdown-converter/frontmatter.ts` — YAML frontmatter extraction.
 - `src/lib/markdown-converter/html.ts` — escaping and math protection.
 - `src/lib/markdown-converter/index.ts` — structured Markdown conversion.
-- `src/components/` — not present in the current repository; do not assume component files exist.
+- `src/styles/style.css` — CSS entry point; imports the modules under `src/styles/base`, `layout`, `components`, `pages`, and `utilities` in cascade order.
+- `src/components/` — shared Astro components (`Footer`, `PlayerStats`, `SaveFiles`, and the `content/` header, navigation, ToC, and viewer). `src/lib/assets.ts` holds the shared static-asset cache version.
 
 ## Content and tooling
 

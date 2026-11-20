@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/images/readme/Banner.png" alt="Radiant Blaze pixel-art city banner" width="100%">
+  <img src="docs/images/readme/Banner.png" alt="Radiant Blaze pixel-art city banner" width="100%">
 </div>
 
 <h1 align="center">Radiant Blaze</h1>
@@ -32,24 +32,24 @@ The content is owned in Markdown and JSON, while Astro turns the repository into
   <tr>
     <td width="50%" valign="top">
       <a href="https://radiant-blaze.github.io/">
-        <img src="public/images/readme/portfolio-preview.png" alt="Radiant Blaze homepage portfolio preview" width="100%">
+        <img src="docs/images/readme/portfolio-preview.png" alt="Radiant Blaze homepage portfolio preview" width="100%">
       </a>
     </td>
     <td width="50%" valign="top">
       <a href="https://radiant-blaze.github.io/pages/blog.html">
-        <img src="public/images/readme/blog-preview.png" alt="Radiant Blaze blog index preview" width="100%">
+        <img src="docs/images/readme/blog-preview.png" alt="Radiant Blaze blog index preview" width="100%">
       </a>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
       <a href="https://radiant-blaze.github.io/pages/ctf.html">
-        <img src="public/images/readme/ctf-preview.png" alt="Radiant Blaze CTF archive preview" width="100%">
+        <img src="docs/images/readme/ctf-preview.png" alt="Radiant Blaze CTF archive preview" width="100%">
       </a>
     </td>
     <td width="50%" valign="top">
       <a href="https://radiant-blaze.github.io/pages/search.html">
-        <img src="public/images/readme/search-preview.png" alt="Radiant Blaze archive search preview" width="100%">
+        <img src="docs/images/readme/search-preview.png" alt="Radiant Blaze archive search preview" width="100%">
       </a>
     </td>
   </tr>
@@ -94,10 +94,9 @@ The content is owned in Markdown and JSON, while Astro turns the repository into
 │   ├── ctfs/                      # CTF event metadata and Markdown writeups
 │   ├── portfolio/                 # Portfolio configuration and Markdown entries
 │   └── site.json                  # Shared site metadata
-├── docs/                          # Contributor documentation and attribution
+├── docs/                          # Contributor docs, attribution, README images
 ├── public/                        # Copied verbatim into dist/ by Astro
-│   ├── assets/                    # Site CSS, JavaScript, fonts, music, and SVGs
-│   ├── images/readme/             # README banner and website previews
+│   ├── assets/                    # Browser JavaScript, fonts, music, and SVGs
 │   ├── favicon.svg                # Site icon
 │   ├── og-image.png               # Social preview image
 │   └── robots.txt                 # Crawler directives
@@ -105,6 +104,7 @@ The content is owned in Markdown and JSON, while Astro turns the repository into
 │   ├── layouts/                   # Shared article and archive shells
 │   ├── lib/                       # Content projection and Markdown tooling
 │   ├── pages/                     # Astro routes and generated content endpoints
+│   ├── styles/                    # Modular CSS entry point and ownership modules
 │   └── content.config.ts          # Astro content collection schemas
 ├── astro.config.mjs               # Static build configuration
 └── package.json                   # Development and validation commands
@@ -256,9 +256,9 @@ The workflow can also be started manually through GitHub's **Run workflow** acti
 
 ## Credits
 
-- **Fonts**: bundled typefaces live in `public/assets/fonts/` with their license files. Press Start K (codeman38 freeware) drives the site's headings, with Press Start 2P (SIL OFL 1.1) as the base interface face; Jersey 25 (SIL OFL 1.1) carries blog body copy, November (Tepid Monkey Fonts freeware) carries code, and SF Pixelate (ShyFoundry Freeware EULA) carries interface labels. Attribution details are in `docs/THIRD_PARTY_LICENSES.md`.
+- **Fonts**: bundled typefaces live in `public/assets/fonts/` with their license files. Press Start K (codeman38 freeware) drives headings and blog body copy, with Press Start 2P (SIL OFL 1.1) as the base interface face; November (Tepid Monkey Fonts freeware) carries terminal/flag text, and SF Pixelate (ShyFoundry Freeware EULA) carries interface labels. Attribution details are in `docs/THIRD_PARTY_LICENSES.md`.
 - **Music**: track metadata and attribution are maintained in `public/assets/music/metadata.json`. Tracks are organized for portfolio/homepage, archive, and article-reading contexts.
-- **Artwork**: the README banner and website artwork are stored under `public/images/`.
+- **Artwork**: the README banner and preview artwork are stored under `docs/images/readme/`.
 - **Libraries**: Astro powers the static site, with `js-yaml` used for frontmatter parsing.
 
 ## Footer

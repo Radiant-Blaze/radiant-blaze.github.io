@@ -1,0 +1,84 @@
+---
+import { getCollection } from "astro:content";
+import QuestShell from "../../../layouts/QuestShell.astro";
+import Footer from "../../../components/Footer.astro";
+import { portfolioProjectRoute, portfolioSlug, publishedProjects } from "../../../lib/portfolio-data";
+import { escapeHtml, formatDate, renderMarkdown } from "../../../lib/markdown";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("portfolio");
+  const projects = publishedProjects(entries);
+  return projects.map((entry, index) => ({
+    params: { slug: portfolioSlug(entry) },
+    props: {
+      entry,
+      previous: index > 0 ? projects[index - 1] : null,
+      following: index + 1 < projects.length ? projects[index + 1] : null,
+    },
+  }));
+}
+
+const { entry, previous, following } = Astro.props;
+const { title, description, category, technologies, links, date } = entry.data;
+const body = renderMarkdown(entry.body ?? "");
+const canonical = `https://radiant-blaze.github.io${portfolioProjectRoute(entry)}`;
+const externalLinks = links ?? [];
+const technologyItems = technologies ?? [];
+const projectNumber = entry.data.order;
+---
+<QuestShell
+  title={`${title} · Portfolio · Radiant Blaze`}
+  description={description}
+  canonical={canonical}
+  ogTitle={`${title} · Radiant Blaze`}
+  currentPage="portfolio"
+  brandHref="/"
+  pageLinkPrefix="/pages/"
+  disablePageLoader={true}
+>
+  <nav class="writeup-breadcrumb quest-wrap" aria-label="Breadcrumb">
+    <a href="/portfolio/">PORTFOLIO</a><span aria-hidden="true">/</span><span>{title}</span>
+  </nav>
+  <header class="quest-hero quest-wrap portfolio-detail-hero">
+    <p class="eyebrow">PROJECT FILE · {escapeHtml(category).toUpperCase()}</p>
+    <h1 class="quest-title">{title}</h1>
+    <p class="quest-intro">{description}</p>
+    <div class="portfolio-detail-meta" aria-label="Project details">
+      <span>{escapeHtml(category)}</span>
+      {date && <span>Published {formatDate(date)}</span>}
+      <span>PROJECT {String(projectNumber).padStart(2, "0")}</span>
+    </div>
+    {externalLinks.length > 0 && <nav class="portfolio-actions" aria-label={`${title} links`}>
+      {externalLinks.map((link) => <a class="pixel-button start-button" href={link.url} target="_blank" rel="noopener noreferrer">{link.label} <span aria-hidden="true">↗</span></a>)}
+    </nav>}
+  </header>
+  <div class="page-grid quest-wrap portfolio-detail-layout">
+    <article class="quest-article content-article portfolio-detail-body">
+      <Fragment set:html={body} />
+    </article>
+    <aside class="sidebar portfolio-detail-sidebar" aria-label="Project information">
+      <section class="pixel-panel">
+        <h2>PROJECT DATA</h2>
+        <ul class="stat-list">
+          <li>CATEGORY <strong>{escapeHtml(category)}</strong></li>
+          {date && <li>PUBLISHED <strong>{formatDate(date)}</strong></li>}
+          <li>VISIBILITY <strong>{entry.data.featured ? "FEATURED" : "PUBLISHED"}</strong></li>
+        </ul>
+      </section>
+      {technologyItems.length > 0 && <section class="pixel-panel">
+        <h2>TECH STACK</h2>
+        <ul class="portfolio-tags" aria-label="Technologies">
+          {technologyItems.map((technology) => <li>{escapeHtml(technology)}</li>)}
+        </ul>
+      </section>}
+      <nav class="pixel-panel portfolio-detail-nav" aria-label="Project navigation">
+        <h2>PROJECT NAVIGATION</h2>
+        <div class="portfolio-detail-nav-links">
+          {previous ? <a href={portfolioProjectRoute(previous)}>← {previous.data.title}</a> : <span>FIRST PROJECT</span>}
+          {following ? <a href={portfolioProjectRoute(following)}>{following.data.title} →</a> : <span>LATEST PROJECT</span>}
+        </div>
+      </nav>
+    </aside>
+  </div>
+  <Footer />
+</QuestShell>

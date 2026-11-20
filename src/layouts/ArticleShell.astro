@@ -1,4 +1,5 @@
 ---
+import { ASSET_VERSION } from "../lib/assets";
 import Footer from "../components/Footer.astro";
 import QuestShell from "./QuestShell.astro";
 
@@ -7,9 +8,10 @@ interface Props {
   description: string;
   canonical: string;
   type: "post" | "writeup";
+  mermaid?: boolean;
 }
 
-const { title, description, canonical, type } = Astro.props;
+const { title, description, canonical, type, mermaid = false } = Astro.props;
 ---
 <QuestShell
   title={title}
@@ -22,9 +24,9 @@ const { title, description, canonical, type } = Astro.props;
   pageLinkPrefix="/pages/"
   bodyClass={type === "writeup" ? "writeup-document content-document" : "content-document"}
   disablePageLoader={type === "writeup"}
-  mermaid={true}
+  mermaid={mermaid}
 >
-  <script slot="headScripts" type="module" src="/assets/js/astro-article.js?v=20261119-4" is:inline></script>
+  <script slot="headScripts" type="module" src={`/assets/js/astro-article.js?v=${ASSET_VERSION}`} is:inline></script>
   <slot />
   <Footer heading={type === "post" ? "BLOG STATUS" : "CONNECT"} stats={type === "post"} />
 </QuestShell>

@@ -1,0 +1,331 @@
+@media (min-width: 801px) {
+  /* Keep the reading meter in view for the full length of an article/writeup. */
+  .article-layout .sidebar > :first-child {
+    position: sticky;
+    top: 24px;
+    z-index: 1;
+  }
+}
+.pixel-panel {
+  padding: 20px;
+}
+.pixel-panel h2,
+.section-heading {
+  color: var(--accent-cyan-text);
+  font-size: 10px;
+  margin: 0 0 18px;
+}
+.stat-list,
+.save-list,
+.region-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.stat-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 15px;
+  border-bottom: 2px dashed #4b416b;
+  color: var(--muted);
+  font-size: 7px;
+  padding: 9px 0;
+  text-align: center;
+}
+.stat-list strong {
+  color: var(--accent-orange-text);
+  font-weight: normal;
+  text-align: center;
+}
+.player-stats h2 {
+  margin-bottom: 14px;
+}
+.player-level {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 7px;
+  margin-bottom: 7px;
+}
+.player-level span:last-child {
+  color: var(--accent-orange-text);
+  text-align: right;
+}
+.player-level-track {
+  height: 10px;
+  margin-bottom: 7px;
+  border: 2px solid var(--text);
+  background: var(--shadow);
+}
+.player-level-track span {
+  display: block;
+  height: 100%;
+  background: var(--accent-cyan);
+}
+.player-stats .stat-list li {
+  align-items: baseline;
+}
+.player-stats .stat-list li span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.save-list a,
+.region-list a {
+  display: block;
+  color: var(--muted);
+  font-size: 8px;
+  text-decoration: none;
+  padding: 7px 0;
+}
+.save-list a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.save-year {
+  display: inline-grid;
+  min-width: 54px;
+  min-height: 30px;
+  place-items: center;
+  border: 3px solid var(--accent-cyan);
+  color: var(--accent-cyan-text);
+  background: color-mix(in srgb, var(--accent-cyan) 10%, transparent);
+  font: 8px/1 "Press Start 2P", monospace;
+}
+.sidebar .region-list a::before {
+  content: "→ ";
+  color: var(--accent-pink-text);
+}
+.save-list small {
+  display: inline-grid;
+  min-width: 32px;
+  min-height: 26px;
+  place-items: center;
+  border: 2px solid var(--accent-pink);
+  color: var(--accent-pink-text);
+  background: color-mix(in srgb, var(--accent-pink) 10%, transparent);
+  font-size: 7px;
+}
+.save-list a:hover,
+.region-list a:hover {
+  color: var(--accent-cyan-text);
+  transform: translateX(3px);
+}
+.search-form {
+  display: flex;
+  gap: 13px;
+  margin: 28px 0 18px;
+}
+.search-toolbar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.search-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.search-toolbar > .search-pills::before {
+  content: "CONTENT TYPE";
+  align-self: center;
+  color: var(--accent-orange-text);
+  font-size: 7px;
+  flex: 0 0 105px;
+}
+.filter-pill {
+  border: 3px solid var(--text);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 8px;
+  padding: 8px 10px;
+  transition:
+    transform 0.1s,
+    background-color 0.15s,
+    color 0.15s;
+}
+.filter-pill:hover,
+.filter-pill:focus-visible {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--accent-pink);
+  outline: none;
+}
+.filter-pill:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-cyan);
+}
+.filter-pill.is-active {
+  background: var(--accent-cyan);
+  color: var(--dark-shadow);
+  border-color: var(--accent-pink);
+}
+
+/* Pixel scrollbar for tablet and desktop layouts; narrow touch screens keep native scrolling. */
+@media (min-width: 591px) and (pointer: fine) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-cyan) var(--ink);
+  }
+  html::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  html::-webkit-scrollbar-track {
+    background: var(--ink);
+    border-left: 1px solid var(--shadow);
+  }
+  html::-webkit-scrollbar-thumb {
+    min-height: 34px;
+    background: var(--accent-cyan);
+    border: 2px solid var(--shadow);
+  }
+  html::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-orange);
+  }
+  html::-webkit-scrollbar-corner {
+    background: var(--ink);
+  }
+}
+.tag-database,
+.year-database { margin-top: 16px; border: 4px solid var(--text); background: var(--panel); box-shadow: 4px 4px 0 var(--shadow); }
+.top-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.top-tags::before { content: "TOP TAGS"; align-self: center; color: var(--accent-orange-text); font-size: 7px; flex: 0 0 105px; }
+.tag-database summary,
+.year-database summary { cursor: pointer; padding: 11px 13px; color: var(--accent-cyan-text); font-size: 8px; list-style: none; }
+.tag-database summary::-webkit-details-marker,
+.year-database summary::-webkit-details-marker { display: none; }
+.tag-database summary span,
+.year-database summary span { float: right; color: var(--accent-orange-text); }
+.tag-database[open] summary,
+.year-database[open] summary { border-bottom: 2px dashed #4b416b; }
+.database-filter { width: calc(100% - 24px); margin: 12px; box-sizing: border-box; border: 3px solid var(--text); background: var(--shadow); color: var(--text); font: 8px "Press Start 2P", monospace; padding: 10px; }
+.filter-pill small { color: var(--accent-orange-text); font-size: 6px; }
+.tag-database .search-pills,
+.year-database .search-pills { padding: 0 12px 12px; max-height: 170px; overflow-y: auto; }
+.year-database__empty { padding: 0 12px 12px; margin: 0; color: var(--muted); font-size: 7px; }
+.search-form input {
+  min-width: 0;
+  flex: 1;
+  border: 4px solid var(--text);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 9px;
+  padding: 15px;
+  outline: none;
+}
+.search-form input:focus {
+  border-color: var(--accent-cyan);
+}
+.search-form input::placeholder {
+  color: var(--muted);
+}
+.ctf-pagination,
+.blog-pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+.search-pagination {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+.search-pagination button {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 8px 10px;
+  color: #000;
+}
+.ctf-pagination a[aria-current="page"],
+.blog-pagination a[aria-current="page"],
+.search-pagination button[aria-current="page"] {
+  background: var(--accent-cyan);
+}
+.search-pagination button:disabled,
+.blog-pagination a[aria-disabled="true"],
+.ctf-pagination a[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+.search-results {
+  grid-template-columns: minmax(0, 1fr);
+}
+.record-count {
+  color: var(--accent-orange-text);
+  font-size: 9px;
+  margin: 0 0 23px;
+}
+.ctf-toolbar + .record-count { margin-top: 16px; }
+
+/* Search discovery: active filter summary, match highlighting, and recovery. */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin: 10px 0 14px;
+}
+.active-filters[hidden] { display: none; }
+.active-filters__label {
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  margin-right: 2px;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 4px 8px;
+  border: 2px solid color-mix(in srgb, var(--accent-cyan) 48%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 8%, var(--panel));
+  color: var(--text);
+  cursor: pointer;
+  font: 700 7px/1.4 var(--font-ui);
+  letter-spacing: 0.03em;
+}
+.filter-chip:hover,
+.filter-chip:focus-visible {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan-text);
+}
+.filter-chip:focus-visible {
+  outline: 2px solid var(--accent-orange-text);
+  outline-offset: 2px;
+}
+.filter-chip--clear {
+  border-color: color-mix(in srgb, var(--accent-pink) 50%, transparent);
+  background: color-mix(in srgb, var(--accent-pink) 8%, var(--panel));
+  color: var(--accent-pink-text);
+}
+.filter-chip--clear:hover,
+.filter-chip--clear:focus-visible {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink-text);
+}
+.search-hit {
+  padding: 0 0.08em;
+  background: var(--accent-orange);
+  color: var(--dark-shadow);
+}
+.search-recovery {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 16px;
+  border: 1px dashed color-mix(in srgb, var(--muted) 45%, transparent);
+  color: var(--muted);
+  text-align: center;
+}
+.search-recovery p { margin: 0; }

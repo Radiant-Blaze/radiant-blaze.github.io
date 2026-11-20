@@ -1,4 +1,5 @@
 ---
+import { ASSET_VERSION } from "../../lib/assets";
 import { getCollection } from "astro:content";
 import portfolioSettings from "../../../content/portfolio/config.json";
 import Footer from "../../components/Footer.astro";
@@ -7,6 +8,7 @@ import { homeWriteupPageUrl } from "../../lib/home-selection";
 import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { escapeHtml, formatDate, renderMarkdown } from "../../lib/markdown";
 import { portfolioConfigSchema } from "../../lib/portfolio-config";
+import { portfolioProjectRoute } from "../../lib/portfolio-data";
 
 const config = portfolioConfigSchema.parse(portfolioSettings);
 const entries = await getCollection("portfolio");
@@ -64,10 +66,12 @@ const projectCard = (entry: (typeof projects)[number]) => {
   const technologyList = technologies.length
     ? `<ul class="portfolio-tags" aria-label="Technologies">${technologies.map((technology) => `<li>${escapeHtml(technology)}</li>`).join("")}</ul>`
     : "";
-  const linkList = links.length
-    ? `<nav class="portfolio-actions" aria-label="${escapeHtml(title)} links">${links.map((link) => `<a class="pixel-button start-button" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)} <span aria-hidden="true">↗</span></a>`).join("")}</nav>`
-    : "";
-  return `<article class="portfolio-card${featured ? " is-featured" : ""}" data-portfolio-project data-category="${escapeHtml(category.toLocaleLowerCase())}" data-technologies="${escapeHtml(technologies.map((technology) => technology.toLocaleLowerCase()).join("|"))}">${imageHtml}<div class="portfolio-card-copy"><p class="portfolio-kicker">${escapeHtml(category).toUpperCase()}${featured ? " · FEATURED" : ""}</p><h3>${escapeHtml(title)}</h3><p>${escapeHtml(description)}</p></div><div class="portfolio-card-details">${technologyList}${linkList}</div></article>`;
+  const projectHref = portfolioProjectRoute(entry);
+  const linkList = [
+    `<a class="portfolio-card__open pixel-button start-button" href="${projectHref}">PROJECT FILE <span aria-hidden="true">→</span></a>`,
+    ...links.map((link) => `<a class="pixel-button start-button" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)} <span aria-hidden="true">↗</span></a>`),
+  ].join("");
+  return `<article class="portfolio-card${featured ? " is-featured" : ""}" data-portfolio-project data-category="${escapeHtml(category.toLocaleLowerCase())}" data-technologies="${escapeHtml(technologies.map((technology) => technology.toLocaleLowerCase()).join("|"))}">${imageHtml}<div class="portfolio-card-copy"><p class="portfolio-kicker">${escapeHtml(category).toUpperCase()}${featured ? " · FEATURED" : ""}</p><h3><a class="portfolio-card__title-link" href="${projectHref}">${escapeHtml(title)}</a></h3><p>${escapeHtml(description)}</p></div><div class="portfolio-card-details">${technologyList}<nav class="portfolio-actions" aria-label="${escapeHtml(title)} links">${linkList}</nav></div></article>`;
 };
 
 const recordLinks = (title: string, links: { label: string; url: string }[]) => links.length
@@ -205,5 +209,5 @@ const recordLinks = (title: string, links: { label: string; url: string }[]) => 
     </div>}
   </section>)}
   <Footer />
-  <script slot="pageScripts" type="module" src="/assets/js/portfolio.js?v=20261103-1" is:inline></script>
+  <script slot="pageScripts" type="module" src={`/assets/js/portfolio.js?v=${ASSET_VERSION}`} is:inline></script>
 </QuestShell>

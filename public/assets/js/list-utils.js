@@ -23,6 +23,26 @@ export const pageSlice = (items, requestedPage, pageSize = DEFAULT_PAGE_SIZE) =>
   };
 };
 
+// Keep the pagination control bounded. Large archives still show the first
+// and last page plus a window around the current one instead of one button per
+// page (500 records would otherwise emit 100 buttons).
+export const pageWindow = (currentPage, totalPages, radius = 2) => {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
+  const windowPages = new Set([1, totalPages]);
+  for (let page = currentPage - radius; page <= currentPage + radius; page += 1) {
+    if (page > 0 && page <= totalPages) windowPages.add(page);
+  }
+  const ordered = [...windowPages].sort((left, right) => left - right);
+  const result = [];
+  let previous = 0;
+  for (const page of ordered) {
+    if (previous && page - previous > 1) result.push("…");
+    result.push(page);
+    previous = page;
+  }
+  return result;
+};
+
 export const paginationHtml = (
   totalItems,
   currentPage,
@@ -33,10 +53,9 @@ export const paginationHtml = (
   if (totalPages <= 1) return "";
   const previous = `<a class="${className}" href="${pageHref(Math.max(1, currentPage - 1))}" aria-label="Previous page"${currentPage === 1 ? ' aria-disabled="true" tabindex="-1"' : ""}>‹</a>`;
   const next = `<a class="${className}" href="${pageHref(Math.min(totalPages, currentPage + 1))}" aria-label="Next page"${currentPage === totalPages ? ' aria-disabled="true" tabindex="-1"' : ""}>›</a>`;
-  const pages = Array.from({ length: totalPages }, (_, index) => {
-    const page = index + 1;
-    return `<a class="${className}" href="${pageHref(page)}"${page === currentPage ? ' aria-current="page"' : ""}>${page}</a>`;
-  }).join("");
+  const pages = pageWindow(currentPage, totalPages).map((page) => page === "…"
+    ? '<span class="pagination-gap" aria-hidden="true">…</span>'
+    : `<a class="${className}" href="${pageHref(page)}"${page === currentPage ? ' aria-current="page"' : ""}>${page}</a>`).join("");
   return previous + pages + next;
 };
 

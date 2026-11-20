@@ -1,0 +1,56 @@
+/* Self-hosted Press Start 2P (SIL Open Font License 1.1). Serving the font from
+   this origin removes the two third-party handshakes and the blocking Google
+   Fonts stylesheet from the critical path. Subsets and unicode ranges mirror the
+   Google Fonts CSS response so glyph fallback behaviour is unchanged. */
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/press-start-2p-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/press-start-2p-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Bundled display, terminal, and UI faces. Each is self-hosted as WOFF2 at the
+   single weight the site uses, so no unused weight is downloaded:
+   - Press Start K (codeman38 freeware): display headings, including the hero.
+   - November (Tepid Monkey Fonts freeware): monospaced pixel face for terminals
+     and code.
+   - SF Pixelate (ShyFoundry Freeware EULA): chunky bold face for arcade-style
+     interface labels. */
+@font-face {
+  font-family: "November";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/november/november-regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "SF Pixelate";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/sf-pixelate/sf-pixelate-bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Press Start K";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/press-start/press-start-k.woff2") format("woff2");
+}
+

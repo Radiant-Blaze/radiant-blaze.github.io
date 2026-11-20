@@ -814,6 +814,27 @@ const testPerformance = async (session) => {
   };
 };
 
+const testDagreLayout = async (session) => {
+  await session.goto(`${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
+  await session.waitFor(run("return diagramSvgs().length > 0"), "diagram before dagre fixture");
+  const fixtureHtml = '<pre><code data-language="mermaid">%%{init: {"layout": "dagre"}}%%\nflowchart TD\n  A[Dagre A] --> B[Dagre B]</code></pre>';
+  await session.evaluate(`(() => {
+    const fixture = document.createElement("div");
+    fixture.id = "dagre-layout-fixture";
+    fixture.innerHTML = ${JSON.stringify(fixtureHtml)};
+    document.querySelector(".writeup-article").append(fixture);
+    dispatchEvent(new Event("radiantblaze:contentchange"));
+    return true;
+  })()`);
+  await session.waitFor('document.querySelectorAll("#dagre-layout-fixture .diagram__stage > svg").length === 1', "dagre diagram render");
+  return session.evaluate(run(`
+    return {
+      svgs: document.querySelectorAll("#dagre-layout-fixture .diagram__stage > svg").length,
+      status: document.querySelector("#dagre-layout-fixture .diagram__status")?.textContent ?? "",
+    };
+  `));
+};
+
 const stage = (name) => console.error(`[mermaid] ${name}`);
 
 const main = async () => {
@@ -836,6 +857,13 @@ const main = async () => {
 
     stage("A: rendering diagrams");
     const diagrams = await testSuccessfulRendering(session);
+    const elkRequests = requests.filter((url) => /\/elk-[^/]+\.js/.test(url));
+    assert.ok(elkRequests.length > 0, "default flowchart rendering loads the ELK layout chunk");
+    stage("A2: explicit dagre layout");
+    const dagre = await testDagreLayout(session);
+    const dagreRequests = requests.filter((url) => /\/dagre-[^/]+\.js/.test(url));
+    assert.ok(dagreRequests.length > 0, "an explicit dagre directive loads the dagre layout chunk");
+    assert.equal(dagre.svgs, 1, "an explicit dagre diagram renders");
     stage("B: external CDNs blocked");
     const offlineDiagrams = await testOfflineRendering(session);
     stage("C: Mermaid module blocked");
@@ -875,6 +903,11 @@ const main = async () => {
         {
           browser: binary,
           diagramsRendered: diagrams,
+          layoutEngines: {
+            elkRequests: [...new Set(elkRequests)].length,
+            dagreRequests: [...new Set(dagreRequests)].length,
+            dagreSvg: dagre.svgs,
+          },
           offlineDiagrams,
           fallbackErrors,
           repeatedInitializationSvgs: repeated,

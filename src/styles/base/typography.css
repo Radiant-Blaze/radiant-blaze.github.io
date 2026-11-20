@@ -1,0 +1,134 @@
+/* ===== Typography roles =====
+   Three bundled faces share the work instead of replacing Press Start 2P
+   everywhere: Press Start K carries display headings and blog body copy, SF
+   Pixelate carries interface labels, and November carries terminal/code text.
+   Sizes and spacing stay with the existing component rules unless a face needs
+   its own optical adjustment. */
+/* Display. Single 400 weight, so avoid synthetic bold on headings that inherit
+   a browser default of 700. */
+h1,
+.quest-title,
+.section-heading,
+.pixel-panel h2,
+.portfolio-section-heading h2,
+.portfolio-skill-group h3,
+.portfolio-snapshot-title,
+.quest-card h2,
+.feature-tile h2,
+.writeup-header h1,
+.writeup-article h1,
+.writeup-article h2,
+.writeup-article h3,
+.writeup-article h4,
+.writeup-article h5,
+.writeup-article h6,
+.quest-article h1,
+.quest-article h2,
+.quest-article h3,
+.quest-article h4,
+.quest-article h5,
+.quest-article h6 {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+/* Press Start K is proportionally narrower than Press Start 2P; the old
+   negative tracking was tuned for the wide monospaced face. */
+h1,
+.quest-title,
+.writeup-header h1,
+.rb-404-hero h1 {
+  letter-spacing: -0.015em;
+}
+/* The homepage "BLAZE'S BLOGPOST" line uses the display heading face. */
+.hero h1 {
+  font-family: var(--font-display);
+  letter-spacing: -0.08em;
+}
+/* Blog reading column. Scope out .writeup-article so CTF writeups keep their
+   separate, larger system-ui reading treatment. */
+.quest-article:not(.writeup-article) {
+  font-family: var(--font-display);
+  font-size: 13px;
+  line-height: 1.85;
+}
+/* Code blocks and inline code use a normal-width system mono so YAML, Python,
+   and command output stay comfortable to read. November's compressed glyphs
+   are kept for the decorative terminal panels and flag strings. */
+.quest-article pre,
+.quest-article pre code,
+.quest-article :not(pre) > code,
+.writeup-article pre,
+.writeup-article pre code,
+.writeup-article :not(pre) > code {
+  font-family: var(--font-code);
+  font-weight: 400;
+}
+.terminal,
+.ctf-flag,
+.writeup-flag .ctf-flag {
+  font-family: var(--font-terminal);
+  font-weight: 400;
+}
+/* Nudge the two 11px terminal surfaces up a pixel to keep text comfortable. */
+.quest-article:not(.writeup-article) pre,
+.terminal {
+  font-size: 12px;
+}
+/* Interface labels: navigation, buttons, metadata, tags, and breadcrumbs. */
+.home-nav a,
+.quest-nav a,
+.portfolio-nav a,
+.pixel-button,
+.start-button,
+.level-label,
+.eyebrow,
+.quest-number,
+.article-info,
+.quest-meta,
+.listing-event,
+.listing-tag,
+.event-kicker,
+.event-stats,
+.ctf-select-label,
+.filter-pill,
+.search-toolbar > .search-pills::before,
+.top-tags::before,
+.record-count,
+.footer-stats,
+.social-link,
+.save-year,
+.save-list small,
+.writeup-breadcrumb,
+.writeup-event,
+.writeup-meta,
+.writeup-tags,
+.difficulty-meter,
+.writeup-flag h2,
+.content-toc summary,
+.content-toc__link,
+.content-toc__more,
+.content-toc__empty,
+.content-copy,
+.article-related,
+.quest-article pre code[data-language]::before,
+.writeup-article pre code[data-language]::before,
+.terminal::before {
+  font-family: var(--font-ui);
+  font-weight: 700;
+}
+/* Previous/next challenge and related-content links were 7px; size them like
+   the rest of the navigation so the labels are readable. */
+.article-related {
+  font-size: 11px;
+}
+@media (max-width: 590px) {
+  .article-related {
+    font-size: 10px;
+  }
+}
+/* The 404 console screen is UI chrome rather than body text. */
+.rb-404-screen {
+  font-family: var(--font-ui);
+  font-weight: 700;
+}
+

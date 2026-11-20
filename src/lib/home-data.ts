@@ -1,4 +1,6 @@
+import { getCollection } from "astro:content";
 import { getOrderedArticles } from "./article-data";
+import { portfolioProjectRoute, publishedProjects } from "./portfolio-data";
 import {
   homePostPageUrl,
   homeWriteupPageUrl,
@@ -29,5 +31,18 @@ export async function getHomepageProjection() {
       category: entry.data.category || event.data.title,
     }));
 
-  return selectHomepageProjection(postCandidates, writeupCandidates);
+  const home = selectHomepageProjection(postCandidates, writeupCandidates);
+  const projectEntries = publishedProjects(await getCollection("portfolio"));
+  const project = projectEntries[0];
+  const featuredProject = project
+    ? {
+      title: project.data.type === "project" ? project.data.title : "",
+      description: project.data.type === "project" ? project.data.description : "",
+      category: project.data.type === "project" ? project.data.category : "",
+      technologies: project.data.type === "project" ? project.data.technologies : [],
+      href: portfolioProjectRoute(project),
+      date: project.data.date ?? null,
+    }
+    : null;
+  return { ...home, featuredProject };
 }

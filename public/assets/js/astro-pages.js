@@ -6,46 +6,112 @@ import {
   socialHtml,
   updatePageMetadata,
   writeupPageUrl,
-} from "./astro-runtime.js?v=20261119-4";
+} from "./astro-runtime.js?v=20261120-3";
 import {
   buildYearIndex,
   buildGlobalRecords,
   filterGlobalRecords,
   matchesBlogPost,
   searchCtfRecords,
-} from "./astro-query-model.js?v=20261117-2";
+} from "./astro-query-model.js?v=20261120-3";
 import {
   DEFAULT_PAGE_SIZE,
   difficultyMeter,
   normalizeTopic,
   pageMeta,
   pageSlice,
+  pageWindow,
   paginationHtml,
   recordTopics,
   syncSearchForm,
-} from "./list-utils.js?v=20261117-2";
+} from "./list-utils.js?v=20261120-3";
 
-const params = new URLSearchParams(location.search);
-const requestedPage = Math.max(1, parseInt(params.get("pg"), 10) || 1);
+let params = new URLSearchParams();
+let requestedPage = 1;
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Highlight query terms after escaping, so a query containing markup or regex
+// characters is rendered as text rather than interpreted as HTML.
+const highlightTerms = (value, query) => {
+  const text = String(value ?? "");
+  const terms = [...new Set(String(query ?? "").trim().split(/\s+/).filter(Boolean))]
+    .sort((left, right) => right.length - left.length);
+  if (!terms.length) return escapeHtml(text);
+  const pattern = new RegExp(`(${terms.map(escapeRegExp).join("|")})`, "gi");
+  return text
+    .split(pattern)
+    .map((part, index) => index % 2 ? `<mark class="search-hit">${escapeHtml(part)}</mark>` : escapeHtml(part))
+    .join("");
+};
 
 const listingTags = (tags = []) => tags.map((tag) => `<span class="listing-tag">#${escapeHtml(tag).toUpperCase()}</span>`).join("");
-const postCard = (post) =>
-  `<article class="quest-card listing-entry listing-entry--post"><div class="listing-entry__main"><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p><div class="listing-tags">${listingTags(post.tags)}</div><div class="quest-meta"><span>${formatDate(post.date)}</span><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div></div><a class="listing-entry__action pixel-button start-button" href="${postPageUrl(post.file)}">READ POST →</a></article>`;
+const postCard = (post, query = "") =>
+  `<article class="quest-card listing-entry listing-entry--post"><div class="listing-entry__main"><p class="quest-number">POST · ${escapeHtml(post.category).toUpperCase()}</p><h2>${highlightTerms(post.title, query)}</h2><p>${highlightTerms(post.description, query)}</p><div class="listing-tags">${listingTags(post.tags)}</div><div class="quest-meta"><span>${formatDate(post.date)}</span><span>${escapeHtml(post.estimatedPlayTime).toUpperCase()} READ</span><span><b>${escapeHtml(post.category).toUpperCase()}</b></span></div></div><a class="listing-entry__action pixel-button start-button" href="${postPageUrl(post.file)}">READ POST →</a></article>`;
 
-const writeupCard = (ctf, challenge) =>
-  `<article class="quest-card listing-entry listing-entry--writeup"><div class="listing-entry__main"><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><p class="listing-event">${escapeHtml(ctf.title).toUpperCase()}</p><h2>${escapeHtml(challenge.title)}</h2><p>${escapeHtml(challenge.description || `Writeup from ${ctf.title}.`)}</p><div class="listing-tags">${listingTags(challenge.tags)}</div><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(challenge.points || "—")}</b> PTS</span><span>${difficultyMeter(challenge.difficulty)}</span></div></div><a class="listing-entry__action pixel-button start-button" href="${writeupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></article>`;
+const writeupCard = (ctf, challenge, query = "") =>
+  `<article class="quest-card listing-entry listing-entry--writeup"><div class="listing-entry__main"><p class="quest-number">WRITEUP · ${escapeHtml((challenge.category || "CTF").toUpperCase())}</p><p class="listing-event">${escapeHtml(ctf.title).toUpperCase()}</p><h2>${highlightTerms(challenge.title, query)}</h2><p>${highlightTerms(challenge.description || `Writeup from ${ctf.title}.`, query)}</p><div class="listing-tags">${listingTags(challenge.tags)}</div><div class="quest-meta"><span>${formatDate(ctf.date)}</span><span><b>${escapeHtml(String(challenge.points ?? "—"))}</b> PTS</span><span>${difficultyMeter(challenge.difficulty)}</span></div></div><a class="listing-entry__action pixel-button start-button" href="${writeupPageUrl(ctf.id, challenge.file)}">READ WRITEUP →</a></article>`;
 
 const ctfViewportVariant = (_ctf, index = 0) => {
   const variants = ["rain", "pulse", "stars", "crt-tv", "glitch"];
   return variants[index % variants.length];
 };
 
+// SMIL animations inside <img> SVG documents keep ticking even while the card
+// is offscreen. Swap to a static poster outside the viewport (and whenever the
+// visitor prefers reduced motion), and only load the animated document for
+// cards that can actually be seen.
+let disposeCtfAnimations = null;
+
+const refreshCtfAnimations = () => {
+  disposeCtfAnimations?.();
+  disposeCtfAnimations = null;
+  const images = [...document.querySelectorAll("img[data-animated-src][data-static-src]")];
+  if (!images.length) return;
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");
+  const apply = (image) => {
+    const animate = !motion.matches && image.dataset.ctfVisible !== "false";
+    const next = animate ? image.dataset.animatedSrc : image.dataset.staticSrc;
+    if (image.getAttribute("src") !== next) image.src = next;
+  };
+  for (const image of images) {
+    image.dataset.ctfVisible = "false";
+    image.src = image.dataset.staticSrc;
+  }
+  let observer = null;
+  if ("IntersectionObserver" in window) {
+    observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        entry.target.dataset.ctfVisible = String(entry.isIntersecting);
+        apply(entry.target);
+      }
+    }, { rootMargin: "200px", threshold: 0 });
+    for (const image of images) observer.observe(image);
+  } else {
+    for (const image of images) {
+      image.dataset.ctfVisible = "true";
+      apply(image);
+    }
+  }
+  const onMotionChange = () => images.forEach(apply);
+  motion.addEventListener("change", onMotionChange);
+  disposeCtfAnimations = () => {
+    observer?.disconnect();
+    motion.removeEventListener("change", onMotionChange);
+  };
+};
+
+addEventListener("radiantblaze:pagedisposing", () => {
+  disposeCtfAnimations?.();
+  disposeCtfAnimations = null;
+});
+
 const ctfCard = (ctf, index = 0) => {
   const challengeCount = ctf.challengeCount ?? ctf.challenges.length;
   const difficulty = Math.max(0, Math.min(5, parseInt(ctf.difficulty, 10) || 0));
   const stars = difficultyMeter(difficulty);
   const viewportVariant = ctfViewportVariant(ctf, index);
-  return `<article class="quest-card listing-entry listing-entry--event"><div class="event-viewport event-viewport--${viewportVariant}" aria-hidden="true"><img class="event-viewport__screen" src="/assets/ctf-animations/${viewportVariant}.svg" alt="" /></div><div class="listing-entry__main"><div class="event-kicker"><span class="quest-number">CTF EVENT</span></div><h2>${escapeHtml(ctf.title)}</h2><p class="listing-event">${escapeHtml(ctf.event || "INDEPENDENT EVENT")}</p><p>${escapeHtml(ctf.description || "")}</p><div class="event-stats"><span>${formatDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span class="event-difficulty">${stars} DIFFICULTY</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT <span aria-hidden="true">→</span></a></article>`;
+  return `<article class="quest-card listing-entry listing-entry--event"><div class="event-viewport event-viewport--${viewportVariant}" aria-hidden="true"><img class="event-viewport__screen" src="/assets/ctf-animations/static/${viewportVariant}.svg" data-animated-src="/assets/ctf-animations/${viewportVariant}.svg" data-static-src="/assets/ctf-animations/static/${viewportVariant}.svg" width="64" height="64" loading="lazy" decoding="async" alt="" /></div><div class="listing-entry__main"><div class="event-kicker"><span class="quest-number">CTF EVENT</span></div><h2>${escapeHtml(ctf.title)}</h2><p class="listing-event">${escapeHtml(ctf.event || "INDEPENDENT EVENT")}</p><p>${escapeHtml(ctf.description || "")}</p><div class="event-stats"><span>${formatDate(ctf.date)}</span><span><b>${challengeCount}</b> ${challengeCount === 1 ? "CHALLENGE" : "CHALLENGES"}</span><span class="event-difficulty">${stars} DIFFICULTY</span></div></div><a class="listing-entry__action pixel-button start-button" href="ctf.html?ctf=${encodeURIComponent(ctf.id)}">ENTER EVENT <span aria-hidden="true">→</span></a></article>`;
 };
 
 const emptyMessage = (value) => `<div class="rb-404-search-empty" role="status"><p class="rb-404-status">SYSTEM ERROR // 404</p><div class="rb-404-tv-wrap" role="img" aria-label="Retro television displaying a lost signal"><div class="rb-404-tv"><div class="rb-404-antenna" aria-hidden="true"><span class="rb-404-antenna-shadow"></span><span class="rb-404-antenna-left"></span><span class="rb-404-antenna-right"></span><i class="rb-404-tip-left"></i><i class="rb-404-tip-right"></i></div><div class="rb-404-display"><div class="rb-404-screen"><span>NO SIGNAL</span><b>404</b></div><div class="rb-404-screen-pattern" aria-hidden="true"></div></div><div class="rb-404-controls" aria-hidden="true"><span class="rb-404-button rb-404-button-one"></span><span class="rb-404-button rb-404-button-two"></span><div class="rb-404-speakers"><i></i><i></i><i></i><i></i><i></i></div></div><div class="rb-404-base" aria-hidden="true"><span></span><span></span></div></div></div><strong class="rb-404-search-title">${value}</strong><small>TRY ANOTHER TAG OR SEARCH TERM.</small></div>`;
@@ -189,7 +255,8 @@ const renderGlobalSearch = (posts, ctfs) => {
   const query = params.get("q") || "";
   let selectedYear = params.get("year") || "";
   let currentPage = 0;
-  let activeFilter = "all";
+  const initialType = params.get("type");
+  let activeFilter = ["posts", "writeups"].includes(initialType) ? initialType : "all";
   const activeTopics = new Set((params.get("topic") || "all").toLowerCase().split(",").filter((topic) => topic && topic !== "all"));
   const topicSet = new Set(
     [...posts, ...writeups.map(({ challenge }) => challenge)]
@@ -264,21 +331,69 @@ const renderGlobalSearch = (posts, ctfs) => {
     });
   };
   input.value = query;
-  const syncQueryParam = () => {
+  const activeFilters = document.querySelector("[data-active-filters]");
+  const syncSearchUrl = () => {
     const url = new URL(location.href);
-    input.value ? url.searchParams.set("q", input.value) : url.searchParams.delete("q");
+    input.value.trim() ? url.searchParams.set("q", input.value.trim()) : url.searchParams.delete("q");
+    activeFilter === "all" ? url.searchParams.delete("type") : url.searchParams.set("type", activeFilter);
+    activeTopics.size ? url.searchParams.set("topic", [...activeTopics].join(",")) : url.searchParams.delete("topic");
+    selectedYear ? url.searchParams.set("year", selectedYear) : url.searchParams.delete("year");
+    url.searchParams.delete("pg");
     history.replaceState(null, "", url);
   };
+  const resetFilters = () => {
+    input.value = "";
+    activeFilter = "all";
+    activeTopics.clear();
+    selectedYear = "";
+    syncSearchUrl();
+    applyFilterClasses();
+    renderSearch("", true);
+  };
+  const renderActiveFilters = (value) => {
+    if (!activeFilters) return;
+    const chips = [];
+    const term = value.trim();
+    if (term) chips.push({ kind: "query", value: term, label: `“${term}”` });
+    if (activeFilter !== "all") chips.push({ kind: "type", value: activeFilter, label: activeFilter === "posts" ? "POSTS" : "WRITEUPS" });
+    for (const topic of activeTopics) chips.push({ kind: "topic", value: topic, label: `#${topic.toUpperCase()}` });
+    if (selectedYear) chips.push({ kind: "year", value: selectedYear, label: selectedYear });
+    activeFilters.hidden = chips.length === 0;
+    activeFilters.innerHTML = chips.length === 0 ? "" : [
+      '<span class="active-filters__label">ACTIVE FILTERS</span>',
+      ...chips.map((chip) => `<button type="button" class="filter-chip" data-filter-kind="${chip.kind}" data-filter-value="${escapeHtml(chip.value)}" aria-label="Remove filter ${escapeHtml(chip.label)}">${escapeHtml(chip.label)} <span aria-hidden="true">×</span></button>`),
+      '<button type="button" class="filter-chip filter-chip--clear" data-clear-filters>CLEAR ALL</button>',
+    ].join("");
+  };
+  const clearFilter = (kind, value) => {
+    if (kind === "query") input.value = "";
+    else if (kind === "type") activeFilter = "all";
+    else if (kind === "topic") activeTopics.delete(value);
+    else if (kind === "year") selectedYear = "";
+    syncSearchUrl();
+    applyFilterClasses();
+    renderSearch(input.value, true);
+  };
+  activeFilters?.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (target?.closest("[data-clear-filters]")) {
+      resetFilters();
+      return;
+    }
+    const chip = target?.closest("[data-filter-kind]");
+    if (chip) clearFilter(chip.dataset.filterKind, chip.dataset.filterValue);
+  });
   // The SCAN button submits the form; it re-runs the scan from page 1 and
   // normalizes the URL exactly the way typing does.
   input.closest("form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     renderSearch(input.value, true);
-    syncQueryParam();
+    syncSearchUrl();
   });
   document.querySelectorAll("[data-search-filter]").forEach((button) => {
     button.addEventListener("click", () => {
       activeFilter = button.dataset.searchFilter;
+      syncSearchUrl();
       applyFilterClasses();
       renderSearch(input.value, true);
     });
@@ -288,9 +403,7 @@ const renderGlobalSearch = (posts, ctfs) => {
       if (button.dataset.searchTopic === "all") activeTopics.clear();
       else if (activeTopics.has(button.dataset.searchTopic)) activeTopics.delete(button.dataset.searchTopic);
       else activeTopics.add(button.dataset.searchTopic);
-      const url = new URL(location.href);
-      activeTopics.size ? url.searchParams.set("topic", [...activeTopics].join(",")) : url.searchParams.delete("topic");
-      history.replaceState(null, "", url);
+      syncSearchUrl();
       applyFilterClasses();
       renderSearch(input.value, true);
     });
@@ -298,9 +411,7 @@ const renderGlobalSearch = (posts, ctfs) => {
   document.querySelectorAll("[data-search-year]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedYear = button.dataset.searchYear === "all" ? "" : button.dataset.searchYear;
-      const url = new URL(location.href);
-      selectedYear ? url.searchParams.set("year", selectedYear) : url.searchParams.delete("year");
-      history.replaceState(null, "", url);
+      syncSearchUrl();
       applyFilterClasses();
       renderSearch(input.value, true);
     });
@@ -321,16 +432,23 @@ const renderGlobalSearch = (posts, ctfs) => {
     const { currentPage: shownPage, totalPages, start, shown } = pageSlice(selected, currentPage + 1);
     currentPage = shownPage - 1;
     const range = selected.length ? ` · SHOWING ${start + 1}–${start + shown.length}` : "";
+    const postCount = selected.filter((record) => record.type === "post").length;
+    const writeupCount = selected.length - postCount;
     const count = document.querySelector("[data-record-count]");
-    if (count) count.textContent = `FOUND ${selected.length} RECORD${selected.length === 1 ? "" : "S"}${range}`;
+    if (count) count.textContent = `FOUND ${selected.length} RECORD${selected.length === 1 ? "" : "S"} · ${postCount} POST${postCount === 1 ? "" : "S"} · ${writeupCount} WRITEUP${writeupCount === 1 ? "" : "S"}${range}`;
+    renderActiveFilters(value);
     const list = document.querySelector("[data-quest-list]");
     if (list) {
-      list.innerHTML = shown.map((record) => record.type === "post" ? postCard(record.item) : writeupCard(record.ctf, record.item)).join("") || emptyMessage("NO RECORDS FOUND");
+      list.innerHTML = shown.length
+        ? shown.map((record) => record.type === "post" ? postCard(record.item, value) : writeupCard(record.ctf, record.item, value)).join("")
+        : `${emptyMessage("NO RECORDS FOUND")}<div class="search-recovery"><p>No records match these filters.</p><button type="button" class="pixel-button start-button" data-clear-filters>RESET SEARCH</button></div>`;
+      list.querySelector("[data-clear-filters]")?.addEventListener("click", resetFilters);
+      refreshCtfAnimations();
     }
     const pagination = document.querySelector("[data-search-pagination]");
     if (pagination) {
       pagination.innerHTML = totalPages > 1
-        ? `<button class="pixel-button start-button" type="button" data-search-page="previous" aria-label="Previous page" ${currentPage === 0 ? "disabled" : ""}>‹</button>${Array.from({ length: totalPages }, (_, index) => `<button class="pixel-button start-button" type="button" data-search-page="${index}"${index === currentPage ? ' aria-current="page"' : ""}>${index + 1}</button>`).join("")}<button class="pixel-button start-button" type="button" data-search-page="next" aria-label="Next page" ${currentPage === totalPages - 1 ? "disabled" : ""}>›</button>`
+        ? `<button class="pixel-button start-button" type="button" data-search-page="previous" aria-label="Previous page" ${currentPage === 0 ? "disabled" : ""}>‹</button>${pageWindow(currentPage + 1, totalPages).map((page) => page === "…" ? '<span class="pagination-gap" aria-hidden="true">…</span>' : `<button class="pixel-button start-button" type="button" data-search-page="${page - 1}"${page - 1 === currentPage ? ' aria-current="page"' : ""}>${page}</button>`).join("")}<button class="pixel-button start-button" type="button" data-search-page="next" aria-label="Next page" ${currentPage === totalPages - 1 ? "disabled" : ""}>›</button>`
         : "";
       pagination.querySelectorAll("[data-search-page]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -344,7 +462,7 @@ const renderGlobalSearch = (posts, ctfs) => {
   };
   input.addEventListener("input", () => {
     renderSearch(input.value);
-    syncQueryParam();
+    syncSearchUrl();
   });
   applyFilterClasses();
   renderSearch(query);
@@ -370,15 +488,18 @@ const eventSidebar = (ctf) => {
   return `<section class="pixel-panel"><h2>EVENT DATA</h2><ul class="stat-list"><li>ORGANIZER <strong>${escapeHtml(ctf.event || "—")}</strong></li><li>DATE <strong>${formatDate(ctf.date)}</strong></li><li>CHALLENGES <strong>${challengeTotal(ctf)}</strong></li><li>${pointsLabel} <strong>${points.toLocaleString()}</strong></li><li>DIFFICULTY ${difficultyMeter(ctf.difficulty)}</li></ul></section><section class="pixel-panel"><h2>${categoryLabel}</h2><ul class="stat-list">${countRows(categoryCounts(ctf.challenges))}</ul></section>${source}`;
 };
 
-const arenaAside = document.querySelector("[data-ctf-aside]");
-const arenaAsideDefault = arenaAside?.innerHTML ?? "";
+const asideDefaults = new WeakMap();
 
 const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage, fullCtf) => {
   const list = document.querySelector("[data-ctf-list]");
   if (!list) return;
   // Inside one event the aside shows that event's record instead of the
   // site-wide player card, using the unsliced event so totals stay CTF-wide.
-  if (arenaAside) arenaAside.innerHTML = ctf ? eventSidebar(fullCtf || ctf) : arenaAsideDefault;
+  const arenaAside = document.querySelector("[data-ctf-aside]");
+  if (arenaAside) {
+    if (!asideDefaults.has(arenaAside)) asideDefaults.set(arenaAside, arenaAside.innerHTML);
+    arenaAside.innerHTML = ctf ? eventSidebar(fullCtf || ctf) : asideDefaults.get(arenaAside);
+  }
   const title = document.querySelector("[data-ctf-title]");
   const intro = document.querySelector("[data-ctf-intro]");
   const count = document.querySelector("[data-ctf-count]");
@@ -397,6 +518,7 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage, fullCtf
     if (back) back.innerHTML = '<a href="ctf.html">← ALL CTF EVENTS</a>';
     if (count) count.textContent = `${plural(results.length, "RESULT")} · PAGE ${currentPage} OF ${totalPages}`;
     list.innerHTML = shown.map(searchResultCard).join("") || emptyMessage("NO MATCHING CTF RESULTS.");
+    refreshCtfAnimations();
     if (pagination) pagination.innerHTML = paginationHtml(results.length, currentPage, (page) => `ctf.html?ctf=${encodeURIComponent(ctf.id)}&q=${encodeURIComponent(searchQuery)}&pg=${page}`);
     return;
   }
@@ -439,6 +561,7 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage, fullCtf
     if (intro) intro.textContent = `Search results for "${searchQuery}".`;
     if (count) count.textContent = `${plural(results.length, "RESULT")} · PAGE ${currentPage} OF ${totalPages}`;
     list.innerHTML = shown.map(searchResultCard).join("") || emptyMessage("NO MATCHING CTF RESULTS.");
+    refreshCtfAnimations();
     if (pagination) pagination.innerHTML = paginationHtml(results.length, currentPage, (page) => page === 1 ? "ctf.html?q=" + encodeURIComponent(searchQuery) : `ctf.html?q=${encodeURIComponent(searchQuery)}&pg=${page}`);
     return;
   }
@@ -467,6 +590,7 @@ const renderArena = (ctfs, ctf, requestedId, searchQuery, requestedPage, fullCtf
     eventPage = slice.currentPage;
     if (count) count.textContent = `${plural(filtered.length, "EVENT")} · ${plural(filtered.reduce((total, item) => total + challengeTotal(item), 0), "WRITEUP")} · PAGE ${slice.currentPage} OF ${slice.totalPages}`;
     list.innerHTML = slice.shown.map(ctfCard).join("") || emptyMessage("NO CTF EVENTS MATCH THAT FILTER.");
+    refreshCtfAnimations();
     if (pagination) pagination.innerHTML = paginationHtml(filtered.length, slice.currentPage, (page) => {
       const next = new URLSearchParams();
       if (page > 1) next.set("pg", page);
@@ -542,15 +666,35 @@ const renderReadModelError = () => {
     .forEach((element) => { element.textContent = "ARCHIVE UNAVAILABLE"; });
 };
 
-let model;
-try {
-  model = await getReadModel();
-} catch (error) {
-  console.error("[radiant-blaze:pages] Read model could not be loaded.", error);
-  renderReadModelError();
-}
+let modelPromise = null;
+let initGeneration = 0;
 
-if (model) {
+const loadReadModel = () => {
+  if (!modelPromise) {
+    modelPromise = getReadModel().catch((error) => {
+      modelPromise = null;
+      throw error;
+    });
+  }
+  return modelPromise;
+};
+
+export const initPage = async () => {
+  const generation = ++initGeneration;
+  params = new URLSearchParams(location.search);
+  requestedPage = Math.max(1, parseInt(params.get("pg"), 10) || 1);
+  let model;
+  try {
+    model = await loadReadModel();
+  } catch (error) {
+    if (generation !== initGeneration) return;
+    console.error("[radiant-blaze:pages] Read model could not be loaded.", error);
+    renderReadModelError();
+    return;
+  }
+  if (generation !== initGeneration) return;
   if (document.querySelector("[data-ctf-list]")) renderCtf(model);
   else renderBlog(model);
-}
+};
+
+if (!globalThis.__radiantBlazeSpaImport) void initPage();
