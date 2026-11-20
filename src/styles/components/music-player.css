@@ -1,0 +1,315 @@
+  #rb-music-root {
+    position: fixed;
+    z-index: 1000;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
+    width: min(390px, calc(100vw - 28px));
+    color: var(--text);
+    font: 8px/1.6 "Press Start 2P", monospace;
+  }
+  #rb-music-root button,
+  #rb-music-root input,
+  #rb-music-root select {
+    font: inherit;
+  }
+  #rb-music-root button {
+    color: inherit;
+    cursor: pointer;
+  }
+  #rb-music-root button:focus-visible,
+  #rb-music-root input:focus-visible,
+  #rb-music-root select:focus-visible {
+    outline: 3px solid var(--accent-cyan-text);
+    outline-offset: 3px;
+  }
+  .rb-music-dock {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 7px;
+  }
+  .rb-music-pill {
+    min-width: 0;
+    min-height: 50px;
+    border: 3px solid var(--text);
+    background: var(--panel);
+    box-shadow: 4px 4px 0 var(--shadow);
+  }
+  .rb-music-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+    padding: 7px 10px;
+    text-align: left;
+  }
+  .rb-music-pill:hover {
+    border-color: var(--accent-cyan);
+    transform: translateY(-2px);
+  }
+  .rb-music-pill-copy {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+    gap: 2px;
+  }
+  .rb-music-pill-copy strong,
+  .rb-music-pill-copy small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rb-music-pill-copy strong {
+    color: var(--accent-cyan-text);
+    font-size: 7px;
+  }
+  .rb-music-pill-copy small,
+  .rb-music-now-copy span {
+    color: var(--muted);
+    font-size: 6px;
+  }
+  .rb-music-status {
+    color: var(--accent-orange-text);
+    font-size: 6px;
+  }
+  .rb-music-visualizer {
+    display: flex;
+    flex: 0 0 24px;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 24px;
+  }
+  .rb-music-visualizer i {
+    display: block;
+    width: 4px;
+    height: var(--bar-level, 4px);
+    max-height: 20px;
+    background: var(--accent-pink);
+    image-rendering: pixelated;
+    transition: height 0.08s linear;
+  }
+  .rb-music--playing .rb-music-visualizer i {
+    animation: rb-eq-fallback 0.55s steps(3, end) infinite alternate;
+  }
+  .rb-music--playing .rb-music-visualizer i:nth-child(2) { animation-delay: -0.3s; }
+  .rb-music--playing .rb-music-visualizer i:nth-child(3) { animation-delay: -0.12s; }
+  .rb-music--playing .rb-music-visualizer i:nth-child(4) { animation-delay: -0.42s; }
+  /* Analyser mode drives the bars with transforms instead of animating their
+     height, so the equalizer stays off the layout path. */
+  .rb-music--analyser .rb-music-visualizer { align-items: flex-end; }
+  .rb-music--analyser .rb-music-visualizer i {
+    height: 20px;
+    transform: scaleY(var(--bar-scale, 0.12));
+    transform-origin: bottom;
+    transition: transform 80ms linear;
+    animation: none;
+  }
+  @keyframes rb-eq-fallback {
+    from { height: 4px; }
+    to { height: 19px; }
+  }
+  .rb-music-player {
+    position: absolute;
+    right: 0;
+    bottom: 60px;
+    width: 100%;
+    max-height: min(76vh, 690px);
+    overflow: auto;
+    padding: 14px;
+    border: 4px solid var(--text);
+    background: var(--panel);
+    box-shadow: 7px 7px 0 var(--shadow), 0 0 22px color-mix(in srgb, var(--accent-cyan) 18%, transparent);
+    animation: rb-music-in 0.16s steps(4, end) both;
+    overscroll-behavior: contain;
+  }
+
+  .rb-music-player-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed #4b416b;
+  }
+  .rb-music-player-head p {
+    margin: 0;
+    color: var(--accent-cyan-text);
+    font-size: 7px;
+  }
+  .rb-music-player-head button,
+  .rb-music-controls button {
+    min-width: 34px;
+    min-height: 30px;
+    border: 2px solid var(--text);
+    background: transparent;
+  }
+  .rb-music-player-head button {
+    min-width: 30px;
+    color: var(--accent-pink-text) !important;
+    font-size: 15px !important;
+    line-height: 1;
+  }
+  .rb-music-now {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+  .rb-music-art {
+    display: grid;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    place-items: center;
+    overflow: hidden;
+    border: 3px solid var(--accent-pink);
+    background: var(--shadow);
+    color: var(--accent-orange-text);
+    font-size: 18px;
+  }
+  .rb-music-art img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .rb-music-now-copy {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+  }
+  .rb-music-now-copy strong {
+    overflow-wrap: anywhere;
+    color: var(--accent-orange-text);
+    font-size: 8px;
+  }
+  .rb-music-now-copy small {
+    color: var(--accent-cyan-text);
+    font-size: 6px;
+  }
+  .rb-music-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 13px 0 8px;
+  }
+  .rb-music-controls .rb-music-play {
+    min-width: 44px;
+    border-color: var(--accent-pink);
+    color: var(--accent-cyan-text);
+    font-size: 13px;
+  }
+  .rb-music-progress {
+    display: grid;
+    grid-template-columns: 39px minmax(0, 1fr) 39px;
+    align-items: center;
+    gap: 7px;
+    color: var(--muted);
+    font-size: 6px;
+  }
+  .rb-music-progress input,
+  .rb-music-volume input {
+    width: 100%;
+    accent-color: var(--accent-cyan);
+  }
+  .rb-music-volume {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 8px 0;
+  }
+  .rb-jukebox h3 {
+    margin: 12px 0 8px;
+    color: var(--accent-pink-text);
+    font-size: 8px;
+  }
+  .rb-collections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .rb-collections button {
+    padding: 6px;
+    border: 2px solid var(--text);
+    background: transparent;
+    font-size: 5px;
+  }
+  .rb-collections button.is-active {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan-text);
+  }
+  .rb-track-list,
+  .rb-jukebox-lower ol {
+    display: grid;
+    max-height: 135px;
+    overflow: auto;
+    margin: 7px 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rb-track-row {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    padding: 6px;
+    border: 0;
+    border-bottom: 1px solid #4b416b;
+    background: transparent;
+    text-align: left;
+  }
+  .rb-track-row:hover,
+  .rb-track-row.is-current {
+    background: color-mix(in srgb, var(--accent-cyan) 10%, transparent);
+  }
+  .rb-track-row strong {
+    color: var(--text);
+    font-size: 6px;
+  }
+  .rb-track-row small {
+    color: var(--muted);
+    font-size: 5px;
+  }
+  .rb-track-row.is-current strong::before {
+    content: "♫ ";
+    color: var(--accent-pink-text);
+  }
+  .rb-jukebox-lower {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .rb-jukebox-lower h4 {
+    margin: 7px 0 0;
+    color: var(--accent-cyan-text);
+    font-size: 6px;
+  }
+  .rb-jukebox-lower ol {
+    max-height: 100px;
+    margin-top: 4px;
+  }
+  .rb-music-empty {
+    margin: 7px 0;
+    color: var(--muted);
+    font-size: 6px;
+  }
+  .rb-music-player[hidden],
+  #rb-music-root [hidden] {
+    display: none !important;
+  }
+  @media (max-width: 480px) {
+    #rb-music-root {
+      right: max(10px, env(safe-area-inset-right));
+      bottom: max(10px, env(safe-area-inset-bottom));
+      width: min(370px, calc(100vw - 20px));
+      max-width: calc(100% - 20px);
+    }
+    .rb-music-player {
+      max-height: 72vh;
+      padding: 11px;
+    }
+    .rb-music-pill-copy strong { max-width: 46vw; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rb-music-player { animation: none; }
+    .rb-music--playing .rb-music-visualizer i { animation: none; transform: none; transition: none; }
+    .rb-music-pill { transition: none; }
+  }

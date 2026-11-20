@@ -1,6 +1,14 @@
-const root = document.querySelector("[data-portfolio-projects]");
+// Portfolio filters. The page is an Astro route and the SPA router re-runs this
+// module's initPage() after replacing <main>, so listeners and DOM references
+// stay scoped to one page instead of living for the whole session.
+let disposePage = null;
 
-if (root) {
+export const initPage = () => {
+  disposePage?.();
+  disposePage = null;
+  const root = document.querySelector("[data-portfolio-projects]");
+  if (!root) return;
+
   const cards = [...root.querySelectorAll("[data-portfolio-project]")];
   const category = root.querySelector("[data-project-category]");
   const technology = root.querySelector("[data-project-technology]");
@@ -38,11 +46,23 @@ if (root) {
 
   category?.addEventListener("change", () => update());
   technology?.addEventListener("change", () => update());
-  addEventListener("popstate", () => {
+  const onPopState = () => {
     const current = new URLSearchParams(location.search);
     setValidFilter(category, current.get("projectCategory") || "");
     setValidFilter(technology, current.get("projectTechnology") || "");
     update(true);
-  });
+  };
+  addEventListener("popstate", onPopState);
   update(true);
-}
+
+  disposePage = () => {
+    removeEventListener("popstate", onPopState);
+  };
+};
+
+addEventListener("radiantblaze:pagedisposing", () => {
+  disposePage?.();
+  disposePage = null;
+});
+
+if (!globalThis.__radiantBlazeSpaImport) initPage();

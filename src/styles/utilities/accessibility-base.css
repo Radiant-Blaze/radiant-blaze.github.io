@@ -1,0 +1,15 @@
+@media (prefers-reduced-motion: reduce) {
+  .page-loader.is-visible,
+  .page-loader-text,
+  .page-loader-bar {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

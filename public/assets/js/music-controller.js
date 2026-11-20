@@ -461,6 +461,14 @@
     });
     document.addEventListener("keydown", (event) => {
       const target = event.target;
+      // The player is a non-modal dialog; Escape closes it from anywhere,
+      // including its own close button.
+      const player = document.getElementById("rb-music-player");
+      if (event.key === "Escape" && player && !player.hidden) {
+        event.preventDefault();
+        setPlayerOpen(false);
+        return;
+      }
       if (
         event.altKey || event.ctrlKey || event.metaKey ||
         (target instanceof HTMLElement &&
@@ -1185,18 +1193,24 @@
     const root = document.getElementById("rb-music-root");
     const bars = [...(root?.querySelectorAll("[data-visualizer] i") || [])];
     if (!bars.length) return;
-    if (!state.analyser) {
-      root.classList.add("rb-music--playing");
-      return;
-    }
     root.classList.add("rb-music--playing");
+    // Reduced motion keeps the static bars; the CSS fallback animation is
+    // already disabled by the media query.
+    if (!state.analyser || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    root.classList.add("rb-music--analyser");
     const values = new Uint8Array(state.analyser.frequencyBinCount);
-    const draw = () => {
+    let lastPaint = 0;
+    const draw = (timestamp) => {
       if (!state.playing) return;
-      state.analyser.getByteFrequencyData(values);
-      bars.forEach((bar, index) => {
-        bar.style.setProperty("--bar-level", `${Math.max(3, values[index * 2] / 255 * 100)}%`);
-      });
+      // 30 fps is indistinguishable for a four-bar equalizer and halves the
+      // per-frame style work compared with the display refresh rate.
+      if (timestamp - lastPaint >= 33) {
+        lastPaint = timestamp;
+        state.analyser.getByteFrequencyData(values);
+        bars.forEach((bar, index) => {
+          bar.style.setProperty("--bar-scale", String(Math.max(0.12, values[index * 2] / 255)));
+        });
+      }
       state.visualizerFrame = requestAnimationFrame(draw);
     };
     state.visualizerFrame = requestAnimationFrame(draw);
@@ -1205,7 +1219,8 @@
   function stopVisualizer() {
     if (state.visualizerFrame) cancelAnimationFrame(state.visualizerFrame);
     state.visualizerFrame = 0;
-    document.getElementById("rb-music-root")?.classList.remove("rb-music--playing");
+    const root = document.getElementById("rb-music-root");
+    root?.classList.remove("rb-music--playing", "rb-music--analyser");
   }
 
   function formatTime(value) {

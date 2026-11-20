@@ -66,7 +66,10 @@ export const updatePageMetadata = ({ title, description, canonicalUrl }) => {
   setMeta("name", "twitter:url", canonicalUrl);
 };
 
-const MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+// Pinned so an upstream major/minor release cannot change the typesetter
+// under the site; the SRI hash covers the exact bytes we tested.
+const MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js";
+const MATHJAX_INTEGRITY = "sha384-Wuix6BuhrWbjDBs24bXrjf4ZQ5aFeFWBuKkFekO2t8xFU0iNaLQfp2K6/1Nxveei";
 let mathJaxReady;
 
 export const typesetMath = (root = document.querySelector(".quest-article")) => {
@@ -79,6 +82,9 @@ export const typesetMath = (root = document.querySelector(".quest-article")) => 
     mathJaxReady = new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = MATHJAX_SRC;
+      script.crossOrigin = "anonymous";
+      script.referrerPolicy = "no-referrer";
+      script.integrity = MATHJAX_INTEGRITY;
       script.addEventListener("load", resolve, { once: true });
       script.addEventListener("error", reject, { once: true });
       document.head.append(script);
@@ -96,13 +102,18 @@ export const initReadingProgress = () => {
   const update = () => {
     const scrollable = document.documentElement.scrollHeight - innerHeight;
     const pct = scrollable > 0 ? (scrollY / scrollable) * 100 : 0;
-    hp.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+    // A transform keeps the progress bar off the layout path as the reader
+    // scrolls; writing width recomputed layout on every scroll event.
+    hp.style.transform = `scaleX(${Math.min(1, Math.max(0, pct / 100))})`;
   };
   addEventListener("scroll", update, { passive: true });
   addEventListener("resize", update, { passive: true });
   window.__radiantBlazeReadingProgressCleanup = () => {
     removeEventListener("scroll", update);
     removeEventListener("resize", update);
+    // Drop the closure so the detached progress element it captured can be
+    // collected even when the next page has no reading progress bar.
+    window.__radiantBlazeReadingProgressCleanup = null;
   };
   update();
 };

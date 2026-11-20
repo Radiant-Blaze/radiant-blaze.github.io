@@ -4,7 +4,7 @@ Radiant Blaze is a static Astro site for blog posts, CTF writeups, search, and r
 
 ## Main structure
 
-- `src/`: Astro pages, layouts, content configuration, data projections, and the Markdown converter.
+- `src/`: Astro pages, layouts, content configuration, data projections, the Markdown converter, and the modular stylesheet entry (`src/styles/style.css`).
 - `content/`: authored Markdown, JSON indexes, event metadata, and site metadata.
 - `assets/`: active browser JavaScript and other site assets copied or served by the Astro integration.
 - `compat/`: preserved compatibility sources. `compat/legacy-assets/js/` is still served at `/legacy/assets/js/...`, but the current viewer and listing controllers do not load it.
@@ -13,7 +13,7 @@ Radiant Blaze is a static Astro site for blog posts, CTF writeups, search, and r
 - `.agents/`: persistent context for coding-agent sessions.
 - `astro-tools/`: content synchronization, source-asset integration, route/parity checks, and tests.
 - There is no `scripts/` directory. Do not reintroduce the retired Python compiler as a required build step.
-- `public/`: Astro's public directory. It holds the static assets served during development and copied verbatim into `dist/`: `public/assets/` (CSS, browser JavaScript, fonts, music, CTF SVG animations), `public/images/`, `public/favicon.svg`, `public/og-image.png`, and `public/robots.txt`.
+- `public/`: Astro's public directory. It holds the static assets served during development and copied verbatim into `dist/`: `public/assets/` (browser JavaScript, fonts, music, CTF SVG animations), `public/favicon.svg`, `public/og-image.png`, and `public/robots.txt`.
 - `dist/`: generated static build output; never hand-edit it.
 - `.astro/`: Astro-generated development/type state; never hand-edit it.
 - `.venv/`: local Python virtual environment for the `astro-tools/*.py` helpers; gitignored.

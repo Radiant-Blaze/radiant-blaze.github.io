@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
+import { getCollection } from "astro:content";
 import { getOrderedArticles, postRoute, writeupRoute } from "../lib/article-data";
+import { portfolioProjectRoute, publishedProjects } from "../lib/portfolio-data";
 
 const ORIGIN = "https://radiant-blaze.github.io";
 const NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9";
@@ -14,6 +16,7 @@ type SitemapEntry = { loc: string; lastmod?: string };
 
 export const GET: APIRoute = async () => {
   const { posts, writeups, events } = await getOrderedArticles();
+  const projects = publishedProjects(await getCollection("portfolio"));
 
   // Listing pages change whenever content does, so they carry the newest
   // published date. Article routes carry their own date; writeup routes inherit
@@ -33,6 +36,7 @@ export const GET: APIRoute = async () => {
     { loc: `${ORIGIN}/pages/ctf.html`, lastmod: listingLastmod },
     // Portfolio entries carry optional dates, so no lastmod is declared here.
     { loc: `${ORIGIN}/portfolio/` },
+    ...projects.map((project) => ({ loc: `${ORIGIN}${portfolioProjectRoute(project)}` })),
     ...posts.map(({ entry }) => ({
       loc: `${ORIGIN}${postRoute(entry.id)}`,
       lastmod: isoDate(entry.data.date),

@@ -1,0 +1,89 @@
+.site-footer {
+  border-top: 4px solid var(--text);
+  padding: 28px 0;
+}
+.footer-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 13px 30px;
+  color: var(--muted);
+  font-size: 7px;
+}
+.footer-stats b {
+  color: var(--accent-orange-text);
+  display: block;
+  font-size: 9px;
+  margin-bottom: 3px;
+}
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.site-footer .social-links {
+  margin-top: 18px;
+}
+.social-link {
+  display: grid;
+  grid-template-columns: 34px minmax(74px, 1fr) auto;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  min-width: 170px;
+  min-height: 50px;
+  padding: 5px 9px 5px 5px;
+  border: 3px solid var(--text);
+  background: transparent;
+  color: var(--text);
+  box-shadow: 4px 4px 0 var(--accent-pink);
+  font-size: 11px;
+  text-decoration: none;
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s,
+    background-color 0.12s;
+}
+.social-icon { grid-row: 1 / -1; display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--accent-cyan); background: var(--accent-cyan); color: var(--dark-shadow); }
+.social-icon svg { width: 22px; height: 22px; fill: currentColor; shape-rendering: crispEdges; }
+.social-label { align-self: end; letter-spacing: .04em; }
+.social-kind { align-self: start; color: var(--muted); font-size: 9px; letter-spacing: .04em; }
+/* Placeholder entries render as badges, not links, so they must not respond to
+   hover the way a real destination does. The recessed look comes from the icon
+   block alone: dimming the whole badge pushed the 9px STANDBY text to ~3.5:1,
+   below the 4.5:1 AA floor. */
+.social-link.is-pending {
+  opacity: 1;
+}
+.social-link.is-pending .social-icon {
+  opacity: 0.55;
+}
+.social-link:not(.is-pending):hover,
+.social-link:not(.is-pending):focus-visible {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--accent-pink);
+  background: var(--accent-cyan);
+  color: var(--dark-shadow);
+  outline: none;
+}
+.social-link:not(.is-pending):hover .social-icon,
+.social-link:not(.is-pending):focus-visible .social-icon { background: var(--dark-shadow); color: var(--accent-cyan-text); }
+.social-link:focus-visible {
+  outline: 3px solid var(--accent-cyan-text);
+  outline-offset: 3px;
+}
+.social-link:active { transform: translate(4px, 4px); box-shadow: none; }
+@media (max-width: 540px) {
+  .listing-entry { display: block; padding: 16px; }
+  .listing-entry__action { margin-top: 18px; }
+  .social-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .social-link { min-width: 0; grid-template-columns: 34px minmax(0, 1fr); }
+  .social-kind { display: none; }
+  .social-icon { width: 28px; height: 28px; }
+  .social-icon svg { width: 20px; height: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .social-link { transition: none; } }
+.footer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+}
+

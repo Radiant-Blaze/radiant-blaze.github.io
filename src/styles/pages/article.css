@@ -1,0 +1,273 @@
+.article-layout {
+  grid-template-columns: minmax(0, 1fr) clamp(280px, calc(250px + 4vw), 320px);
+}
+.article-header {
+  padding: 42px 0 25px;
+  border-bottom: 4px solid var(--text);
+}
+.article-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  color: var(--muted);
+  font-size: 9px;
+  margin-top: 23px;
+}
+.article-info b {
+  color: var(--accent-orange-text);
+  font-weight: normal;
+}
+.hp-label {
+  display: flex;
+  justify-content: space-between;
+  color: var(--accent-cyan-text);
+  font-size: 9px;
+  margin-bottom: 8px;
+}
+.hp-track {
+  height: 16px;
+  background: var(--shadow);
+  border: 3px solid var(--text);
+}
+.hp-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--accent-pink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.2s;
+}
+.quest-article {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.9;
+  /* Keep long unbroken tokens (URLs, hashes) inside the column. */
+  overflow-wrap: break-word;
+}
+.listing-entry { display: flex; grid-template-columns: none; gap: 18px; align-items: end; padding: 20px 22px; border-left: 8px solid var(--accent-cyan); }
+.listing-entry--writeup { border-left-color: var(--accent-orange); }
+.listing-entry--event { border-left-color: var(--accent-pink); }
+.listing-entry__main { min-width: 0; flex: 1; }
+.listing-entry h2 { margin-bottom: 9px; }
+.listing-event { color: var(--accent-orange-text) !important; font-size: 8px !important; margin: 0 0 9px !important; letter-spacing: .05em; }
+.listing-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 15px; }
+.listing-tag { border: 2px solid #4b416b; color: var(--accent-cyan-text); font-size: 6px; padding: 5px 6px; }
+.listing-entry__action { flex: 0 0 auto; white-space: nowrap; }
+.listing-entry .quest-meta { margin: 0; }
+.quest-article > :first-child {
+  margin-top: 0;
+}
+.content-article pre {
+  position: relative;
+}
+.content-article h2,
+.content-article h3,
+.content-article h4,
+.content-article h5,
+.content-article h6 {
+  scroll-margin-top: 5.5rem;
+}
+.content-progress {
+  margin-bottom: 1rem;
+}
+.quest-article h2 {
+  color: var(--accent-orange-text);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 43px 0 17px;
+}
+.quest-article h1 {
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+.quest-article h3 {
+  color: var(--accent-cyan-text);
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 34px 0 14px;
+}
+.quest-article h4 {
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 28px 0 12px;
+}
+.quest-article ul,
+.quest-article ol {
+  margin: 0 0 21px;
+  padding-left: 20px;
+}
+.quest-article li {
+  margin-bottom: 9px;
+}
+.quest-article strong {
+  color: var(--text);
+}
+.quest-article a {
+  color: var(--accent-cyan-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.quest-article p {
+  margin: 0 0 21px;
+}
+.quest-article code {
+  color: var(--accent-cyan-text);
+}
+.quest-article pre {
+  display: block;
+  background: #0b0815;
+  border: 4px solid var(--accent-pink);
+  box-shadow: 6px 6px 0 var(--shadow);
+  color: #65e7e3;
+  font: 11px/1.8 monospace;
+  margin: 28px 0;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 17px;
+  white-space: pre;
+}
+.quest-article pre code {
+  display: block;
+  min-width: max-content;
+  color: inherit;
+}
+.quest-article pre code[data-language]::before {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--accent-pink-text);
+  content: "● ● ●  WRITEUP TERMINAL";
+  font: 9px/1.4 "Press Start 2P", monospace;
+}
+.quest-article pre code[data-language="text"]::before {
+  content: "● ● ●  TERMINAL OUTPUT";
+}
+/* Diagram source stays readable when JavaScript is off or the CDN is blocked. */
+.quest-article pre code[data-language="mermaid"]::before {
+  content: "● ● ●  DIAGRAM SOURCE";
+}
+.quest-article pre[hidden] {
+  display: none;
+}
+.quest-article table {
+  border-collapse: collapse;
+  display: block;
+  margin: 28px 0;
+  max-width: 100%;
+  overflow-x: auto;
+  width: max-content;
+}
+.quest-article table thead {
+  background: var(--panel);
+}
+.quest-article th,
+.quest-article td {
+  border: 3px solid var(--accent-cyan);
+  padding: 10px 13px;
+  text-align: left;
+  vertical-align: top;
+}
+.quest-article th {
+  background: var(--panel);
+  color: var(--accent-orange-text);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.quest-article td {
+  color: var(--muted);
+}
+.quest-article img {
+  display: block;
+  height: auto;
+  margin: 28px 0;
+  max-width: 100%;
+  border: 4px solid var(--text);
+  box-shadow: 6px 6px 0 var(--shadow);
+}
+.quest-article figure {
+  margin: 30px 0;
+}
+.quest-article figure img {
+  margin: 0;
+}
+.quest-article figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.7;
+}
+.quest-article .math-block {
+  display: block;
+  box-sizing: border-box;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+  overflow-x: auto;
+  /* overflow-x:auto makes the other axis scrollable in browser overflow
+     computation. Prevent glyph overhang from creating a vertical scrollbar;
+     the auto-height block still expands to contain the MathJax layout. */
+  overflow-y: clip;
+  padding: 12px 16px;
+  margin: 24px 0;
+  border: 3px solid var(--accent-cyan);
+  background: var(--panel);
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+.quest-article mjx-container[jax="CHTML"][display="true"] {
+  display: block;
+  /* The surrounding .math-block owns overflow. Keeping the MathJax element
+     itself out of the scroll-container chain prevents a scrollbar on every
+     equation, including short equations that fit comfortably. */
+  max-width: none;
+  overflow: visible;
+  margin: 0;
+}
+.terminal {
+  background: #0b0815;
+  border: 4px solid var(--accent-pink);
+  box-shadow: 6px 6px 0 var(--shadow);
+  color: #65e7e3;
+  font: 11px/1.8 monospace;
+  overflow: auto;
+  padding: 17px;
+}
+.terminal::before {
+  content: "● ● ●  SYSTEM TERMINAL";
+  display: block;
+  color: var(--accent-pink-text);
+  font:
+    9px "Press Start 2P",
+    monospace;
+  margin-bottom: 13px;
+}
+.quest-article blockquote {
+  border: 4px solid var(--accent-orange);
+  background: #372b51;
+  color: var(--text);
+  margin: 28px 0;
+  padding: 19px;
+}
+.quest-article blockquote p:last-child {
+  margin-bottom: 0;
+}
+.quest-article blockquote::before {
+  content: "NPC >";
+  display: block;
+  color: var(--accent-orange-text);
+  font-size: 9px;
+  margin-bottom: 9px;
+}
+.comment {
+  padding: 17px;
+  margin: 15px 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+.comment b {
+  display: block;
+  color: var(--accent-cyan-text);
+  margin-bottom: 8px;
+}

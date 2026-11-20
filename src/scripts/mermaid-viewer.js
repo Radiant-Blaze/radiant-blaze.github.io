@@ -17,9 +17,11 @@ const DIAGRAM_TOKENS = {
   "--panel": { key: "panel", fallback: "#272044" },
   "--text": { key: "text", fallback: "#fff7de" },
   "--muted": { key: "muted", fallback: "#baaed6" },
-  "--accent-pink": { key: "pink", fallback: "#ff5e9d" },
-  "--accent-orange": { key: "orange", fallback: "#ffb347" },
-  "--accent-cyan": { key: "cyan", fallback: "#65e7e3" },
+  // Text-safe accents: identical in the dark theme and darkened in the light
+  // theme so node borders and labels stay legible on the light panel.
+  "--accent-pink-text": { key: "pink", fallback: "#ff5e9d" },
+  "--accent-orange-text": { key: "orange", fallback: "#ffb347" },
+  "--accent-cyan-text": { key: "cyan", fallback: "#65e7e3" },
 };
 const DIAGRAM_FALLBACK_KEYS = Object.fromEntries(
   Object.values(DIAGRAM_TOKENS).map(({ key, fallback }) => [fallback.toLowerCase(), key]),
@@ -57,6 +59,9 @@ const mermaidConfig = (tokens) => ({
   securityLevel: "strict",
   theme: "base",
   fontFamily: tokens.font,
+  // Keep Mermaid's default ELK flowchart layout: it is the previously verified
+  // rendering path. Diagrams can still request dagre explicitly via a Mermaid
+  // init directive when a specific diagram needs it.
   flowchart: { useMaxWidth: false, wrappingWidth: 320 },
   themeVariables: {
     darkMode: !tokens.light,
@@ -173,6 +178,10 @@ class DiagramViewer {
     this.timer = 0;
     addEventListener("radiantblaze:contentchange", () => this.schedule(document, false));
     addEventListener("radiantblaze:themechange", () => this.schedule(document, true));
+    addEventListener("radiantblaze:pagedisposing", () => {
+      this.generation++;
+      clearTimeout(this.timer);
+    });
   }
 
   /** Public hook used by tests and the SPA router. */
@@ -331,6 +340,19 @@ class DiagramViewer {
     stage.className = "diagram__stage";
     stage.setAttribute("role", "img");
     stage.setAttribute("aria-label", "Mermaid diagram");
+    // Wide diagrams scroll horizontally inside the stage. Without a tab stop
+    // keyboard users could not reach that scroll container.
+    stage.tabIndex = 0;
+    stage.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      if (stage.scrollWidth <= stage.clientWidth) return;
+      event.preventDefault();
+      const step = Math.max(80, stage.clientWidth * 0.6) * (event.key === "ArrowRight" ? 1 : -1);
+      stage.scrollBy({
+        left: step,
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
+    });
 
     const status = document.createElement("p");
     status.className = "diagram__status";

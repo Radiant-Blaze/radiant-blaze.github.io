@@ -7,6 +7,8 @@
 - `/pages/post.html`, `/pages/writeup.html` — redirect-only compatibility shells for legacy query URLs.
 - `/generated/posts/...` — Astro-generated post routes.
 - `/generated/writeups/{event}/...` — Astro-generated writeup routes.
+- `/portfolio/` — portfolio profile, projects, skills, and CTF notes.
+- `/portfolio/projects/{slug}.html` — Astro-generated project detail routes.
 - `/content/posts/index.json`, `/content/ctfs/index.json`, `/content/ctfs/{event}/ctf.json` — compatibility metadata endpoints.
 - `/content/.../*.md` — raw Markdown compatibility endpoints.
 - `/content/runtime-read-model.json` — generated read-model endpoint.
