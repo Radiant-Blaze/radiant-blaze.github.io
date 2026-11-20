@@ -1,4 +1,5 @@
 ---
+import { ASSET_VERSION } from "../../lib/assets";
 import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { postCardHtml } from "../../lib/listing-html";
 import SaveFiles from "../../components/SaveFiles.astro";
@@ -59,4 +60,4 @@ const paginationWithControls = totalPages > 1
   </div>
   <Footer />
 </QuestShell>
-<script slot="pageScripts" type="module" src="/assets/js/astro-pages.js?v=20261119-3" is:inline></script>
+<script slot="pageScripts" type="module" src={`/assets/js/astro-pages.js?v=${ASSET_VERSION}`} is:inline></script>

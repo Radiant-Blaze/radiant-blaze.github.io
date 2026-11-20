@@ -1,4 +1,7 @@
 ---
+import { ASSET_VERSION } from "../lib/assets";
+import "../styles/style.css";
+
 interface Props {
   title: string;
   description: string;
@@ -10,7 +13,6 @@ interface Props {
   ogImageAlt?: string;
   viewport?: string;
   currentPage?: "blog" | "ctf" | "search" | "portfolio";
-  cssVersion?: string;
   spa?: boolean;
   brandHref?: string;
   pageLinkPrefix?: string;
@@ -29,7 +31,6 @@ const {
   ogImageAlt = "Radiant Blaze pixel-art city banner",
   viewport = "width=device-width,initial-scale=1.0",
   currentPage,
-  cssVersion = "20261119-4",
   spa = true,
   brandHref = "../index.html",
   pageLinkPrefix = "",
@@ -63,11 +64,10 @@ const {
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:image:alt" content={ogImageAlt} />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href={`/assets/css/style.css?v=${cssVersion}`} />
-    <script src="/assets/js/astro-controls.js?v=20261115-1" is:inline></script>
-    <script defer src="/assets/js/music-controller.js?v=20261119-4" is:inline></script>
-    <script src="/assets/js/page-loader.js?v=20261117-1" defer is:inline></script>
-    {spa && <script defer src="/assets/js/astro-navigation.js?v=20261119-4" is:inline></script>}
+    <script src={`/assets/js/astro-controls.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script defer src={`/assets/js/music-controller.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src={`/assets/js/page-loader.js?v=${ASSET_VERSION}`} defer is:inline></script>
+    {spa && <script defer src={`/assets/js/astro-navigation.js?v=${ASSET_VERSION}`} is:inline></script>}
     {mermaid && (
       <script type="module">
         import "../scripts/mermaid-viewer.js";

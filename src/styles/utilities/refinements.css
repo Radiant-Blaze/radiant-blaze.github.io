@@ -1,0 +1,58 @@
+/* ===== Audit refinements ===== */
+/* Smooth scrolling is decorative; honour the OS motion preference site-wide. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+/* The diagram stage owns horizontal scrolling, so it must be reachable and
+   visibly focused from the keyboard. */
+.diagram__stage:focus-visible {
+  outline: 2px solid var(--accent-cyan-text);
+  outline-offset: -3px;
+}
+/* On phones the floating dock used to cover a large part of every page. The
+   player still opens from the icon and its accessible name keeps the track
+   details; only the compact copy is hidden. */
+@media (max-width: 480px) {
+  #rb-music-root .rb-music-pill-copy,
+  #rb-music-root .rb-music-status {
+    display: none;
+  }
+  #rb-music-root .rb-music-pill {
+    gap: 0;
+    padding: 8px;
+  }
+}
+/* Reserve room under fixed-dock pages so the last content never sits behind it. */
+@media (max-width: 480px) {
+  body:not(.content-document) { padding-bottom: 72px; }
+}
+/* Non-interactive gap in a bounded pagination window (large archives). */
+.pagination-gap {
+  display: inline-grid;
+  min-width: 24px;
+  min-height: 34px;
+  place-items: center;
+  color: var(--muted);
+  font-size: 9px;
+}
+/* Inline code inside writeups keeps a dark chip in both themes. */
+.light-theme .writeup-article :not(pre) > code {
+  --accent-cyan-text: #65e7e3;
+}
+/* Keyboard focus visibility for the brand lockup and 24px minimum targets for
+   text links that were previously only one text line tall. */
+.home-brand:focus-visible,
+.quest-brand:focus-visible {
+  outline: 3px solid var(--accent-cyan-text);
+  outline-offset: 4px;
+}
+.writeup-tags a,
+.writeup-breadcrumb a,
+.portfolio-actions a,
+.portfolio-writeup-links a,
+.portfolio-text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+.content-toc summary { min-height: 24px; }

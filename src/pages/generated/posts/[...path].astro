@@ -19,6 +19,7 @@ const post = entry.data;
 const { title, description, category, tags, author, estimatedPlayTime } = getPostPresentation(post);
 const route = postRoute(entry.id);
 const { html: body, headings } = await renderContentView(entry.body ?? "");
+const hasMermaid = body.includes('data-language="mermaid"');
 const tocHtml = renderTocHtml(headings, "This article has no section headings.");
 const related = [
   `<a href="/pages/blog.html?category=${encodePath(category)}">MORE ${escapeHtml(category).toUpperCase()} POSTS</a>`,
@@ -44,6 +45,7 @@ const tagsPanel = `<section class="pixel-panel"><h2>TAGS</h2><nav class="region-
   layoutClass="page-grid article-layout"
   sidebarClass="sidebar"
   sidebarLabel="Article navigation and tags"
+  mermaid={hasMermaid}
 >
   <ContentHeader
     slot="header"

@@ -1,9 +1,11 @@
 ---
+import { ASSET_VERSION } from "../lib/assets";
+import "../styles/style.css";
 import { getHomepageProjection } from "../lib/home-data";
 import { formatDate } from "../lib/markdown";
 import Footer from "../components/Footer.astro";
 
-const { latestWriteup, latestPost } = await getHomepageProjection();
+const { latestWriteup, latestPost, featuredProject } = await getHomepageProjection();
 const feature = latestWriteup ?? latestPost ?? {
   type: "WRITEUP" as const,
   title: "Hackel",
@@ -19,7 +21,7 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatDate(feat
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A pixel-powered dev blog about code, Linux, and side quests." />
+    <meta name="description" content="A pixel-powered cybersecurity portfolio with software field notes and CTF writeups." />
     <title>Radiant Blaze</title>
     <link rel="canonical" href="https://radiant-blaze.github.io/" />
     <meta name="theme-color" content="#171329" />
@@ -27,7 +29,7 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatDate(feat
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Radiant Blaze" />
     <meta property="og:title" content="Radiant Blaze" />
-    <meta property="og:description" content="A pixel-powered dev blog about code, Linux, and side quests." />
+    <meta property="og:description" content="A pixel-powered cybersecurity portfolio with software field notes and CTF writeups." />
     <meta property="og:url" content="https://radiant-blaze.github.io/" />
     <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta property="og:image:alt" content="Radiant Blaze pixel-art city banner" />
@@ -35,15 +37,16 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatDate(feat
     <meta property="og:image:height" content="592" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Radiant Blaze" />
-    <meta name="twitter:description" content="A pixel-powered dev blog about code, Linux, and side quests." />
+    <meta name="twitter:description" content="A pixel-powered cybersecurity portfolio with software field notes and CTF writeups." />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:image:alt" content="Radiant Blaze pixel-art city banner" />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="/assets/css/style.css?v=20261115-1" />
-    <script src="/assets/js/astro-controls.js?v=20261115-1" is:inline></script>
-    <script defer src="/assets/js/music-controller.js?v=20261104-20" is:inline></script>
-    <script src="/assets/js/page-loader.js?v=20261117-1" defer is:inline></script>
-    <script defer src="/assets/js/astro-navigation.js?v=20261117-2" is:inline></script>
+    <link rel="preload" href="/assets/fonts/press-start/press-start-k.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/fonts/sf-pixelate/sf-pixelate-bold.woff2" as="font" type="font/woff2" crossorigin />
+    <script src={`/assets/js/astro-controls.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script defer src={`/assets/js/music-controller.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src={`/assets/js/page-loader.js?v=${ASSET_VERSION}`} defer is:inline></script>
+    <script defer src={`/assets/js/astro-navigation.js?v=${ASSET_VERSION}`} is:inline></script>
   </head>
   <body>
     <main class="game-screen">
@@ -69,6 +72,12 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatDate(feat
         <p class="level-label">TALHA AHMED PRESENTS</p>
         <h1>BLAZE'S<br /><span>BLOGPOST</span></h1>
         <p class="hero-copy">A tiny corner of the internet<br />made with big pixels and bright ideas.</p>
+        <p class="hero-role">Software development · cybersecurity · CTF field notes</p>
+        <div class="hero-actions">
+          <a class="pixel-button start-button" href={feature.href}>READ LATEST {feature.type}</a>
+          <a class="pixel-button" href="pages/ctf.html">EXPLORE CTFS</a>
+          <a class="pixel-button" href="portfolio/">VIEW PORTFOLIO</a>
+        </div>
       </section>
       <section class="status-panel" id="start" aria-label="Useful next steps">
         <div class="status-panel-header"><div class="status-status"><span class="status-light" aria-hidden="true"></span><span class="panel-title">LIVE LOADOUT</span></div><span class="loading-dots" aria-hidden="true">→</span></div>
@@ -78,6 +87,25 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatDate(feat
           <a class="feature-tile" href="pages/search.html" aria-label="Search the archive"><p class="quest-number">SEARCH ARCHIVE</p><h2>Search the archive</h2><p>Browse every post, writeup, and tag in one place to find the exact material you need.</p><div class="quest-meta"><span>NOW</span><span><b>DISCOVER</b></span></div></a>
         </div>
       </section>
+      {featuredProject && (
+        <section class="home-project quest-wrap" aria-labelledby="home-project-title">
+          <div class="home-project-heading">
+            <p class="eyebrow">SELECTED WORK · FROM THE PORTFOLIO</p>
+            <a class="home-project-all" href="portfolio/">ALL PROJECTS →</a>
+          </div>
+          <a class="home-project-card" href={featuredProject.href} aria-label={`View project: ${featuredProject.title}`}>
+            <p class="quest-number">PROJECT · {featuredProject.category.toUpperCase()}</p>
+            <h2 id="home-project-title">{featuredProject.title}</h2>
+            <p>{featuredProject.description}</p>
+            {featuredProject.technologies.length > 0 && (
+              <ul class="home-project-tech" aria-label="Technologies">
+                {featuredProject.technologies.slice(0, 6).map((technology) => <li>{technology}</li>)}
+              </ul>
+            )}
+            <span class="home-project-action">VIEW PROJECT <span aria-hidden="true">→</span></span>
+          </a>
+        </section>
+      )}
       <Footer home />
     </main>
   </body>

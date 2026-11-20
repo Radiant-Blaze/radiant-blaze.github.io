@@ -6,22 +6,42 @@ import ContentViewer from "../../../../components/content/ContentViewer.astro";
 import { renderContentView, renderTocHtml } from "../../../../lib/content-view";
 import { difficultyMeterHtml } from "../../../../lib/difficulty";
 import { escapeHtml, formatDate } from "../../../../lib/markdown";
+import { selectRelatedWriteups, type RelatedWriteup } from "../../../../lib/related-content";
 
 export async function getStaticPaths() {
   const { writeups } = await getOrderedArticles();
-  return writeups.map((writeup: OrderedWriteup) => ({
-    params: {
-      ctf: writeup.ctfId,
-      challenge: writeup.challengeFile.replace(/\.md$/i, ""),
-    },
-    props: {
-      ...writeup,
-      eventChallengeFiles: writeup.challengeFiles,
-    },
+  const candidates: RelatedWriteup[] = writeups.map((writeup) => ({
+    ctfId: writeup.ctfId,
+    challengeFile: writeup.challengeFile,
+    title: writeup.entry.data.title ?? writeup.challengeFile.replace(/\.md$/i, ""),
+    category: writeup.entry.data.category,
+    tags: writeup.entry.data.tags ?? [],
+    eventTitle: writeup.event.data.title,
+    date: writeup.event.data.date,
   }));
+  return writeups.map((writeup: OrderedWriteup) => {
+    const current = candidates.find(
+      (candidate) => candidate.ctfId === writeup.ctfId && candidate.challengeFile === writeup.challengeFile,
+    )!;
+    const challengeNumber = writeup.challengeFiles.indexOf(writeup.challengeFile);
+    const excluded = [writeup.challengeFiles[challengeNumber - 1], writeup.challengeFiles[challengeNumber + 1]]
+      .filter((file): file is string => Boolean(file))
+      .map((file) => ({ ctfId: writeup.ctfId, challengeFile: file }));
+    return {
+      params: {
+        ctf: writeup.ctfId,
+        challenge: writeup.challengeFile.replace(/\.md$/i, ""),
+      },
+      props: {
+        ...writeup,
+        eventChallengeFiles: writeup.challengeFiles,
+        related: selectRelatedWriteups(current, candidates, { exclude: excluded }),
+      },
+    };
+  });
 }
 
-const { ctfId, challengeFile, entry, event, eventChallengeFiles } = Astro.props;
+const { ctfId, challengeFile, entry, event, eventChallengeFiles, related: relatedWriteups } = Astro.props;
 const challenge = entry.data;
 const eventTitle = event.data.title;
 const {
@@ -42,12 +62,16 @@ const following = eventChallengeFiles[challengeNumber + 1];
 const eventQuery = new URLSearchParams({ ctf: ctfId }).toString();
 const challengeUrl = (file: string) => writeupRoute(ctfId, file);
 const { html: body, headings } = await renderContentView(entry.body ?? "");
+const hasMermaid = body.includes('data-language="mermaid"');
 const tocHtml = renderTocHtml(headings, "This writeup has no section headings.");
 const related = `${previous ? `<a href="${challengeUrl(previous)}">← PREVIOUS CHALLENGE</a>` : "<span>FIRST CHALLENGE</span>"}<span>CHALLENGE ${challengeNumber + 1} / ${eventChallengeFiles.length}</span>${following ? `<a href="${challengeUrl(following)}">NEXT CHALLENGE →</a>` : "<span>LAST CHALLENGE</span>"}`;
 const tagsForEvent = challengeTags
   .map((tag) => `<a href="/pages/ctf.html?${eventQuery}"># ${escapeHtml(tag)}</a>`)
   .join("");
 const flagHtml = flagValue ? `<section class="writeup-flag"><h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(flagValue)}</p></section>` : "";
+const relatedChallengesHtml = relatedWriteups.length > 0
+  ? `<section class="related-challenges" aria-labelledby="related-challenges-title"><h2 id="related-challenges-title">RELATED CHALLENGES</h2><ul>${relatedWriteups.map((item) => `<li><a href="${writeupRoute(item.ctfId, item.challengeFile)}"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.eventTitle)} · ${escapeHtml(item.category || "CTF")}</small></a></li>`).join("")}</ul></section>`
+  : "";
 ---
 <ContentViewer
   title={`${title} · ${eventTitle} · Radiant Blaze`}
@@ -58,12 +82,14 @@ const flagHtml = flagValue ? `<section class="writeup-flag"><h2>FLAG CAPTURED</h
   tocHtml={tocHtml}
   tocLabel="Writeup contents"
   relatedHtml={related}
+  relatedChallengesHtml={relatedChallengesHtml}
   relatedLabel="Related writeups"
   flagHtml={flagHtml}
   layoutClass="writeup-layout"
   sidebarClass="writeup-sidebar"
   articleClass="writeup-article"
   sidebarLabel="Writeup navigation and challenge details"
+  mermaid={hasMermaid}
 >
   <nav slot="before" class="writeup-breadcrumb quest-wrap" aria-label="Breadcrumb"><a href={`/pages/ctf.html?${eventQuery}`}>CTF CHALLENGES</a><span aria-hidden="true">/</span><span>{eventTitle}</span></nav>
   <ContentHeader

@@ -12,6 +12,7 @@ interface Props {
   tocHtml: string;
   tocLabel: string;
   relatedHtml: string;
+  relatedChallengesHtml?: string;
   relatedLabel: string;
   flagHtml?: string;
   layoutClass: string;
@@ -20,6 +21,7 @@ interface Props {
   sidebarLabel: string;
   progressLabel?: string;
   showProgress?: boolean;
+  mermaid?: boolean;
 }
 
 const {
@@ -31,6 +33,7 @@ const {
   tocHtml,
   tocLabel,
   relatedHtml,
+  relatedChallengesHtml = "",
   relatedLabel,
   flagHtml = "",
   layoutClass,
@@ -39,9 +42,10 @@ const {
   sidebarLabel,
   progressLabel = "ARTICLE",
   showProgress = true,
+  mermaid = false,
 } = Astro.props;
 ---
-<ArticleShell {title} {description} {canonical} {type}>
+<ArticleShell {title} {description} {canonical} {type} {mermaid}>
   <slot name="before" />
   <slot name="header" />
   <div class:list={[layoutClass, "content-layout", "quest-wrap"]}>
@@ -49,6 +53,7 @@ const {
       <Fragment set:html={body} />
       <Fragment set:html={flagHtml} />
       <ContentNavigation label={relatedLabel} html={relatedHtml} />
+      {relatedChallengesHtml && <Fragment set:html={relatedChallengesHtml} />}
     </article>
     <aside class:list={["content-sidebar", sidebarClass]} aria-label={sidebarLabel}>
       {showProgress && (

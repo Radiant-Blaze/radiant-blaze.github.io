@@ -1,0 +1,317 @@
+/* ===== CTF writeup presentation =====
+   Scoped to the writeup reading column. Blog articles keep their existing
+   presentation. These rules add hierarchy for long investigations without
+   changing the shared ContentViewer or Markdown structure. */
+.writeup-article {
+  counter-reset: ctf-figure;
+}
+.writeup-article > p:first-of-type {
+  color: var(--text);
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+/* The page header already shows the challenge title; the authored top heading
+   is a report subtitle, not a second hero heading. The marker comes from the
+   converter, so a writeup that starts directly at "## Section" keeps normal
+   heading weight. */
+.writeup-article > h2.writeup-lead {
+  margin: 0.2rem 0 1.15rem;
+  padding: 0 0 0 0.7rem;
+  border-bottom: 0;
+  border-left: 3px solid color-mix(in srgb, var(--muted) 55%, transparent);
+  color: var(--muted);
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+.writeup-article h2 {
+  margin-top: 2.35em;
+  padding-left: 0.8rem;
+  border-left: 4px solid var(--accent-cyan);
+}
+.writeup-article h3 {
+  margin-top: 2.1em;
+  padding-left: 0.6rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent-cyan) 45%, transparent);
+}
+.writeup-article h2 + p,
+.writeup-article h3 + p {
+  margin-top: 0;
+}
+.writeup-article ol > li::marker {
+  color: var(--accent-cyan-text);
+  font-weight: 700;
+}
+.writeup-article ul > li::marker {
+  color: var(--accent-orange-text);
+}
+/* Challenge briefs and author notes. The label provides a non-color cue. */
+.writeup-article blockquote {
+  padding: 0.85rem 1.05rem;
+  border: 0;
+  border-left: 4px solid var(--accent-orange);
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-orange) 10%, transparent), transparent 78%);
+}
+.writeup-article blockquote::before {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--accent-orange-text);
+  content: "NOTE";
+  font: 700 0.62rem/1.3 var(--font-ui);
+  letter-spacing: 0.12em;
+}
+.writeup-article blockquote p:last-child {
+  margin-bottom: 0;
+}
+/* Requirement tables and offset tables carry exact technical values. */
+.writeup-article tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--panel) 55%, transparent);
+}
+.writeup-article th {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.writeup-article td {
+  color: color-mix(in srgb, var(--text) 78%, var(--muted));
+}
+/* Code blocks: a header strip with language/file identity, then the code.
+   Shell sessions, raw output, and source stay distinguishable by the label
+   text and the accent, so color is never the only signal. */
+.writeup-article pre {
+  padding: 2.95rem 1.15rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--accent-pink) 40%, var(--muted));
+  border-left: 4px solid var(--accent-pink);
+  border-radius: 6px;
+  background: #100d1a;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  overflow: auto;
+  overscroll-behavior-x: contain;
+}
+.writeup-article pre::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0 0 auto;
+  height: 2.45rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 24%, transparent);
+  border-radius: 5px 5px 0 0;
+  background: color-mix(in srgb, var(--ink) 55%, #000);
+  content: "";
+}
+.writeup-article pre code[data-language]::before {
+  position: absolute;
+  z-index: 2;
+  top: 0.55rem;
+  left: 0.95rem;
+  max-width: calc(100% - 7.5rem);
+  padding: 0.28rem 0.5rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 38%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 10%, #0b0815);
+  color: var(--accent-cyan-text);
+  content: attr(data-language);
+  font: 700 0.62rem/1.2 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.writeup-article pre code[data-filename]::before {
+  content: attr(data-language) "  /  " attr(data-filename);
+}
+.writeup-article pre:has(code[data-language="bash"]),
+.writeup-article pre:has(code[data-language="sh"]),
+.writeup-article pre:has(code[data-language="shell"]),
+.writeup-article pre:has(code[data-language="zsh"]) {
+  border-left-color: var(--accent-cyan);
+}
+.writeup-article pre:has(code[data-language="text"]),
+.writeup-article pre:has(code[data-language="console"]),
+.writeup-article pre:has(code[data-language="plaintext"]) {
+  border-left-color: var(--accent-orange);
+}
+.writeup-article pre:has(code[data-language="text"]) code[data-language]::before,
+.writeup-article pre:has(code[data-language="console"]) code[data-language]::before,
+.writeup-article pre:has(code[data-language="plaintext"]) code[data-language]::before {
+  border-color: color-mix(in srgb, var(--accent-orange) 42%, transparent);
+  background: color-mix(in srgb, var(--accent-orange) 10%, #0b0815);
+  color: var(--accent-orange-text);
+}
+.writeup-article .content-copy {
+  top: 0.5rem;
+  right: 0.6rem;
+  z-index: 2;
+  min-height: 26px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 42%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 8%, #0b0815);
+  color: var(--text);
+  font: 700 0.6rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+}
+.writeup-article .content-copy:hover,
+.writeup-article .content-copy:focus-visible {
+  border-color: var(--accent-cyan);
+  background: color-mix(in srgb, var(--accent-cyan) 16%, #0b0815);
+  color: var(--accent-cyan-text);
+}
+/* Optional line emphasis: ```lang {2,5-7} */
+.writeup-article pre code .line {
+  display: block;
+  min-width: max-content;
+}
+.writeup-article pre code .line.is-highlighted {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-pink) 17%, transparent), transparent 82%);
+  box-shadow: inset 3px 0 0 var(--accent-pink);
+}
+/* Diagrams keep their viewer; the frame gains a quiet figure label. */
+.writeup-article .diagram {
+  counter-increment: ctf-figure;
+  margin: 2.2rem 0;
+}
+.writeup-article .diagram::after {
+  align-self: flex-end;
+  padding: 0 10px 8px;
+  color: var(--muted);
+  content: "FIG. " counter(ctf-figure);
+  font: 700 0.58rem/1.2 var(--font-ui);
+  letter-spacing: 0.12em;
+}
+/* Evidence images: preserve proportions, never crop. */
+.writeup-article img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  border-radius: 4px;
+}
+.writeup-article figure {
+  margin: 2rem 0;
+}
+.writeup-article figcaption {
+  color: var(--muted);
+  font: 0.84rem/1.6 system-ui, sans-serif;
+  text-align: center;
+}
+/* Captured flag block: keep the single metadata source, make copying easy. */
+.writeup-flag {
+  border: 1px solid color-mix(in srgb, var(--accent-pink) 34%, transparent);
+  border-left: 4px solid var(--accent-pink);
+  border-radius: 0 4px 4px 0;
+}
+.writeup-flag .ctf-flag {
+  font-size: 0.92rem;
+  line-height: 1.75;
+}
+.flag-copy {
+  margin-top: 0.6rem;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 42%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 8%, #0b0815);
+  color: var(--dark-text);
+  cursor: pointer;
+  font: 700 0.6rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+}
+.flag-copy:hover,
+.flag-copy:focus-visible {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+.flag-copy:focus-visible {
+  outline: 2px solid var(--accent-orange-text);
+  outline-offset: 2px;
+}
+/* Keep the ToC and music player available on long writeups. Natural document
+   order is unchanged: ToC first, music player below it. */
+@media (min-width: 1101px) {
+  .writeup-sidebar {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--muted) 55%, transparent) transparent;
+  }
+  /* Long writeups have 20+ ToC entries. A slightly denser rail keeps the
+     current entry visible without a second, oversized scroll region. */
+  .writeup-sidebar .content-toc__row {
+    margin: 0.08rem 0;
+    padding: 0.18rem 0.3rem 0.18rem 0.5rem;
+  }
+  .writeup-sidebar .content-toc__link {
+    padding: 0.1rem 0;
+  }
+  .writeup-sidebar .content-toc__children .content-toc__link {
+    padding: 0.2rem 0.4rem;
+  }
+  .writeup-sidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .writeup-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .writeup-sidebar::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--muted) 55%, transparent);
+  }
+}
+@media (max-width: 480px) {
+  .writeup-article pre {
+    padding: 2.9rem 0.85rem 0.95rem;
+  }
+  .writeup-article blockquote {
+    padding: 0.75rem 0.9rem;
+  }
+}
+
+/* Related challenges sit after previous/next navigation so the reading
+   column keeps one clear end-of-article discovery block. */
+.related-challenges {
+  margin: 2.4em 0 0;
+  padding: 1rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 30%, var(--muted));
+  background: color-mix(in srgb, var(--panel) 84%, var(--ink));
+}
+.related-challenges h2 {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+  color: var(--accent-cyan-text);
+  font: 700 0.72rem/1.5 var(--font-ui);
+  letter-spacing: 0.08em;
+}
+.related-challenges ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.related-challenges a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px 10px;
+  color: var(--text);
+  font: 0.9rem/1.5 var(--font-code);
+  text-decoration: none;
+}
+.related-challenges a:hover,
+.related-challenges a:focus-visible { color: var(--accent-cyan-text); }
+.related-challenges a:focus-visible {
+  outline: 2px solid var(--accent-cyan-text);
+  outline-offset: 3px;
+}
+.related-challenges small {
+  color: var(--muted);
+  font: 0.65rem/1.4 var(--font-ui);
+  letter-spacing: 0.03em;
+}

@@ -75,6 +75,17 @@ assert.doesNotMatch(output, /VIEW SELECTED WORK|portfolio-hero-link/);
 assert.doesNotMatch(output, /portfolio-contact|OPEN CHANNEL/);
 assert.match(output, /aria-label="Social links"/);
 
+const projectLinks = [...new Set([...output.matchAll(/href="(\/portfolio\/projects\/[^"]+\.html)"/g)].map((match) => match[1]))];
+assert.ok(projectLinks.length > 0, "portfolio cards link to generated project detail pages");
+for (const link of projectLinks) {
+  const detailPath = path.join(root, "dist", link.replace(/^\//, ""));
+  const detail = await readFile(detailPath, "utf8");
+  assert.match(detail, /class="quest-title"/, `${link} renders a project heading`);
+  assert.match(detail, /PROJECT DATA/, `${link} renders project metadata`);
+  assert.match(detail, /href="\/portfolio\/"/, `${link} links back to the portfolio`);
+  assert.match(detail, /<meta property="og:type" content="website"|content="article"/, `${link} has valid metadata`);
+}
+
 const ctfSection = config.sections.find((section) => section.type === "ctfs");
 assert.equal(ctfSection?.itemLimit, 3, "CTF section displays at most three events");
 assert.equal(ctfSection?.challengeLimit, 5, "CTF events display at most five writeups each");

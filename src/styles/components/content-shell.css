@@ -1,0 +1,225 @@
+/* ===== Blog / content pages ===== */
+/* Quest Log expansion — uses the palette and pixel language from style.css. */
+:root {
+  --panel: var(--dark-panel);
+  --ink: var(--dark-ink);
+  --text: var(--dark-text);
+  --muted: var(--dark-muted);
+  --shadow: var(--dark-shadow);
+}
+.light-theme {
+  --panel: var(--light-panel);
+  --ink: var(--light-ink);
+  --text: var(--light-text);
+  --muted: var(--light-muted);
+  --shadow: var(--light-shadow);
+}
+/* Code blocks, terminal panels and the dark 404 display keep the luminous
+   accents because their backgrounds stay dark in both themes. */
+.light-theme :is(pre, .terminal, .ctf-flag, .content-copy, .social-icon, .rb-404-tv) {
+  --accent-cyan-text: #65e7e3;
+  --accent-pink-text: #ff5e9d;
+  --accent-orange-text: #ffb347;
+}
+/* Terminal surfaces keep dark-theme body text too, so controls such as COPY
+   stay readable inside them. */
+.light-theme :is(pre, .terminal) {
+  --text: var(--dark-text);
+  --muted: var(--dark-muted);
+}
+/* The writeup flag panel is light in the light theme, unlike the standalone
+   dark terminal flag, so it needs the dark accent. */
+.light-theme .writeup-flag .ctf-flag {
+  --accent-cyan-text: #08605d;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.quest-screen {
+  min-height: 100vh;
+  /* Clip decorative overflow without creating a scroll container that breaks sticky UI. */
+  overflow-x: clip;
+  position: relative;
+}
+.page-loader {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(var(--dark-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dark-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  color: var(--text);
+}
+.light-theme .page-loader {
+  background-image:
+    linear-gradient(var(--light-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--light-grid) 1px, transparent 1px);
+}
+.page-loader.is-visible {
+  display: grid;
+  animation: page-loader-enter 0.12s steps(2, end);
+}
+.page-loader-card {
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+  width: min(100%, 300px);
+  padding: 30px 22px;
+  border: 4px solid var(--text);
+  background: var(--panel);
+  box-shadow: 8px 8px 0 var(--accent-pink);
+}
+.page-loader-text {
+  color: transparent;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(13px, 4vw, 18px);
+  line-height: 1.5;
+  text-transform: uppercase;
+  -webkit-text-stroke: 1px var(--text);
+  background: linear-gradient(
+      90deg,
+      transparent 33%,
+      var(--accent-pink) 0 67%,
+      transparent 0
+    )
+    100% / 300% 100% no-repeat text;
+  animation: page-loader-fill 1.6s steps(7, end) infinite;
+}
+.page-loader-bar {
+  --page-loader-pattern: repeating-linear-gradient(
+    90deg,
+    var(--accent-cyan) 0 12px,
+    transparent 12px 16px
+  );
+  width: 100%;
+  height: 12px;
+  border: 2px solid var(--text);
+  background: var(--page-loader-pattern) 0 0 / 200% 100% no-repeat;
+  animation: page-loader-progress 1.6s steps(8, end) infinite;
+}
+.page-loader-bar--interactive {
+  box-sizing: border-box;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+  -webkit-appearance: none;
+  appearance: none;
+  animation: none;
+}
+.rb-music-slider {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 22px;
+}
+.rb-music-slider-rail {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  left: 0;
+  box-sizing: border-box;
+  height: 12px;
+  overflow: hidden;
+  border: 2px solid var(--text);
+  background: var(--accent-cyan);
+  pointer-events: none;
+}
+.rb-music-slider-rail > span {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: 0;
+  background: var(--accent-pink);
+}
+.rb-music-slider input.page-loader-bar--interactive {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 22px;
+}
+.rb-music--playing .rb-music-seek-slider .rb-music-slider-rail > span {
+  transition: width 180ms linear;
+}
+.page-loader-bar--interactive::-webkit-slider-runnable-track {
+  box-sizing: border-box;
+  height: 12px;
+  border: 0;
+  background: transparent;
+}
+.page-loader-bar--interactive::-moz-range-track {
+  box-sizing: border-box;
+  height: 12px;
+  border: 0;
+  background: transparent;
+}
+.page-loader-bar--interactive::-moz-range-progress {
+  height: 12px;
+  background: transparent;
+}
+.page-loader-bar--seek {
+  touch-action: none;
+}
+.page-loader-bar--interactive::-webkit-slider-thumb {
+  box-sizing: border-box;
+  width: 12px;
+  height: 16px;
+  margin-top: -4px;
+  border: 2px solid var(--text);
+  border-radius: 0;
+  background: var(--accent-cyan);
+  box-shadow: 2px 2px 0 var(--shadow);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.page-loader-bar--interactive::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 12px;
+  height: 16px;
+  border: 2px solid var(--text);
+  border-radius: 0;
+  background: var(--accent-cyan);
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+.page-loader-bar--interactive:hover::-webkit-slider-thumb,
+.page-loader-bar--interactive:active::-webkit-slider-thumb,
+.page-loader-bar--interactive:hover::-moz-range-thumb,
+.page-loader-bar--interactive:active::-moz-range-thumb {
+  background: var(--accent-cyan);
+}
+@keyframes page-loader-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes page-loader-fill {
+  to {
+    background-position: 0;
+  }
+}
+@keyframes page-loader-progress {
+  to {
+    background-position: 100% 0;
+  }
+}

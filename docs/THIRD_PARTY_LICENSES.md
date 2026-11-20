@@ -100,7 +100,6 @@ Fonts bundled under `public/assets/fonts/`, each with its license file alongside
 | --- | --- | --- | --- |
 | Press Start 2P | `press-start-2p-latin*.woff2` | Google Fonts | SIL Open Font License 1.1 |
 | Press Start K | `press-start/prstartk.ttf`, `press-start/press-start-k.woff2` | codeman38 (http://www.zone38.net/) | codeman38 freeware; bundling permitted with credit, no resale as a font collection (see `press-start/license.txt`) |
-| Jersey 25 | `jersey-25/Jersey25-Regular.ttf` | Soft Type Project (https://github.com/scfried/soft-type-jersey) | SIL Open Font License 1.1 |
 | November | `november/novem___.ttf` | Brandon Schoepf, Tepid Monkey Fonts (http://www.tepidmonkey.com/) | Freeware; free for commercial and non-commercial use, no selling or modification |
 | SF Pixelate | `sf-pixelate/SFPixelate*.ttf` | ShyFoundry | ShyFoundry Freeware EULA (see `sf-pixelate/ShyFoundry Freeware EULA.pdf`) |
 

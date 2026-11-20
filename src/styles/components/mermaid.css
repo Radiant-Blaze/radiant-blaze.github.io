@@ -1,0 +1,185 @@
+/* ===== Mermaid diagram viewer =====
+   One panel style for blog posts and writeups. The frame owns the border and
+   the stage owns scrolling, so a wide SVG never widens the page. */
+.quest-article .diagram {
+  display: flex;
+  flex-direction: column;
+  margin: 28px 0;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 34%, var(--muted));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 84%, var(--ink));
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--shadow) 55%, transparent);
+  overflow: hidden;
+}
+.diagram__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--muted) 32%, transparent);
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+.diagram__label {
+  color: var(--accent-cyan-text);
+  font: 700 0.62rem/1 var(--font-ui);
+  letter-spacing: 0.1em;
+}
+.diagram__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+.diagram__btn {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 45%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-cyan) 7%, var(--ink));
+  color: var(--text);
+  cursor: pointer;
+  font: 700 0.62rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.diagram__btn:hover {
+  border-color: var(--accent-cyan);
+  background: color-mix(in srgb, var(--accent-cyan) 16%, var(--ink));
+  color: var(--accent-cyan-text);
+}
+.diagram__btn:focus-visible {
+  outline: 2px solid var(--accent-orange-text);
+  outline-offset: 2px;
+}
+.diagram__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.diagram__btn--zoom {
+  min-width: 46px;
+}
+.diagram__stage {
+  padding: 17px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.diagram__stage svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  /* Keep labels near their rendered size; narrow viewports scroll the stage
+     instead of shrinking the chart into illegibility. */
+  min-width: max(100%, var(--diagram-min-width, 0px));
+  /* Mermaid writes an inline max-width capped at its intrinsic render width;
+     the frame is the authority so diagrams fill the available space. */
+  max-width: 100% !important;
+}
+.diagram__status {
+  min-height: 0;
+  margin: 0;
+  padding: 0 10px 6px;
+  color: var(--accent-orange-text);
+  font: 700 0.6rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-align: right;
+}
+.diagram__status:empty {
+  display: none;
+}
+.diagram-error {
+  margin: 24px 0 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-orange) 55%, transparent);
+  border-left: 3px solid var(--accent-orange);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent-orange) 9%, transparent);
+  color: var(--text);
+  font: 700 0.7rem/1.6 var(--font-ui);
+  letter-spacing: 0.03em;
+}
+/* Expanded view is a native modal dialog: Escape, focus return, and the
+   backdrop are handled by the platform. */
+.diagram-dialog {
+  width: min(96vw, 1400px);
+  max-width: 96vw;
+  height: min(90vh, 1100px);
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 45%, var(--muted));
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+.diagram-dialog::backdrop {
+  background: rgba(11, 8, 21, 0.82);
+}
+.diagram-dialog__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--muted) 32%, transparent);
+  background: color-mix(in srgb, var(--ink) 55%, var(--panel));
+}
+.diagram-dialog__title {
+  max-width: 42ch;
+  overflow: hidden;
+  color: var(--accent-cyan-text);
+  font: 700 0.66rem/1.4 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diagram-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+.diagram-dialog__viewport {
+  max-height: calc(90vh - 54px);
+  padding: 14px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.diagram-dialog__canvas {
+  width: 100%;
+  margin: 0 auto;
+}
+.diagram-dialog__canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100% !important;
+}
+@media (max-width: 480px) {
+  .diagram__bar,
+  .diagram-dialog__bar {
+    gap: 6px;
+  }
+  .diagram__btn {
+    padding: 5px 7px;
+  }
+  .diagram-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  .diagram-dialog__viewport {
+    max-height: calc(100dvh - 54px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diagram__btn {
+    transition: none;
+  }
+}

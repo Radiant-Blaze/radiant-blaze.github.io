@@ -1,0 +1,83 @@
+:root {
+  --font-display: "Press Start K", "Press Start 2P", monospace;
+  --font-ui: "SF Pixelate", "Press Start 2P", monospace;
+  --font-terminal: "November", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --font-code: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --dark-ink: #171329;
+  --dark-panel: #272044;
+  --dark-shadow: #0b0815;
+  --dark-text: #fff7de;
+  --dark-muted: #baaed6;
+  --dark-grid: rgba(255, 255, 255, 0.055);
+
+  --light-ink: #fff7de;
+  --light-panel: #fffdf3;
+  --light-shadow: #c9b991;
+  --light-text: #25203e;
+  --light-muted: #6d6485;
+  --light-grid: rgba(48, 37, 75, 0.08);
+
+  --accent-pink: #ff5e9d;
+  --accent-orange: #ffb347;
+  --accent-cyan: #65e7e3;
+
+  /* Text-safe variants. The neon accents above stay for fills, borders and
+     shadows; body-size copy uses these so both themes clear WCAG AA. */
+  --accent-pink-text: var(--accent-pink);
+  --accent-orange-text: var(--accent-orange);
+  --accent-cyan-text: var(--accent-cyan);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  transition:
+    background-color 0.25s,
+    color 0.25s;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  font-family: "Press Start 2P", monospace;
+  line-height: 1.75;
+  transition:
+    background-color 0.25s,
+    color 0.25s;
+}
+
+/* The pixel grid lives on the root element's canvas, so no page-level rule,
+   stacking context, or stale body class can remove it. */
+.dark-theme {
+  background-color: var(--dark-ink);
+  background-image:
+    linear-gradient(var(--dark-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dark-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  color: var(--dark-text);
+}
+.light-theme {
+  --accent-pink-text: #a8004e;
+  --accent-orange-text: #8a4a00;
+  --accent-cyan-text: #08605d;
+  background-color: var(--light-ink);
+  background-image:
+    linear-gradient(var(--light-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--light-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  color: var(--light-text);
+}
+
+.game-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden;
+  isolation: isolate;
+}
