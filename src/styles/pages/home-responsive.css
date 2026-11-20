@@ -132,6 +132,8 @@
   .hero-role { margin-top: -8px; font-size: 7px; }
   .hero-actions { width: 100%; }
   .hero-actions .pixel-button { flex: 1 1 auto; text-align: center; }
+  .status-panel-actions { flex: 1 1 100%; justify-content: flex-start; }
+  .status-panel-header .loading-dots { margin-left: auto; }
   .home-project-heading { align-items: start; flex-direction: column; gap: 6px; }
   .home-project-card { padding: 15px 13px; }
   .home-project-card > p:not(.quest-number) { font-size: 8px; }

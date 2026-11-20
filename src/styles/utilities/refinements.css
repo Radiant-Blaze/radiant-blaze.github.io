@@ -9,23 +9,8 @@
   outline: 2px solid var(--accent-cyan-text);
   outline-offset: -3px;
 }
-/* On phones the floating dock used to cover a large part of every page. The
-   player still opens from the icon and its accessible name keeps the track
-   details; only the compact copy is hidden. */
-@media (max-width: 480px) {
-  #rb-music-root .rb-music-pill-copy,
-  #rb-music-root .rb-music-status {
-    display: none;
-  }
-  #rb-music-root .rb-music-pill {
-    gap: 0;
-    padding: 8px;
-  }
-}
-/* Reserve room under fixed-dock pages so the last content never sits behind it. */
-@media (max-width: 480px) {
-  body:not(.content-document) { padding-bottom: 72px; }
-}
+/* Narrow non-reading pages place the player in flow below the header, so the
+   compact track copy remains visible without reserving space for a fixed dock. */
 /* Non-interactive gap in a bounded pagination window (large archives). */
 .pagination-gap {
   display: inline-grid;

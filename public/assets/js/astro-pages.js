@@ -254,7 +254,7 @@ const renderGlobalSearch = (posts, ctfs) => {
   const records = buildGlobalRecords(posts, ctfs);
   const query = params.get("q") || "";
   let selectedYear = params.get("year") || "";
-  let currentPage = 0;
+  let currentPage = Math.max(0, requestedPage - 1);
   const initialType = params.get("type");
   let activeFilter = ["posts", "writeups"].includes(initialType) ? initialType : "all";
   const activeTopics = new Set((params.get("topic") || "all").toLowerCase().split(",").filter((topic) => topic && topic !== "all"));
@@ -332,23 +332,23 @@ const renderGlobalSearch = (posts, ctfs) => {
   };
   input.value = query;
   const activeFilters = document.querySelector("[data-active-filters]");
-  const syncSearchUrl = () => {
+  const syncSearchUrl = (push = false) => {
     const url = new URL(location.href);
     input.value.trim() ? url.searchParams.set("q", input.value.trim()) : url.searchParams.delete("q");
     activeFilter === "all" ? url.searchParams.delete("type") : url.searchParams.set("type", activeFilter);
     activeTopics.size ? url.searchParams.set("topic", [...activeTopics].join(",")) : url.searchParams.delete("topic");
     selectedYear ? url.searchParams.set("year", selectedYear) : url.searchParams.delete("year");
-    url.searchParams.delete("pg");
-    history.replaceState(null, "", url);
+    currentPage > 0 ? url.searchParams.set("pg", currentPage + 1) : url.searchParams.delete("pg");
+    history[push ? "pushState" : "replaceState"](null, "", url);
   };
   const resetFilters = () => {
     input.value = "";
     activeFilter = "all";
     activeTopics.clear();
     selectedYear = "";
-    syncSearchUrl();
     applyFilterClasses();
     renderSearch("", true);
+    syncSearchUrl();
   };
   const renderActiveFilters = (value) => {
     if (!activeFilters) return;
@@ -370,9 +370,9 @@ const renderGlobalSearch = (posts, ctfs) => {
     else if (kind === "type") activeFilter = "all";
     else if (kind === "topic") activeTopics.delete(value);
     else if (kind === "year") selectedYear = "";
-    syncSearchUrl();
     applyFilterClasses();
     renderSearch(input.value, true);
+    syncSearchUrl();
   };
   activeFilters?.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;
@@ -393,9 +393,9 @@ const renderGlobalSearch = (posts, ctfs) => {
   document.querySelectorAll("[data-search-filter]").forEach((button) => {
     button.addEventListener("click", () => {
       activeFilter = button.dataset.searchFilter;
-      syncSearchUrl();
       applyFilterClasses();
       renderSearch(input.value, true);
+      syncSearchUrl();
     });
   });
   document.querySelectorAll("[data-search-topic]").forEach((button) => {
@@ -403,17 +403,17 @@ const renderGlobalSearch = (posts, ctfs) => {
       if (button.dataset.searchTopic === "all") activeTopics.clear();
       else if (activeTopics.has(button.dataset.searchTopic)) activeTopics.delete(button.dataset.searchTopic);
       else activeTopics.add(button.dataset.searchTopic);
-      syncSearchUrl();
       applyFilterClasses();
       renderSearch(input.value, true);
+      syncSearchUrl();
     });
   });
   document.querySelectorAll("[data-search-year]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedYear = button.dataset.searchYear === "all" ? "" : button.dataset.searchYear;
-      syncSearchUrl();
       applyFilterClasses();
       renderSearch(input.value, true);
+      syncSearchUrl();
     });
   });
 
@@ -456,6 +456,7 @@ const renderGlobalSearch = (posts, ctfs) => {
           else if (button.dataset.searchPage === "previous") currentPage -= 1;
           else currentPage = Number(button.dataset.searchPage);
           renderSearch(input.value, false);
+          syncSearchUrl(true);
         });
       });
     }
@@ -464,8 +465,33 @@ const renderGlobalSearch = (posts, ctfs) => {
     renderSearch(input.value);
     syncSearchUrl();
   });
+
+  const applyHistoryState = () => {
+    params = new URLSearchParams(location.search);
+    input.value = params.get("q") || "";
+    selectedYear = params.get("year") || "";
+    activeFilter = ["posts", "writeups"].includes(params.get("type")) ? params.get("type") : "all";
+    activeTopics.clear();
+    (params.get("topic") || "all").toLowerCase().split(",").filter((topic) => topic && topic !== "all").forEach((topic) => activeTopics.add(topic));
+    currentPage = Math.max(0, (parseInt(params.get("pg"), 10) || 1) - 1);
+    applyFilterClasses();
+    renderSearch(input.value, false);
+  };
+  const onSearchPopState = (event) => {
+    if (!/(?:^|\/)search\.html$/.test(location.pathname)) return;
+    // Pagination entries belong to this page. Handle them locally instead of
+    // letting the SPA router refetch the same search document.
+    event.stopImmediatePropagation();
+    applyHistoryState();
+  };
+  addEventListener("popstate", onSearchPopState, true);
+  addEventListener("radiantblaze:pagedisposing", () => {
+    removeEventListener("popstate", onSearchPopState, true);
+  }, { once: true });
+
   applyFilterClasses();
-  renderSearch(query);
+  renderSearch(query, false);
+  syncSearchUrl();
 };
 
 const categoryCounts = (challenges) => {

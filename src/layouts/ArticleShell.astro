@@ -25,6 +25,10 @@ const { title, description, canonical, type, mermaid = false } = Astro.props;
   bodyClass={type === "writeup" ? "writeup-document content-document" : "content-document"}
   disablePageLoader={type === "writeup"}
   mermaid={mermaid}
+  preloadFonts={[
+    "/assets/fonts/press-start/press-start-k.woff2",
+    "/assets/fonts/sf-pixelate/sf-pixelate-bold.woff2",
+  ]}
 >
   <script slot="headScripts" type="module" src={`/assets/js/astro-article.js?v=${ASSET_VERSION}`} is:inline></script>
   <slot />

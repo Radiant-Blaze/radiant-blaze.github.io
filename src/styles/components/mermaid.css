@@ -78,14 +78,16 @@
 }
 .diagram__stage svg {
   display: block;
-  width: 100%;
+  /* Do not upscale small diagrams: filling a wide desktop frame made short
+     flowcharts (notably decision diamonds) needlessly huge. Wide diagrams
+     still use their intrinsic width and scroll; the stage remains the width
+     authority. */
+  width: auto;
   height: auto;
   margin: 0 auto;
   /* Keep labels near their rendered size; narrow viewports scroll the stage
      instead of shrinking the chart into illegibility. */
-  min-width: max(100%, var(--diagram-min-width, 0px));
-  /* Mermaid writes an inline max-width capped at its intrinsic render width;
-     the frame is the authority so diagrams fill the available space. */
+  min-width: var(--diagram-min-width, 0px);
   max-width: 100% !important;
 }
 .diagram__status {

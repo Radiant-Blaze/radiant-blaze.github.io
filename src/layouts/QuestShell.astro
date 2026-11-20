@@ -18,6 +18,7 @@ interface Props {
   pageLinkPrefix?: string;
   bodyClass?: string;
   mermaid?: boolean;
+  preloadFonts?: string[];
 }
 
 const {
@@ -37,6 +38,7 @@ const {
   disablePageLoader = false,
   bodyClass,
   mermaid = false,
+  preloadFonts = [],
 } = Astro.props;
 ---
 <!doctype html>
@@ -64,6 +66,7 @@ const {
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:image:alt" content={ogImageAlt} />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
+    {preloadFonts.map((font) => <link rel="preload" href={font} as="font" type="font/woff2" crossorigin />)}
     <script src={`/assets/js/astro-controls.js?v=${ASSET_VERSION}`} is:inline></script>
     <script defer src={`/assets/js/music-controller.js?v=${ASSET_VERSION}`} is:inline></script>
     <script src={`/assets/js/page-loader.js?v=${ASSET_VERSION}`} defer is:inline></script>

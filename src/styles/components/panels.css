@@ -82,18 +82,22 @@
 .save-list a {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
+  justify-content: flex-start;
+  gap: 10px;
 }
 .save-year {
   display: inline-grid;
-  min-width: 54px;
-  min-height: 30px;
+  min-width: 58px;
+  min-height: 32px;
+  padding: 0 6px;
   place-items: center;
-  border: 3px solid var(--accent-cyan);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 3px;
   color: var(--accent-cyan-text);
-  background: color-mix(in srgb, var(--accent-cyan) 10%, transparent);
-  font: 8px/1 "Press Start 2P", monospace;
+  background: color-mix(in srgb, var(--accent-cyan) 10%, var(--panel));
+  box-shadow: 2px 2px 0 var(--shadow);
+  font: 700 8px/1.2 var(--font-ui);
+  letter-spacing: 0.04em;
 }
 .sidebar .region-list a::before {
   content: "→ ";
@@ -101,13 +105,16 @@
 }
 .save-list small {
   display: inline-grid;
-  min-width: 32px;
-  min-height: 26px;
+  min-width: 28px;
+  min-height: 24px;
+  padding: 0 5px;
   place-items: center;
   border: 2px solid var(--accent-pink);
+  border-radius: 3px;
   color: var(--accent-pink-text);
-  background: color-mix(in srgb, var(--accent-pink) 10%, transparent);
-  font-size: 7px;
+  background: color-mix(in srgb, var(--accent-pink) 10%, var(--panel));
+  box-shadow: 2px 2px 0 var(--shadow);
+  font: 700 7px/1.2 var(--font-ui);
 }
 .save-list a:hover,
 .region-list a:hover {
@@ -129,8 +136,7 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-.search-toolbar > .search-pills::before {
-  content: "CONTENT TYPE";
+.search-pills__label {
   align-self: center;
   color: var(--accent-orange-text);
   font-size: 7px;
@@ -142,8 +148,8 @@
   color: var(--text);
   cursor: pointer;
   font: inherit;
-  font-size: 8px;
-  padding: 8px 10px;
+  font-size: 10px;
+  padding: 10px 12px;
   transition:
     transform 0.1s,
     background-color 0.15s,
@@ -203,7 +209,7 @@
 .tag-database[open] summary,
 .year-database[open] summary { border-bottom: 2px dashed #4b416b; }
 .database-filter { width: calc(100% - 24px); margin: 12px; box-sizing: border-box; border: 3px solid var(--text); background: var(--shadow); color: var(--text); font: 8px "Press Start 2P", monospace; padding: 10px; }
-.filter-pill small { color: var(--accent-orange-text); font-size: 6px; }
+.filter-pill small { color: var(--accent-orange-text); font-size: 7px; }
 .tag-database .search-pills,
 .year-database .search-pills { padding: 0 12px 12px; max-height: 170px; overflow-y: auto; }
 .year-database__empty { padding: 0 12px 12px; margin: 0; color: var(--muted); font-size: 7px; }
@@ -254,8 +260,45 @@
 .search-pagination button:disabled,
 .blog-pagination a[aria-disabled="true"],
 .ctf-pagination a[aria-disabled="true"] { opacity: .4; pointer-events: none; }
-.search-results {
+.search-results,
+.search-layout {
   grid-template-columns: minmax(0, 1fr);
+}
+.search-layout {
+  gap: 24px;
+}
+.search-main,
+.search-sidebar {
+  min-width: 0;
+}
+.search-sidebar .search-toolbar {
+  margin: 0;
+  gap: 14px;
+}
+.search-sidebar .search-pills__label,
+.search-sidebar .top-tags::before {
+  flex: 0 0 100%;
+  margin-bottom: 2px;
+  font-size: 9px;
+}
+@media (min-width: 1100px) {
+  .page-grid.search-layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 32px;
+  }
+  .search-main {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .search-sidebar {
+    position: sticky;
+    top: 1rem;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
 }
 .record-count {
   color: var(--accent-orange-text);
@@ -273,6 +316,14 @@
   margin: 10px 0 14px;
 }
 .active-filters[hidden] { display: none; }
+/* A filtered deep link receives its chips after the read model resolves. Reserve
+   the one-row summary only when the URL proves the area will be populated, so an
+   unfiltered search keeps no artificial gap. */
+html.search-has-filters .active-filters[hidden] {
+  display: flex;
+  min-height: 26px;
+  visibility: hidden;
+}
 .active-filters__label {
   color: var(--muted);
   font-family: var(--font-ui);

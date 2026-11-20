@@ -73,14 +73,17 @@ const featureDate = "dateLabel" in feature ? feature.dateLabel : formatDate(feat
         <h1>BLAZE'S<br /><span>BLOGPOST</span></h1>
         <p class="hero-copy">A tiny corner of the internet<br />made with big pixels and bright ideas.</p>
         <p class="hero-role">Software development · cybersecurity · CTF field notes</p>
-        <div class="hero-actions">
-          <a class="pixel-button start-button" href={feature.href}>READ LATEST {feature.type}</a>
-          <a class="pixel-button" href="pages/ctf.html">EXPLORE CTFS</a>
-          <a class="pixel-button" href="portfolio/">VIEW PORTFOLIO</a>
-        </div>
       </section>
       <section class="status-panel" id="start" aria-label="Useful next steps">
-        <div class="status-panel-header"><div class="status-status"><span class="status-light" aria-hidden="true"></span><span class="panel-title">LIVE LOADOUT</span></div><span class="loading-dots" aria-hidden="true">→</span></div>
+        <div class="status-panel-header">
+          <div class="status-status"><span class="status-light" aria-hidden="true"></span><span class="panel-title">LIVE LOADOUT</span></div>
+          <div class="hero-actions status-panel-actions">
+            <a class="pixel-button start-button" href={feature.href}>READ LATEST {feature.type}</a>
+            <a class="pixel-button" href="pages/ctf.html">EXPLORE CTFS</a>
+            <a class="pixel-button" href="portfolio/">VIEW PORTFOLIO</a>
+          </div>
+          <span class="loading-dots" aria-hidden="true">→</span>
+        </div>
         <div class="status-panel-grid">
           <a class="feature-tile feature-tile--primary" href={feature.href} data-latest-post aria-label={`Read the latest ${feature.type.toLowerCase()}: ${feature.title}`}><p class="quest-number">LATEST {feature.type}</p><h2>{feature.title}</h2><p>{feature.description}</p><div class="quest-meta"><span>{featureDate}</span><span><b>{feature.category.toUpperCase()}</b></span></div></a>
           {latestPost && <a class="feature-tile" href={latestPost.href} aria-label={`Read the latest post: ${latestPost.title}`}><p class="quest-number">LATEST POST</p><h2>{latestPost.title}</h2><p>{latestPost.description}</p><div class="quest-meta"><span>{formatDate(latestPost.date)}</span><span><b>{latestPost.category.toUpperCase()}</b></span></div></a>}
