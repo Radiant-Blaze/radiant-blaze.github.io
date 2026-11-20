@@ -81,7 +81,7 @@
 .writeup-tags { gap: 7px 14px; margin-top: 10px; font-size: .78rem; }
 .writeup-layout {
   display: grid;
-  grid-template-columns: minmax(0, 82ch) 248px;
+  grid-template-columns: minmax(0, 82ch) 272px;
   align-items: start;
   justify-content: space-between;
   gap: clamp(28px, 4vw, 72px);
@@ -225,7 +225,9 @@
 .writeup-article blockquote::before { content: none; }
 .writeup-article blockquote p:last-child { margin-bottom: 0; }
 .writeup-article .article-related { margin-top: 3em; padding-top: 1.2em; border-top: 1px solid color-mix(in srgb, var(--muted) 28%, transparent); }
-.writeup-sidebar { position: static; min-width: 0; padding: .85rem; border: 1px solid color-mix(in srgb, var(--accent-cyan) 22%, var(--muted)); border-radius: 6px; background: color-mix(in srgb, var(--panel) 42%, var(--ink)); }
+.writeup-sidebar { position: static; min-width: 0; padding: .95rem; border: 1px solid color-mix(in srgb, var(--accent-cyan) 30%, var(--muted)); border-radius: 6px; background: color-mix(in srgb, var(--panel) 46%, var(--ink)); }
+.writeup-sidebar .hp-label { gap: .4rem; font-size: 8px; letter-spacing: .02em; }
+.writeup-sidebar .hp-label span { white-space: nowrap; }
 .content-toc { padding: .15rem 0 1rem; border-bottom: 1px solid color-mix(in srgb, var(--muted) 28%, transparent); }
 .content-toc summary { margin-bottom: .65rem; color: var(--text); cursor: pointer; font: 700 .7rem/1.6 system-ui, sans-serif; letter-spacing: .08em; list-style: none; }
 .content-toc summary::-webkit-details-marker { display: none; }
@@ -339,14 +341,14 @@
   .content-toc { scroll-behavior: auto; }
 }
 /* Site-wide the music dock is fixed bottom-right, which would cover the
-   writeup reading column. On writeups it sits in the ToC sidebar directly
-   below the ToC and scrolls out naturally with the page. */
+   writeup reading column. On writeups it sits at the top of the ToC sidebar,
+   above the reading progress and contents. */
 body.content-document #rb-music-root {
   position: relative;
   inset: auto;
   width: 100%;
   max-width: 100%;
-  margin: 1rem 0 0;
+  margin: 0 0 1rem;
 }
 body.content-document #rb-music-root .rb-music-pill {
   width: 100%;
@@ -355,6 +357,16 @@ body.content-document #rb-music-root .rb-music-player {
   position: static;
   width: 100%;
   margin-top: 1rem;
+}
+/* The compact dock hides its copy on phones to save floating space, but the
+   writeup rail has a full-width row. Keep the track identity visible there. */
+@media (max-width: 480px) {
+  body.content-document #rb-music-root .rb-music-pill-copy {
+    display: grid;
+  }
+  body.content-document #rb-music-root .rb-music-status {
+    display: block;
+  }
 }
 .writeup-article pre code .token.comment,
 .writeup-article pre code .comment { color: #91a1bb; font-style: italic; }

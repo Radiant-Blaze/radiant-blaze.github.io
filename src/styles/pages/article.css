@@ -61,6 +61,18 @@
 .content-article pre {
   position: relative;
 }
+/* Shiki emits each source line as a block `.line` separated by a newline text
+   node. With `white-space: pre` on the parent, that newline becomes an extra
+   blank line box, doubling the visible code spacing. Collapse only the
+   inter-line whitespace and preserve whitespace inside each source line. */
+.content-article pre code:has(.line) {
+  white-space: normal;
+}
+.content-article pre code .line {
+  display: block;
+  min-width: max-content;
+  white-space: pre;
+}
 .content-article h2,
 .content-article h3,
 .content-article h4,
@@ -270,4 +282,51 @@
   display: block;
   color: var(--accent-cyan-text);
   margin-bottom: 8px;
+}
+
+/* Search uses the filter sidebar as the music dock's home so the floating
+   player cannot cover the filter controls. */
+body.search-document #rb-music-root,
+body.listing-document #rb-music-root {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 1rem;
+}
+body.search-document #rb-music-root .rb-music-pill,
+body.listing-document #rb-music-root .rb-music-pill {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  body.content-document #rb-music-root .rb-music-pill,
+  body.search-document #rb-music-root .rb-music-pill,
+  body.listing-document #rb-music-root .rb-music-pill {
+    min-height: 52px;
+  }
+  body.content-document #rb-music-root .rb-music-pill-copy,
+  body.search-document #rb-music-root .rb-music-pill-copy,
+  body.listing-document #rb-music-root .rb-music-pill-copy {
+    display: grid;
+    gap: 3px;
+  }
+  body.content-document #rb-music-root .rb-music-pill-copy strong,
+  body.search-document #rb-music-root .rb-music-pill-copy strong,
+  body.listing-document #rb-music-root .rb-music-pill-copy strong {
+    font-size: 8px;
+    line-height: 1.35;
+  }
+  body.content-document #rb-music-root .rb-music-pill-copy small,
+  body.search-document #rb-music-root .rb-music-pill-copy small,
+  body.listing-document #rb-music-root .rb-music-pill-copy small {
+    font-size: 7px;
+    line-height: 1.35;
+  }
+  body.content-document #rb-music-root .rb-music-status,
+  body.search-document #rb-music-root .rb-music-status,
+  body.listing-document #rb-music-root .rb-music-status {
+    display: block;
+    font-size: 7px;
+  }
 }

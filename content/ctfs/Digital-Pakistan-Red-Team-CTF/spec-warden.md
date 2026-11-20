@@ -45,7 +45,7 @@ flowchart TD
     I{"matched = len(prefix) + 1 ?"}:::decision
     J["Append char, persist prefix to disk<br/>repeat until 106 characters"]:::attacker
     K["Submit the full key<br/>vault key confirmed - payload released"]:::result
-    L(["FLAG<br/>prg{n4n_sl1pp3d_p4st_th3_sp3c_[A-Za-z0-9]{8179465937987cQ4YCJ46db0b40f33cf8fc8bed99049ccab0a0c3f80869_523}"]):::flag
+    L(["FLAG<br/>prg{n4n_sl1pp3d_p4st_th3_sp3c_[A-Za-z0-9]{817946<br/>5937987cQ4YCJ46db0b40f33cf8fc8bed99049ccab0a0c3f<br/>80869_523}"]):::flag
 
     %% ---------- Edges ----------
     A --> B --> C --> D --> W --> E --> F --> G --> H --> I

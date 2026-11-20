@@ -69,6 +69,7 @@
   let audio = new Audio();
   const audioGraphs = new WeakMap();
   const audioListeners = new WeakSet();
+  const listingMusicBreakpoint = matchMedia("(max-width: 800px)");
   let lastSyncedRoute = null;
   let removeAutoplayGestureFallback = () => {};
   audio.preload = "none";
@@ -242,14 +243,41 @@
 
   function placeInterface(root) {
     if (!document.body.classList.contains("content-document")) {
+      const searchSidebar = document.querySelector(".search-sidebar");
+      if (searchSidebar) {
+        searchSidebar.prepend(root);
+        return;
+      }
+      if (document.body.classList.contains("listing-document")) {
+        const listingGrid = document.querySelector(".page-grid");
+        if (listingMusicBreakpoint.matches && listingGrid) {
+          // On narrow screens the sidebar stacks below the results. Move the
+          // player into the grid itself so it remains the first content block.
+          listingGrid.prepend(root);
+          return;
+        }
+        const listingSidebar = document.querySelector(".page-grid > .sidebar");
+        if (listingSidebar) {
+          listingSidebar.prepend(root);
+          return;
+        }
+      }
+      const header = document.querySelector("main > header");
+      if (listingMusicBreakpoint.matches && header) {
+        // A fixed dock always covers whatever is beneath it. On narrow
+        // non-reading pages, put the compact player in the page flow below the
+        // header; opening its panel still uses a fixed, viewport-sized layer.
+        header.after(root);
+        return;
+      }
       if (root.parentElement !== document.body) document.body.append(root);
       return;
     }
     const sidebar = document.querySelector(".content-layout .content-sidebar");
     if (sidebar) {
-      const toc = sidebar.querySelector(".content-toc");
-      if (toc) toc.after(root);
-      else sidebar.append(root);
+      const progress = sidebar.querySelector(".content-progress");
+      if (progress) progress.before(root);
+      else sidebar.prepend(root);
       return;
     }
     const footer = document.querySelector("footer.site-footer");
@@ -328,8 +356,8 @@
         </details>
       </section>
     `;
-    // Writeups keep the dock in the reading sidebar directly below the ToC so
-    // it scrolls with the page instead of covering the reading column.
+    // Content pages keep the dock at the top of the reading sidebar so it is
+    // visible before reading progress and the table of contents.
     placeInterface(root);
     for (const [index, collection] of collections.entries()) {
       const button = document.createElement("button");
@@ -501,6 +529,10 @@
     addEventListener("radiantblaze:contentchange", () => {
       syncInterface();
       syncRoute();
+    });
+    listingMusicBreakpoint.addEventListener("change", () => {
+      const root = document.getElementById("rb-music-root");
+      if (root) placeInterface(root);
     });
     addEventListener("popstate", () => queueMicrotask(syncRoute));
     addEventListener("pageshow", retryAutomaticPlayback);
@@ -1352,6 +1384,7 @@
     root.querySelector("[data-track-title]").textContent = title;
     root.querySelector("[data-track-artist]").textContent = artist;
     root.querySelector('[data-music-action="open"]').title = `${title} — ${artist}; open player`;
+    root.querySelector('[data-music-action="open"]').setAttribute("aria-label", `Open music player: ${title} by ${artist}`);
     root.querySelector("[data-player-title]").textContent = title;
     root.querySelector("[data-player-title]").title = current?.title || title;
     root.querySelector("[data-player-artist]").textContent = artist;

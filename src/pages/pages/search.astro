@@ -2,6 +2,21 @@
 import { ASSET_VERSION } from "../../lib/assets";
 import QuestShell from "../../layouts/QuestShell.astro";
 import Footer from "../../components/Footer.astro";
+import { getRuntimeReadModel } from "../../lib/runtime-read-model";
+import { escapeHtml } from "../../lib/markdown";
+
+const readModel = await getRuntimeReadModel();
+const topicCounts = new Map();
+for (const item of [...readModel.posts, ...readModel.ctfs.flatMap((ctf) => ctf.challenges ?? [])]) {
+  for (const value of [item.category, ...(item.tags || [])].filter(Boolean)) {
+    const topic = String(value).trim().toLowerCase();
+    topicCounts.set(topic, (topicCounts.get(topic) || 0) + 1);
+  }
+}
+const topTopics = [...topicCounts.entries()]
+  .sort(([left, leftCount], [right, rightCount]) => rightCount - leftCount || left.localeCompare(right))
+  .slice(0, 5)
+  .map(([topic, count]) => ({ topic, count }));
 ---
 <QuestShell
   title="Search Database · Radiant Blaze"
@@ -9,7 +24,20 @@ import Footer from "../../components/Footer.astro";
   canonical="https://radiant-blaze.github.io/pages/search.html"
   ogTitle="Search · Radiant Blaze"
   currentPage="search"
+  bodyClass="search-document"
+  preloadFonts={[
+    "/assets/fonts/press-start/press-start-k.woff2",
+    "/assets/fonts/sf-pixelate/sf-pixelate-bold.woff2",
+  ]}
 >
+  <script slot="headScripts" is:inline>
+    (() => {
+      const params = new URLSearchParams(location.search);
+      if (["q", "type", "topic", "year"].some((key) => params.has(key))) {
+        document.documentElement.classList.add("search-has-filters");
+      }
+    })();
+  </script>
   <section class="quest-hero quest-wrap">
     <p class="eyebrow">COMPLETE ARCHIVE · READY</p>
     <h1 class="quest-title">SEARCH RECORDS</h1>
@@ -18,33 +46,41 @@ import Footer from "../../components/Footer.astro";
       <input data-search id="search-database" name="q" type="search" placeholder="Search posts, writeups, tools, tags..." />
       <button class="pixel-button start-button" type="submit">SCAN →</button>
     </form>
-    <div class="search-toolbar" aria-label="Search filters">
-      <div class="search-pills" data-search-filters>
-        <button type="button" class="filter-pill is-active" data-search-filter="all">ALL</button>
-        <button type="button" class="filter-pill" data-search-filter="posts">POSTS</button>
-        <button type="button" class="filter-pill" data-search-filter="writeups">WRITEUPS</button>
-      </div>
-      <div class="top-tags" data-top-tags aria-label="Top tags"></div>
-      <details class="tag-database">
-        <summary>TAG DATABASE <span aria-hidden="true">+</span></summary>
-        <label class="sr-only" for="tag-filter">Search tags</label>
-        <input id="tag-filter" class="database-filter" type="search" placeholder="SEARCH TAGS" data-tag-filter />
-        <div class="search-pills search-pills--topic" data-search-topics aria-live="polite"></div>
-      </details>
-      <details class="year-database">
-        <summary>YEAR DATABASE <span aria-hidden="true">+</span></summary>
-        <label class="sr-only" for="year-filter">Search years</label>
-        <input id="year-filter" class="database-filter" type="search" inputmode="numeric" placeholder="SEARCH YEARS" data-year-filter />
-        <div class="search-pills search-pills--year" data-search-years aria-live="polite"></div>
-        <p class="year-database__empty" data-year-empty hidden>NO MATCHING YEARS</p>
-      </details>
-    </div>
     <p class="record-count" data-record-count>LOADING RECORDS...</p>
     <div class="active-filters" data-active-filters aria-label="Active search filters" hidden></div>
   </section>
-  <div class="page-grid search-results quest-wrap">
-    <section class="quest-list" data-quest-list aria-live="polite"></section>
-    <nav class="search-pagination" data-search-pagination aria-label="Search result pages"></nav>
+  <div class="page-grid search-results search-layout quest-wrap">
+    <aside class="search-sidebar" aria-label="Search filters">
+      <div class="search-toolbar">
+        <div class="search-pills search-pills--type" data-search-filters role="group" aria-labelledby="search-content-type-label">
+          <span class="search-pills__label" id="search-content-type-label">CONTENT TYPE</span>
+          <button type="button" class="filter-pill is-active" data-search-filter="all">ALL</button>
+          <button type="button" class="filter-pill" data-search-filter="posts">POSTS</button>
+          <button type="button" class="filter-pill" data-search-filter="writeups">WRITEUPS</button>
+        </div>
+        <div class="top-tags" data-top-tags role="group" aria-label="Top tags">
+          <button type="button" class="filter-pill is-active" data-search-topic="all">ALL TOPICS</button>
+          {topTopics.map(({ topic, count }) => <button type="button" class="filter-pill" data-search-topic={escapeHtml(topic)}>{escapeHtml(topic.toUpperCase())} <small>{count}</small></button>)}
+        </div>
+        <details class="tag-database">
+          <summary>TAG DATABASE <span aria-hidden="true">+</span></summary>
+          <label class="sr-only" for="tag-filter">Search tags</label>
+          <input id="tag-filter" class="database-filter" type="search" placeholder="SEARCH TAGS" data-tag-filter />
+          <div class="search-pills search-pills--topic" data-search-topics aria-live="polite"></div>
+        </details>
+        <details class="year-database">
+          <summary>YEAR DATABASE <span aria-hidden="true">+</span></summary>
+          <label class="sr-only" for="year-filter">Search years</label>
+          <input id="year-filter" class="database-filter" type="search" inputmode="numeric" placeholder="SEARCH YEARS" data-year-filter />
+          <div class="search-pills search-pills--year" data-search-years aria-live="polite"></div>
+          <p class="year-database__empty" data-year-empty hidden>NO MATCHING YEARS</p>
+        </details>
+      </div>
+    </aside>
+    <div class="search-main">
+      <section class="quest-list" data-quest-list aria-live="polite"></section>
+      <nav class="search-pagination" data-search-pagination aria-label="Search result pages"></nav>
+    </div>
   </div>
   <Footer />
 </QuestShell>

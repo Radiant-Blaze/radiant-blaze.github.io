@@ -70,7 +70,7 @@ flowchart TD
 
     %% ---------- Result ----------
     S5["Target: system(name)<br/>sh -c 'cat flag.txt ...; sh'"]:::target
-    F["FLAG<br/>pwn{m1p5_1s_34s13r_th4n_y0u_7h1nK_[A-Za-z0-9]{61794652441MpRubRMB93711fc9e7814233ce139e517d7f0c15db5db331_523}}"]:::flag
+    F["FLAG<br/>pwn{m1p5_1s_34s13r_th4n_y0u_7h1nK_[A-Za-z0-9]{61<br/>794652441MpRubRMB93711fc9e7814233ce139e517d7f0c1<br/>5db5db331_523}}"]:::flag
 
     %% ---------- Edges ----------
     T0 --> R1 --> R2 --> V1

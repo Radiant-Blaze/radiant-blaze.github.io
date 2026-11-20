@@ -179,6 +179,11 @@ export class Session {
 
 const stage = (name) => console.error(`[spa] ${name}`);
 
+const forceDiagrams = async (session) => {
+  await session.waitFor("Boolean(window.RadiantBlazeDiagrams)", "diagram viewer");
+  await session.evaluate("window.RadiantBlazeDiagrams.render(document); true");
+};
+
 const testConditionalMermaidLoading = async (session) => {
   const requested = [];
   session.on("Network.requestWillBeSent", ({ request }) => requested.push(request.url));
@@ -189,6 +194,8 @@ const testConditionalMermaidLoading = async (session) => {
 
   requested.length = 0;
   await session.goto(`${PREVIEW}${writeupUrl(CTF, DIAGRAM)}`);
+  await session.waitFor("Boolean(window.RadiantBlazeDiagrams)", "diagram viewer");
+  await session.evaluate("window.RadiantBlazeDiagrams.render(document); true");
   await session.waitFor('document.querySelectorAll(".diagram__stage > svg").length > 0', "diagram render");
   const withDiagram = requested.filter((url) => /mermaid|QuestShell\.astro_astro_type_script/i.test(url));
   assert.ok(withDiagram.length > 0, "articles with diagrams load the Mermaid viewer");
@@ -234,6 +241,11 @@ const testSpaStability = async (session) => {
     for (const route of routes) {
       await session.spaNavigate(route);
       if (route.includes("/writeups/")) {
+        await session.waitFor(
+          'location.pathname.includes("/writeups/") && document.querySelectorAll(\'pre > code[data-language="mermaid"]\').length > 0',
+          `writeup blocks in cycle ${cycle}`,
+        );
+        await forceDiagrams(session);
         await session.waitFor('document.querySelectorAll(".diagram__stage > svg").length > 0', `diagram in cycle ${cycle}`);
       } else {
         await new Promise((resolve) => setTimeout(resolve, 450));
@@ -322,6 +334,68 @@ const testHomepageFonts = async (session) => {
   return { preloads: data.preloads.map((item) => item.href), fonts: data.fonts, cls: data.cls };
 };
 
+const testCodeLineSpacing = async (session) => {
+  await session.goto(`${PREVIEW}${writeupUrl(CTF, DIAGRAM)}`);
+  await session.waitFor('document.querySelectorAll(".writeup-article pre .line").length > 4', "highlighted code lines");
+  const spacing = await session.evaluate(`(() => {
+    const lines = [...document.querySelectorAll(".writeup-article pre .line")].slice(0, 4);
+    const boxes = lines.map((line) => line.getBoundingClientRect());
+    return {
+      lineHeight: boxes[0].height,
+      gaps: boxes.slice(1).map((box, index) => box.top - boxes[index].top),
+    };
+  })()`);
+  for (const gap of spacing.gaps) {
+    assert.ok(
+      gap <= spacing.lineHeight + 1,
+      `highlighted code lines must not gain blank line boxes (gap ${gap}, line height ${spacing.lineHeight})`,
+    );
+  }
+  return spacing;
+};
+
+const testDiagramCentering = async (session) => {
+  const read = () => session.evaluate(`(() => {
+    const stage = document.querySelector(".diagram__stage");
+    const parts = [...stage.querySelectorAll("g.node, g.edgePaths path, g.edgePath")]
+      .map((part) => part.getBoundingClientRect())
+      .filter((box) => box.width && box.height);
+    const overflow = stage.scrollWidth - stage.clientWidth;
+    if (!parts.length) return { overflow, scrollLeft: stage.scrollLeft, delta: 0 };
+    const stageBox = stage.getBoundingClientRect();
+    const left = Math.min(...parts.map((box) => box.left));
+    const right = Math.max(...parts.map((box) => box.right));
+    return {
+      overflow,
+      scrollLeft: stage.scrollLeft,
+      delta: (left + right) / 2 - (stageBox.left + stage.clientWidth / 2),
+    };
+  })()`);
+  await session.goto(`${PREVIEW}${writeupUrl(CTF, DIAGRAM)}`);
+  await forceDiagrams(session);
+  await session.waitFor('document.querySelectorAll(".writeup-article .diagram__stage > svg").length > 0', "diagram before centering");
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  const loaded = await read();
+  assert.ok(loaded.overflow > 0, "the test diagram is wider than its stage");
+  assert.ok(Math.abs(loaded.delta) <= 2, `diagram content is centered on load (delta ${loaded.delta})`);
+
+  await session.goto(`${PREVIEW}${writeupUrl(CTF, DIAGRAM)}`);
+  await forceDiagrams(session);
+  await session.waitFor('document.querySelectorAll(".writeup-article .diagram__stage > svg").length > 0', "diagram after reload");
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  const reloaded = await read();
+  assert.ok(Math.abs(reloaded.delta) <= 2, `diagram content is centered after reload (delta ${reloaded.delta})`);
+
+  await session.goto(`${PREVIEW}/`);
+  await session.spaNavigate(writeupUrl(CTF, DIAGRAM));
+  await forceDiagrams(session);
+  await session.waitFor('document.querySelectorAll(".writeup-article .diagram__stage > svg").length > 0', "diagram after SPA");
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+  const spa = await read();
+  assert.ok(Math.abs(spa.delta) <= 2, `diagram content is centered after SPA navigation (delta ${spa.delta})`);
+  return { loaded, reloaded, spa };
+};
+
 const testSpaMetadata = async (session) => {
   await session.goto(`${PREVIEW}/`);
   const home = await readSpaMetadata(session);
@@ -380,6 +454,71 @@ const testSpaMetadata = async (session) => {
   assert.equal(refreshed.canonical, project.canonical, "project refresh canonical");
 
   return { home: home.canonical, project: project.canonical, portfolio: portfolio.canonical, back: backProject.canonical, forward: forwardProject.canonical, writeupType: writeup.ogType, direct: direct.canonical };
+};
+
+const testTocAccordion = async (session) => {
+  await session.goto(`${PREVIEW}${writeupUrl(CTF, DIAGRAM)}`);
+  await session.waitFor('document.querySelectorAll("[data-toc-group] .content-toc__more").length >= 2', "collapsible TOC categories");
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  const groups = await session.evaluate(`[...document.querySelectorAll("[data-toc-group]")].map((group) => ({
+    link: group.querySelector(":scope > .content-toc__row .content-toc__link")?.getAttribute("href"),
+  }))`);
+  const readGroups = () => session.evaluate(`[...document.querySelectorAll("[data-toc-group]")].map((group) => ({
+    label: group.querySelector(":scope > .content-toc__row .content-toc__link")?.textContent.trim(),
+    clamped: group.dataset.clamped,
+  }))`);
+
+  for (const [index, group] of groups.entries()) {
+    await session.evaluate(`(() => {
+      document.documentElement.style.scrollBehavior = "auto";
+      const heading = document.querySelector(${JSON.stringify(group.link)});
+      if (heading) window.scrollTo({ top: heading.getBoundingClientRect().top + window.scrollY - 120, behavior: "instant" });
+      return true;
+    })()`);
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    const state = await readGroups();
+    for (const [candidateIndex, candidate] of state.entries()) {
+      assert.equal(candidate.clamped, String(candidateIndex !== index), `only the active TOC category ${candidate.label} is expanded`);
+    }
+  }
+  const step = await session.evaluate(`(() => {
+    const link = [...document.querySelectorAll(".content-toc__link")].find((item) => item.textContent.includes("Step 3"));
+    if (!link) return null;
+    const heading = document.querySelector(link.getAttribute("href"));
+    heading?.scrollIntoView({ behavior: "instant", block: "start" });
+    return link.getAttribute("href");
+  })()`);
+  assert.ok(step, "the writeup has a Step 3 contents entry");
+  await new Promise((resolve) => setTimeout(resolve, 900));
+  const activeStep = await session.evaluate(`(() => {
+    const link = document.querySelector('.content-toc__link[aria-current="location"]');
+    const toc = document.querySelector(".content-toc");
+    const box = toc.getBoundingClientRect();
+    const rect = link?.getBoundingClientRect();
+    return {
+      text: link?.textContent.trim() ?? "",
+      visible: Boolean(rect && rect.top >= box.top && rect.bottom <= box.bottom),
+    };
+  })()`);
+  assert.match(activeStep.text, /Step 3/, "the TOC follows the active Step 3 heading");
+  assert.equal(activeStep.visible, true, "the active Step 3 entry is visible in the TOC scrollport");
+  return { groups: await readGroups(), activeStep };
+};
+
+const testContentMusicPlacement = async (session) => {
+  await session.goto(`${PREVIEW}${writeupUrl(CTF, DIAGRAM)}`);
+  await session.waitFor('document.querySelector("#rb-music-root") && document.querySelector("#rb-music-root").parentElement?.classList.contains("content-sidebar")', "music in content sidebar");
+  const placement = await session.evaluate(`(() => {
+    const sidebar = document.querySelector(".writeup-sidebar");
+    const first = sidebar?.firstElementChild;
+    return {
+      firstId: first?.id ?? "",
+      order: [...(sidebar?.children ?? [])].map((item) => item.id || item.className),
+    };
+  })()`);
+  assert.equal(placement.firstId, "rb-music-root", "the music player leads the writeup sidebar");
+  assert.ok(placement.order.indexOf("rb-music-root") < placement.order.findIndex((item) => item.includes("content-progress")), "music precedes reading progress");
+  return placement;
 };
 
 const testMusicSingleton = async (session) => {
@@ -515,6 +654,14 @@ const main = async () => {
     const homepageFonts = await testHomepageFonts(session);
     stage("E: SPA metadata");
     const spaMetadata = await testSpaMetadata(session);
+    stage("E2: code line spacing");
+    const codeSpacing = await testCodeLineSpacing(session);
+    stage("E3: diagram centering");
+    const diagramCenter = await testDiagramCentering(session);
+    stage("E4: content music placement");
+    const contentMusic = await testContentMusicPlacement(session);
+    stage("E5: TOC accordion");
+    const tocAccordion = await testTocAccordion(session);
     stage("E: music singleton and Escape");
     const music = await testMusicSingleton(session);
     stage("E: reduced motion");
@@ -531,6 +678,10 @@ const main = async () => {
       spaStability: stability,
       homepageFonts,
       spaMetadata,
+      codeSpacing,
+      diagramCenter,
+      contentMusic,
+      tocAccordion,
       music,
       reducedMotion,
       offscreen,

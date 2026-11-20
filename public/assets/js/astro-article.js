@@ -63,19 +63,26 @@ export const initPage = ({ fromSpa = false } = {}) => {
           link.removeAttribute("aria-current");
         }
       }
-      // Reaching a section unfolds the sub-steps it was keeping collapsed.
+      // Keep the contents rail quiet while scrolling: only the category that
+      // contains the current heading is unfolded. Moving to another section
+      // collapses the previous category's steps again.
+      const activeGroups = new Set();
       let group = current?.closest("[data-toc-group]");
       while (group) {
-        setGroupExpanded(group, true);
+        activeGroups.add(group);
         group = group.parentElement.closest("[data-toc-group]");
+      }
+      for (const candidate of toc.querySelectorAll("[data-toc-group]")) {
+        setGroupExpanded(candidate, activeGroups.has(candidate));
       }
       // The desktop sidebar is its own scroll container on long writeups. Keep
       // the current section visible without touching the page scroll position.
-      const scroller = current?.closest(".writeup-sidebar");
+      const scroller = current?.closest(".content-toc");
       if (current && scroller && getComputedStyle(scroller).overflowY === "auto") {
         const linkRect = current.getBoundingClientRect();
         const box = scroller.getBoundingClientRect();
-        const padding = 10;
+        const stickyHeader = current.closest("[data-toc-group]")?.querySelector(":scope > .content-toc__row");
+        const padding = Math.max(10, (stickyHeader?.getBoundingClientRect().height ?? 0) + 8);
         if (linkRect.top < box.top + padding) {
           scroller.scrollTop -= box.top + padding - linkRect.top;
         } else if (linkRect.bottom > box.bottom - padding) {

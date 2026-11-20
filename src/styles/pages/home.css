@@ -66,10 +66,21 @@ h1 span {
 }
 .status-panel-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px 16px;
 }
+.status-panel-actions {
+  margin-left: auto;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.status-panel-actions .pixel-button {
+  font-size: 7px;
+  padding: 8px 10px;
+}
+.status-panel-header .loading-dots { margin-left: 0; }
 .status-status {
   display: inline-flex;
   align-items: center;

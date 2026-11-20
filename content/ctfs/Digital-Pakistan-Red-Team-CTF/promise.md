@@ -68,7 +68,7 @@ flowchart TD
 
     %% ---------- Step 4: flag ----------
     S7["Attacker: key = sha256(1|e|(c1,c2))<br/>flag = enc XOR shake_256(key)"]:::attacker
-    F["FLAG<br/>crypto{r4t10s_0f_sh1ft3d_1nv3rs3s_c0nv3rg3_t0_th3_k3y1794649908OFtMEeTDb00a936b06aebab4f8ffd28c5b18dd0eef6c7109_523}"]:::flag
+    F["FLAG<br/>crypto{r4t10s_0f_sh1ft3d_1nv3rs3s_c0nv3rg3_t0_th<br/>3_k3y1794649908OFtMEeTDb00a936b06aebab4f8ffd28c5<br/>b18dd0eef6c7109_523}"]:::flag
 
     %% ---------- Edges ----------
     T0 --> A1 --> V1 --> S1 --> S2 --> S2r

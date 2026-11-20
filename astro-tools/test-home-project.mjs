@@ -30,7 +30,7 @@ for (const file of await markdownFiles(contentRoot)) {
   }
 }
 
-assert.match(output, /class="hero-actions"/, "homepage exposes primary entry actions");
+assert.match(output, /class="hero-actions status-panel-actions"/, "homepage exposes primary entry actions inside Live Loadout");
 assert.match(output, /EXPLORE CTFS/, "homepage links to CTF discovery");
 assert.match(output, /VIEW PORTFOLIO/, "homepage links to the portfolio");
 assert.match(output, /data-latest-post/, "existing latest-content tile is preserved");

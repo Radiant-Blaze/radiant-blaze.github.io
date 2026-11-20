@@ -227,18 +227,36 @@
   outline: 2px solid var(--accent-orange-text);
   outline-offset: 2px;
 }
-/* Keep the ToC and music player available on long writeups. Natural document
-   order is unchanged: ToC first, music player below it. */
+/* Keep the ToC and music player available on long writeups. The music player
+   leads the rail, followed by reading progress and the contents. */
 @media (min-width: 1101px) {
   .writeup-sidebar {
     position: sticky;
     top: 1rem;
     align-self: start;
+    display: flex;
+    flex-direction: column;
     max-height: calc(100vh - 2rem);
+    overflow: hidden;
+  }
+  /* Keep the music player and reading progress fixed at the top; only the
+     category/toc list owns the scrollbar and scroll position. */
+  .writeup-sidebar .content-toc {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--muted) 55%, transparent) transparent;
+  }
+  /* The active category header stays pinned while its steps scroll beneath
+     it, so readers always know which section owns the visible steps. */
+  .writeup-sidebar .content-toc > nav > ol > li > .content-toc__row {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: color-mix(in srgb, var(--panel) 94%, var(--ink));
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--ink) 55%, transparent);
   }
   /* Long writeups have 20+ ToC entries. A slightly denser rail keeps the
      current entry visible without a second, oversized scroll region. */
@@ -252,13 +270,13 @@
   .writeup-sidebar .content-toc__children .content-toc__link {
     padding: 0.2rem 0.4rem;
   }
-  .writeup-sidebar::-webkit-scrollbar {
+  .writeup-sidebar .content-toc::-webkit-scrollbar {
     width: 6px;
   }
-  .writeup-sidebar::-webkit-scrollbar-track {
+  .writeup-sidebar .content-toc::-webkit-scrollbar-track {
     background: transparent;
   }
-  .writeup-sidebar::-webkit-scrollbar-thumb {
+  .writeup-sidebar .content-toc::-webkit-scrollbar-thumb {
     border-radius: 3px;
     background: color-mix(in srgb, var(--muted) 55%, transparent);
   }

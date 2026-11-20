@@ -60,7 +60,7 @@ flowchart TD
     S3r["Target: freelist[4] = R -> cell 0 -> END"]:::target
 
     %% ---------- Step 4: allocate cell 0 ----------
-    D1{"Attacker: take tier 4 — which handle?"}:::decision
+    D1{"Attacker: take tier 4 —<br/>which handle?"}:::decision
     S4a["Attacker: handle X+1 = R — take tier 4 again"]:::attacker
     S4b["Target: cell 0 allocated<br/>magic = key passes as 0 ^ key · span stays 0x18"]:::target
     N2["guard: RNG free-list pick<br/>never predicted — branch on the printed handle"]:::note
@@ -76,7 +76,7 @@ flowchart TD
 
     %% ---------- Result ----------
     S7["Target: interactive shell on the socket<br/>uid=1001(ctf)"]:::target
-    F["FLAG<br/>pwn{sh4r1ng_th3_p00l_w4s_4_b1g_m1st4k3_1794658939acIKOIWw051c23e0e18bbf2aa4b70fb458a86ca07790dc80_523}"]:::flag
+    F["FLAG<br/>pwn{sh4r1ng_th3_p00l_w4s_4_b1g_m1st4k3_179465893<br/>9acIKOIWw051c23e0e18bbf2aa4b70fb458a86ca07790dc8<br/>0_523}"]:::flag
 
     %% ---------- Edges ----------
     T0 --> T1 --> T2 --> S1

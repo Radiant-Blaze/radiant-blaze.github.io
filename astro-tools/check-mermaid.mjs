@@ -196,6 +196,18 @@ const escapeUnsafeJsFragment = (str) =>
 const run = (body) =>
   `(() => { ${PAGE_HELPERS} return eval("(function(){" + ${escapeUnsafeJsFragment(body)} + "})")(); })()`;
 
+// Production defers Mermaid until a diagram approaches the viewport. Tests
+// exercise rendering immediately, so opt into the public forced-render hook.
+const forceDiagrams = async (session) => {
+  await session.waitFor(run("return Boolean(window.RadiantBlazeDiagrams)"), "diagram viewer");
+  await session.evaluate(run("window.RadiantBlazeDiagrams.render(document); return true;"));
+};
+
+const gotoDiagram = async (session, route) => {
+  await session.goto(route);
+  await forceDiagrams(session);
+};
+
 const consoleWarnings = (session) => {
   const messages = [];
   session.on("Runtime.consoleAPICalled", (params) => {
@@ -215,7 +227,7 @@ const testSuccessfulRendering = async (session) => {
     assert.ok(html.includes('data-language="mermaid"'), `${page} ships its diagram source in the HTML`);
     assert.ok(html.includes("flowchart TD"), `${page} ships a Mermaid flowchart`);
 
-    await session.goto(`${PREVIEW}${route}`);
+    await gotoDiagram(session, `${PREVIEW}${route}`);
     await session.waitFor(
       run('return diagramSvgs().length > 0 && diagramSvgs().length === diagramBlocks().length'),
       `${page} diagram`,
@@ -273,11 +285,33 @@ const testSuccessfulRendering = async (session) => {
   return DIAGRAM_PAGES.length;
 };
 
+const testLongFlagLayout = async (session) => {
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
+  await session.waitFor(run("return diagramSvgs().length > 0"), "flag diagram");
+  const layout = await session.evaluate(`(() => {
+    const node = [...document.querySelectorAll(".diagram__stage g.node")].find((item) => item.textContent.includes("pwn{"));
+    const foreign = node.querySelector("foreignObject");
+    const label = foreign.querySelector(":scope > div");
+    return {
+      labelWidth: label.getBoundingClientRect().width,
+      labelHeight: label.getBoundingClientRect().height,
+      foreignWidth: foreign.getBoundingClientRect().width,
+      foreignHeight: foreign.getBoundingClientRect().height,
+      text: label.textContent,
+    };
+  })()`);
+  assert.ok(layout.text.includes("_523}"), "the complete flag text is present in the label");
+  assert.ok(layout.labelWidth >= layout.foreignWidth - 1, "the flag label uses the node's measured width");
+  assert.ok(layout.labelHeight > 50, "the long flag label wraps onto multiple lines");
+  assert.ok(layout.labelHeight <= layout.foreignHeight + 1, "the flag label does not overflow the node height");
+  return { labelWidth: layout.labelWidth, labelHeight: layout.labelHeight, foreignWidth: layout.foreignWidth, foreignHeight: layout.foreignHeight };
+};
+
 const testOfflineRendering = async (session) => {
   await session.send("Network.enable");
   await session.send("Network.setBlockedURLs", { urls: [CDN_PATTERN] });
   try {
-    await session.goto(`${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
+    await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
     await session.waitFor(run("return diagramSvgs().length > 0"), "local diagram with external CDNs blocked");
     const state = await session.evaluate(
       run(`
@@ -302,7 +336,7 @@ const testMissingModule = async (session) => {
   await session.send("Network.enable");
   await session.send("Network.setBlockedURLs", { urls: ["*mermaid*"] });
   try {
-    await session.goto(`${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
+    await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
     await session.waitFor('document.querySelector(".diagram-error") !== null', "module-missing fallback");
     const blocked = await session.evaluate(
       run(`
@@ -325,7 +359,7 @@ const testMissingModule = async (session) => {
     await session.send("Network.setBlockedURLs", { urls: [] });
   }
   // A fresh page load can retry the module now that the network is unblocked.
-  await session.goto(`${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
   await session.waitFor(run("return diagramSvgs().length > 0"), "diagram after the module loads again");
   return true;
 };
@@ -335,7 +369,7 @@ const testViewerControls = async (session) => {
     origin: PREVIEW,
     permissions: ["clipboardReadWrite", "clipboardSanitizedWrite"],
   });
-  await session.goto(`${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
   await session.waitFor(run("return document.querySelectorAll('.diagram__bar').length > 0"), "viewer controls");
 
   // Source toggle keeps the canonical Mermaid source reachable.
@@ -405,7 +439,7 @@ const testViewerControls = async (session) => {
 };
 
 const testErrorFallback = async (session) => {
-  await session.goto(`${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
   await session.waitFor(run("return diagramSvgs().length > 0"), "baseline diagram");
   await session.evaluate(
     run(`
@@ -452,7 +486,7 @@ const testErrorFallback = async (session) => {
 };
 
 const testRepeatedInitialization = async (session) => {
-  await session.goto(`${PREVIEW}${writeupUrl(CTF, "meeeps.md")}`);
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "meeeps.md")}`);
   await session.waitFor(run("return diagramSvgs().length > 0"), "diagram before repeated initialization");
   const before = await session.evaluate(
     run(`return { svgs: diagramSvgs().length, figures: document.querySelectorAll(".diagram").length };`),
@@ -518,6 +552,7 @@ const testSpaNavigation = async (session) => {
       return true;
     `),
   );
+  await forceDiagrams(session);
   await session.waitFor(run('return diagramSvgs().length > 0'), "diagram after SPA navigation into a generated writeup");
   const generated = await session.evaluate(
     run(`return { sentinel: window.__spaSentinel, blocks: diagramBlocks().length, svgs: diagramSvgs().length, figures: document.querySelectorAll(".diagram").length };`),
@@ -530,6 +565,7 @@ const testSpaNavigation = async (session) => {
   // generated Astro writeup, which then renders the diagram itself.
   const legacyRoute = `/pages/writeup.html?ctf=${encodeURIComponent(CTF)}&challenge=meeeps.md`;
   await session.goto(`${PREVIEW}${legacyRoute}`);
+  await forceDiagrams(session);
   await session.waitFor(
     run(`return location.pathname.includes("/generated/writeups/") && diagramSvgs().length > 0`),
     "legacy writeup redirect",
@@ -544,7 +580,7 @@ const testSpaNavigation = async (session) => {
 };
 
 const testThemeSwitch = async (session) => {
-  await session.goto(`${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
   await session.waitFor(run('return diagramSvgs().length > 0'), "diagram before theme switch");
   const before = await session.evaluate(
     run(`
@@ -621,7 +657,7 @@ const testMobileLayout = async (session) => {
     [1920, 1080, false],
   ]) {
     await session.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile });
-    await session.goto(`${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
+    await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
     await session.waitFor(run('return diagramSvgs().length > 0'), `diagram at ${width}x${height}`);
     const state = await session.evaluate(
       run(`
@@ -677,7 +713,7 @@ const waitForDownload = async (directory, existing, label) => {
 
 const testSvgDownload = async (session, downloadDir) => {
   await session.send("Page.setDownloadBehavior", { behavior: "allow", downloadPath: downloadDir });
-  await session.goto(`${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
   await session.waitFor(run("return document.querySelectorAll('.diagram__bar button').length === 3"), "downloader");
 
   const runDownload = async (theme, expectedFill) => {
@@ -740,6 +776,27 @@ const testSvgDownload = async (session, downloadDir) => {
   return [dark, light];
 };
 
+const testLazyInitialization = async (session) => {
+  await session.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+  await session.goto(`${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
+  await session.waitFor("document.readyState === 'complete'", "lazy writeup load");
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const before = await session.evaluate(run(`
+    const source = document.querySelector('pre > code[data-language="mermaid"]');
+    return {
+      svgs: diagramSvgs().length,
+      figures: document.querySelectorAll(".diagram").length,
+      sourceVisible: Boolean(source && !source.closest("pre").hidden),
+    };
+  `));
+  assert.equal(before.svgs, 0, "a below-fold diagram does not render during initial load");
+  assert.equal(before.figures, 0, "no empty diagram frame is inserted before scrolling");
+  assert.ok(before.sourceVisible, "the Mermaid source remains the initial fallback");
+  await forceDiagrams(session);
+  await session.waitFor(run("return diagramSvgs().length === diagramBlocks().length"), "forced lazy diagram render");
+  return before;
+};
+
 const testPerformance = async (session) => {
   await session.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
   const blog = await (async () => {
@@ -774,7 +831,7 @@ const testPerformance = async (session) => {
   })();
   assert.equal(ctfListing.mermaidRequests, 0, "a CTF listing without diagrams never loads Mermaid");
 
-  await session.goto(`${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
   await session.waitFor(run("return diagramSvgs().length > 0"), "diagram for performance sample");
   const render = await session.evaluate(
     run(`
@@ -815,7 +872,7 @@ const testPerformance = async (session) => {
 };
 
 const testDagreLayout = async (session) => {
-  await session.goto(`${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
+  await gotoDiagram(session, `${PREVIEW}${writeupUrl(CTF, "spec-warden.md")}`);
   await session.waitFor(run("return diagramSvgs().length > 0"), "diagram before dagre fixture");
   const fixtureHtml = '<pre><code data-language="mermaid">%%{init: {"layout": "dagre"}}%%\nflowchart TD\n  A[Dagre A] --> B[Dagre B]</code></pre>';
   await session.evaluate(`(() => {
@@ -823,7 +880,7 @@ const testDagreLayout = async (session) => {
     fixture.id = "dagre-layout-fixture";
     fixture.innerHTML = ${JSON.stringify(fixtureHtml)};
     document.querySelector(".writeup-article").append(fixture);
-    dispatchEvent(new Event("radiantblaze:contentchange"));
+    window.RadiantBlazeDiagrams.render(document);
     return true;
   })()`);
   await session.waitFor('document.querySelectorAll("#dagre-layout-fixture .diagram__stage > svg").length === 1', "dagre diagram render");
@@ -859,7 +916,9 @@ const main = async () => {
     const diagrams = await testSuccessfulRendering(session);
     const elkRequests = requests.filter((url) => /\/elk-[^/]+\.js/.test(url));
     assert.ok(elkRequests.length > 0, "default flowchart rendering loads the ELK layout chunk");
-    stage("A2: explicit dagre layout");
+    stage("A2: long flag label");
+    const longFlag = await testLongFlagLayout(session);
+    stage("A3: explicit dagre layout");
     const dagre = await testDagreLayout(session);
     const dagreRequests = requests.filter((url) => /\/dagre-[^/]+\.js/.test(url));
     assert.ok(dagreRequests.length > 0, "an explicit dagre directive loads the dagre layout chunk");
@@ -884,7 +943,9 @@ const main = async () => {
     const downloadDir = path.join(userDataDir, "downloads");
     await mkdir(downloadDir, { recursive: true });
     const downloads = await testSvgDownload(session, downloadDir);
-    stage("K: performance");
+    stage("K: lazy initialization");
+    const lazy = await testLazyInitialization(session);
+    stage("L: performance");
     const performanceSample = await testPerformance(session);
 
     const localMermaid = requests.filter((url) => /mermaid/i.test(url));
@@ -908,6 +969,7 @@ const main = async () => {
             dagreRequests: [...new Set(dagreRequests)].length,
             dagreSvg: dagre.svgs,
           },
+          longFlagLabel: longFlag,
           offlineDiagrams,
           fallbackErrors,
           repeatedInitializationSvgs: repeated,
@@ -915,6 +977,7 @@ const main = async () => {
           themeSwitch: theme,
           responsiveLayout: mobile,
           svgDownloads: downloads,
+          lazyInitialization: lazy,
           performance: performanceSample,
           localMermaidRequests: localMermaid.length,
           externalMermaidRequests: 0,

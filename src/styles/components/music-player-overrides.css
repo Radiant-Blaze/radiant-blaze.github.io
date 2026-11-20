@@ -458,6 +458,31 @@
     min-height: 26px;
   }
 }
+@media (max-width: 800px) {
+  body:not(.content-document):not(.listing-document):not(.search-document) #rb-music-root {
+    position: static;
+    inset: auto;
+    width: calc(100% - 28px);
+    max-width: none;
+    margin: 8px auto 0;
+  }
+  body:not(.content-document):not(.listing-document):not(.search-document) #rb-music-root .rb-music-dock {
+    justify-content: stretch;
+  }
+  body:not(.content-document):not(.listing-document):not(.search-document) #rb-music-root .rb-music-pill {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 46px;
+  }
+  body:not(.content-document):not(.listing-document):not(.search-document) #rb-music-root .rb-music-player {
+    position: fixed;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: min(370px, calc(100vw - 20px));
+    max-width: calc(100vw - 20px);
+    max-height: 72vh;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   #rb-music-root .rb-music-player,
   #rb-music-root .rb-music-player.is-closing,

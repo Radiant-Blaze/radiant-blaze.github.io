@@ -26,6 +26,7 @@ const DIAGRAM_TOKENS = {
 const DIAGRAM_FALLBACK_KEYS = Object.fromEntries(
   Object.values(DIAGRAM_TOKENS).map(({ key, fallback }) => [fallback.toLowerCase(), key]),
 );
+const DIAGRAM_NEAR_VIEWPORT = "200px 0px";
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 3;
 const ZOOM_STEP = 0.25;
@@ -176,30 +177,65 @@ class DiagramViewer {
     this.figureCount = 0;
     this.generation = 0;
     this.timer = 0;
+    this.observer = null;
     addEventListener("radiantblaze:contentchange", () => this.schedule(document, false));
-    addEventListener("radiantblaze:themechange", () => this.schedule(document, true));
+    // A theme change must repaint diagrams that already exist, even when the
+    // visitor is reading above them. It is an explicit user action, not part of
+    // the initial load.
+    addEventListener("radiantblaze:themechange", () => this.schedule(document, true, true));
     addEventListener("radiantblaze:pagedisposing", () => {
       this.generation++;
       clearTimeout(this.timer);
+      this.observer?.disconnect();
+      this.observer = null;
     });
   }
 
-  /** Public hook used by tests and the SPA router. */
+  /** Public hook used by tests. It intentionally bypasses viewport deferral. */
   render(root = document) {
-    this.schedule(root, false);
+    this.schedule(root, false, true);
   }
 
-  schedule(root, themeChange) {
+  schedule(root, themeChange, force = false) {
     const generation = ++this.generation;
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
-      void this.run(root, generation, themeChange);
+      void this.run(root, generation, themeChange, force);
     }, themeChange ? 60 : 0);
   }
 
-  async run(root, generation, themeChange) {
+  nearViewport(pre) {
+    if (!pre) return false;
+    const rect = pre.getBoundingClientRect();
+    return rect.bottom >= -200 && rect.top <= innerHeight + 200;
+  }
+
+  observeUntilVisible(blocks, root, themeChange) {
+    if (!("IntersectionObserver" in window)) return false;
+    this.observer?.disconnect();
+    const pending = blocks.map((code) => code.closest("pre")).filter(Boolean);
+    if (!pending.length) return false;
+    this.observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      this.observer?.disconnect();
+      this.observer = null;
+      this.schedule(root, themeChange, false);
+    }, { rootMargin: DIAGRAM_NEAR_VIEWPORT });
+    pending.forEach((pre) => this.observer.observe(pre));
+    return true;
+  }
+
+  async run(root, generation, themeChange, force = false) {
     const blocks = [...(root ?? document).querySelectorAll(BLOCK_SELECTOR)];
     if (!blocks.length) return;
+    if (force) {
+      this.observer?.disconnect();
+      this.observer = null;
+    } else if (!blocks.some((code) => this.nearViewport(code.closest("pre")))) {
+      // Do not pay Mermaid/ELK's main-thread cost until a diagram is close to
+      // the viewport. The fenced source remains visible as the no-JS fallback.
+      if (this.observeUntilVisible(blocks, root, themeChange)) return;
+    }
     await waitForFonts();
     if (generation !== this.generation) return;
 
@@ -383,9 +419,32 @@ class DiagramViewer {
     }, 1800);
   }
 
+  centerStage(stage) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const overflow = stage.scrollWidth - stage.clientWidth;
+      if (overflow <= 0) return;
+      // Center the rendered diagram content, not the full SVG viewBox or a
+      // single entry node. ELK can leave meaningful whitespace around the
+      // drawing, and a first-node anchor can push sparse branches off-screen.
+      const parts = [...stage.querySelectorAll("g.node, g.edgePaths path, g.edgePath")];
+      const boxes = parts.map((part) => part.getBoundingClientRect()).filter((box) => box.width && box.height);
+      if (!boxes.length) {
+        stage.scrollLeft = overflow / 2;
+        return;
+      }
+      const stageBox = stage.getBoundingClientRect();
+      const left = Math.min(...boxes.map((box) => box.left));
+      const right = Math.max(...boxes.map((box) => box.right));
+      const contentCenter = (left + right) / 2 - stageBox.left + stage.scrollLeft;
+      const target = contentCenter - stage.clientWidth / 2;
+      stage.scrollLeft = Math.max(0, Math.min(overflow, target));
+    }));
+  }
+
   paintFigure(figure, svgMarkup, bindFunctions, source) {
     figure.__source = source;
     const stage = figure.querySelector(".diagram__stage");
+    const isInitialPaint = figure.dataset.rendered !== "true";
     stage.innerHTML = svgMarkup;
     const svg = stage.querySelector("svg");
     if (!svg) return;
@@ -404,6 +463,7 @@ class DiagramViewer {
     figure.dataset.fontsReady = document.fonts?.status === "loading" ? "settled" : "loaded";
     figure.dataset.renderMs = String(Math.round(performance.now()));
     figure.dataset.rendered = "true";
+    if (isInitialPaint) this.centerStage(stage);
     const dialog = figure.querySelector(".diagram-dialog");
     if (dialog) this.fillDialogCanvas(dialog, svg, figure);
   }
@@ -536,4 +596,4 @@ class DiagramViewer {
 
 const viewer = (window[VIEWER_KEY] ??= new DiagramViewer());
 window.RadiantBlazeDiagrams = viewer;
-viewer.render(document);
+viewer.schedule(document, false, false);

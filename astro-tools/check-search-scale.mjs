@@ -206,6 +206,49 @@ const main = async () => {
     await new Promise((resolve) => setTimeout(resolve, 250));
     assert.match(await session.evaluate(`document.querySelector("[data-record-count]").textContent`), /FOUND 500 RECORDS/);
 
+    const pageTwo = await session.evaluate(`(() => {
+      document.querySelector('[data-search-page="1"]').click();
+      return true;
+    })()`);
+    assert.equal(pageTwo, true);
+    await session.waitFor(
+      'location.search.includes("pg=2") && document.querySelector("[data-record-count]").textContent.includes("SHOWING 6–10")',
+      "page 2 URL and results",
+    );
+    const pageTwoState = await session.evaluate(`({
+      href: location.search,
+      count: document.querySelector("[data-record-count]").textContent,
+      current: document.querySelector('[data-search-pagination] [aria-current="page"]')?.textContent ?? "",
+    })`);
+    assert.match(pageTwoState.href, /[?&]pg=2(?:&|$)/);
+    assert.equal(pageTwoState.current, "2");
+
+    const refreshed = await loadSearch("/pages/search.html?pg=2");
+    assert.match(refreshed.count, /SHOWING 6–10/);
+    assert.match(await session.evaluate("location.search"), /[?&]pg=2(?:&|$)/);
+    assert.equal(await session.evaluate(`document.querySelector('[data-search-pagination] [aria-current="page"]')?.textContent`), "2");
+
+    await session.evaluate(`document.querySelector('[data-search-page="2"]').click(); true`);
+    await session.waitFor('location.search.includes("pg=3")', "page 3 URL");
+    await session.evaluate("history.back(); true");
+    await session.waitFor(
+      'location.search.includes("pg=2") && document.querySelector("[data-record-count]").textContent.includes("SHOWING 6–10")',
+      "browser back restores page 2",
+    );
+    await session.evaluate("history.forward(); true");
+    await session.waitFor(
+      'location.search.includes("pg=3") && document.querySelector("[data-record-count]").textContent.includes("SHOWING 11–15")',
+      "browser forward restores page 3",
+    );
+
+    await session.evaluate(`document.querySelector('[data-search-filter="posts"]').click(); true`);
+    await session.waitFor('!location.search.includes("pg=")', "filters reset pagination");
+    assert.doesNotMatch(await session.evaluate("location.search"), /[?&]pg=/);
+
+    const invalid = await loadSearch("/pages/search.html?pg=9999");
+    assert.match(invalid.count, /PAGE 100 OF 100|SHOWING 496–500/);
+    assert.match(await session.evaluate("location.search"), /[?&]pg=100(?:&|$)/);
+
     const topic = await loadSearch("/pages/search.html?topic=heap");
     assert.match(topic.count, /FOUND 30 RECORDS · 10 POSTS · 20 WRITEUPS/, `topic filter count: ${topic.count}`);
     assert.equal(topic.cards, 5);
@@ -219,6 +262,36 @@ const main = async () => {
     assert.match(await session.evaluate(`document.querySelector("[data-record-count]").textContent`), /FOUND 500 RECORDS/);
     assert.equal(await session.evaluate(`document.querySelector("[data-active-filters]").hidden`), true);
 
+    const desktopLayout = await session.evaluate(`(() => {
+      const sidebar = document.querySelector(".search-sidebar").getBoundingClientRect();
+      const main = document.querySelector(".search-main").getBoundingClientRect();
+      return { sidebarLeft: sidebar.left, mainLeft: main.left, sidebarWidth: sidebar.width, pageOverflow: document.documentElement.scrollWidth - innerWidth };
+    })()`);
+    assert.ok(desktopLayout.sidebarLeft > desktopLayout.mainLeft, "desktop filters sit beside the results");
+    assert.ok(desktopLayout.sidebarWidth >= 300, "desktop filter rail is wide enough to read");
+    assert.ok(desktopLayout.pageOverflow <= 1, "desktop search has no page overflow");
+
+    await session.send("Emulation.setDeviceMetricsOverride", {
+      width: 390, height: 844, deviceScaleFactor: 1, mobile: true,
+    });
+    await session.goto(`${PREVIEW}/pages/search.html`);
+    await session.waitFor('document.querySelector("[data-record-count]")?.textContent.includes("FOUND")', "mobile search render");
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const mobileLayout = await session.evaluate(`(() => {
+      const sidebar = document.querySelector(".search-sidebar").getBoundingClientRect();
+      const main = document.querySelector(".search-main").getBoundingClientRect();
+      return {
+        sidebarTop: sidebar.top,
+        mainTop: main.top,
+        filterWidth: document.querySelector(".search-sidebar").getBoundingClientRect().width,
+        musicTop: document.querySelector("#rb-music-root")?.getBoundingClientRect().top ?? null,
+        pageOverflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    })()`);
+    assert.ok(mobileLayout.sidebarTop < mobileLayout.mainTop, "mobile filters lead the results");
+    assert.ok(mobileLayout.musicTop !== null && mobileLayout.musicTop <= mobileLayout.sidebarTop + 2, "mobile music starts at the top of the filter rail");
+    assert.ok(mobileLayout.pageOverflow <= 1, "mobile search has no page overflow");
+
     assert.deepEqual(errors, [], "the 500-record search fixture produces no console errors");
     console.log(JSON.stringify({
       fixture: { posts: fixture.posts.length, events: fixture.ctfs.length, challenges: 400, records: 500 },
@@ -227,6 +300,8 @@ const main = async () => {
       marker,
       topic,
       year,
+      desktopLayout,
+      mobileLayout,
       errors: errors.length,
       failures: 0,
     }, null, 2));
