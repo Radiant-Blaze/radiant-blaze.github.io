@@ -67,6 +67,15 @@
   overflow-x: auto;
   overscroll-behavior-x: contain;
 }
+/* Mermaid's ELK layout can size a node for an unbroken label while keeping the
+   HTML label capped at `wrappingWidth`. The label then wraps into a narrow
+   left-aligned column and can overflow the node, especially for long flags.
+   Let the HTML label use the node width Mermaid already measured. */
+.diagram__stage svg g.node foreignObject > div,
+.diagram-dialog__canvas svg g.node foreignObject > div {
+  width: 100% !important;
+  max-width: 100% !important;
+}
 .diagram__stage svg {
   display: block;
   width: 100%;

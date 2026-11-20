@@ -273,6 +273,27 @@ const testSuccessfulRendering = async (session) => {
   return DIAGRAM_PAGES.length;
 };
 
+const testLongFlagLayout = async (session) => {
+  await session.goto(`${PREVIEW}${writeupUrl(CTF, "hoe-ap.md")}`);
+  await session.waitFor(run("return diagramSvgs().length > 0"), "flag diagram");
+  const layout = await session.evaluate(`(() => {
+    const node = [...document.querySelectorAll(".diagram__stage g.node")].find((item) => item.textContent.includes("pwn{"));
+    const foreign = node.querySelector("foreignObject");
+    const label = foreign.querySelector(":scope > div");
+    return {
+      labelWidth: label.getBoundingClientRect().width,
+      labelHeight: label.getBoundingClientRect().height,
+      foreignWidth: foreign.getBoundingClientRect().width,
+      foreignHeight: foreign.getBoundingClientRect().height,
+      text: label.textContent,
+    };
+  })()`);
+  assert.ok(layout.text.includes("_523}"), "the complete flag text is present in the label");
+  assert.ok(layout.labelWidth >= layout.foreignWidth - 1, "the flag label uses the node's measured width");
+  assert.ok(layout.labelHeight <= layout.foreignHeight + 1, "the flag label does not overflow the node height");
+  return { labelWidth: layout.labelWidth, labelHeight: layout.labelHeight, foreignWidth: layout.foreignWidth, foreignHeight: layout.foreignHeight };
+};
+
 const testOfflineRendering = async (session) => {
   await session.send("Network.enable");
   await session.send("Network.setBlockedURLs", { urls: [CDN_PATTERN] });
@@ -859,7 +880,9 @@ const main = async () => {
     const diagrams = await testSuccessfulRendering(session);
     const elkRequests = requests.filter((url) => /\/elk-[^/]+\.js/.test(url));
     assert.ok(elkRequests.length > 0, "default flowchart rendering loads the ELK layout chunk");
-    stage("A2: explicit dagre layout");
+    stage("A2: long flag label");
+    const longFlag = await testLongFlagLayout(session);
+    stage("A3: explicit dagre layout");
     const dagre = await testDagreLayout(session);
     const dagreRequests = requests.filter((url) => /\/dagre-[^/]+\.js/.test(url));
     assert.ok(dagreRequests.length > 0, "an explicit dagre directive loads the dagre layout chunk");
@@ -908,6 +931,7 @@ const main = async () => {
             dagreRequests: [...new Set(dagreRequests)].length,
             dagreSvg: dagre.svgs,
           },
+          longFlagLabel: longFlag,
           offlineDiagrams,
           fallbackErrors,
           repeatedInitializationSvgs: repeated,
