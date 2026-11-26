@@ -7,7 +7,7 @@ flag: "1"
 solves: 
 tags: [crypto, modular-arithmetic, fermats-little-theorem, diffie-hellman]
 author: Radiant Blaze
-description: Use Fermat's Little Theorem to simplify modular exponentiation with prime moduli.
+description: "CryptoHack Modular Arithmetic 2: use Fermat's Little Theorem to reduce 273246787654^65536 mod 65537 to 1 with Python's three-argument pow()."
 ---
 
 ## The Capture
@@ -115,6 +115,8 @@ The important calculation gives:
 ```
 
 No giant number needs to be calculated directly. The prime modulus and Fermat's Little Theorem do the heavy lifting.
+
+The inverse used by RSA is computed in [Modular Inverting](/generated/writeups/cryptohack-Modular-Arithmetic/chall5-Modular-Inverting.html).
 
 ## Flag
 

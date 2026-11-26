@@ -7,12 +7,12 @@ flag: crypto{z3n_0f_pyth0n}
 solves: 
 tags: [crypto, xor]
 author: Radiant Blaze
-description: A sequence of integers has been XORed by 50. Reverse the XOR operation to recover the hidden message.
+description: "CryptoHack Great Snakes: XOR every integer in the array with 50 to reverse the obfuscation and recover the flag, with two short Python decoders."
 ---
 
 ## The Capture
 
-We are given a sequence of integers:
+We are given a sequence of integers and told they were XORed with 50, so every value is one XOR away from the plaintext characters.
 
 ```python
 ords = [81, 64, 75, 66, 70, 93, 73, 72, 1, 92, 109, 2, 84, 109, 66, 75, 70, 90, 2, 92, 79]
@@ -52,6 +52,8 @@ print("".join(chr(o ^ 0x32) for o in ords))
 ```
 
 Running the decoder reveals the original message.
+
+The same `^` operator drives [XOR-Starter](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall6-XOR-Starter.html), which XORs a whole string with 13, and [XOR Properties](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall7-XOR-Properties.html), where chained keys cancel out.
 
 ## Flag
 

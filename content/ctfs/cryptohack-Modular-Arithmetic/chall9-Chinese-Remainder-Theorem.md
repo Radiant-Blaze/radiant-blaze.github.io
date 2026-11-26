@@ -7,7 +7,7 @@ flag: "872"
 solves:
 tags: [crypto, chinese-remainder-theorem, crt, modular-arithmetic]
 author: Radiant Blaze
-description: Find a number that satisfies multiple modular equations using the Chinese Remainder Theorem.
+description: "CryptoHack Chinese Remainder Theorem: solve x = 2 mod 5, x = 3 mod 11 and x = 5 mod 17 by stepping through multiples of 17 until all hold."
 ---
 
 ## The Capture
@@ -129,6 +129,8 @@ which also satisfies the other two equations.
 ```
 
 All three equations are satisfied.
+
+The pairwise-coprime condition relies on the [Greatest Common Divisor](/generated/writeups/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.html).
 
 ## Flag
 

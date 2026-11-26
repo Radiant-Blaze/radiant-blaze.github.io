@@ -7,7 +7,7 @@ flag: "9329179912536670680654563847579743051210497606610361026993802570995224702
 solves: 
 tags: [crypto, legendre-symbol, quadratic-residues, modular-arithmetic]
 author: Radiant Blaze
-description: Use the Legendre Symbol to efficiently identify a quadratic residue and recover its square roots modulo a large prime.
+description: "CryptoHack Legendre Symbol: classify large integers with Euler's criterion, pick the quadratic residue, and extract the larger square root."
 ---
 
 ## The Capture
@@ -136,6 +136,8 @@ Root 2:
 ```
 
 The challenge asks for the **larger root**, so we select `Root 2`.
+
+Once a residue is identified, [Modular Square Root](/generated/writeups/cryptohack-Modular-Arithmetic/chall8-Modular-Square-Root.html) shows how to extract the root.
 
 ## Flag
 

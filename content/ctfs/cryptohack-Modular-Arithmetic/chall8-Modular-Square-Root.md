@@ -7,12 +7,12 @@ flag: "2816951255431128461434816181290746139548219525838858312579549880929722614
 solves:
 tags: [crypto, modular-arithmetic, quadratic-residues, tonelli-shanks, sagemath]
 author: Radiant Blaze
-description: Find a modular square root of a large number using the Tonelli-Shanks algorithm or SageMath.
+description: "CryptoHack Modular Square Root: compare the p = 3 (mod 4) shortcut with a full Tonelli-Shanks implementation, plus a SageMath alternative."
 ---
 
 ## The Capture
 
-The goal of this challenge is to find:
+The goal of this challenge is to find a square root modulo a large prime, where the modulus decides which algorithm is usable.
 
 ```text
 sqrt(x) mod p
@@ -229,6 +229,8 @@ The SageMath solution can be run online using **SageCell**:
 [https://sagecell.sagemath.org/](https://sagecell.sagemath.org/)
 
 > **Note:** `Mod(a, p).sqrt()` is a SageMath function and will not work in normal Python.
+
+The classification step is covered in [Legendre Symbol](/generated/writeups/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.html), and the underlying square roots in [Quadratic Residues](/generated/writeups/cryptohack-Modular-Arithmetic/chall6-Quadratic-Residues.html).
 
 ## Result
 

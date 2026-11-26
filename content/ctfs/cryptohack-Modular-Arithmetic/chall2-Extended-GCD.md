@@ -7,7 +7,7 @@ flag: "-8404"
 solves: 
 tags: [crypto, gcd, extended-gcd, rsa]
 author: Radiant Blaze
-description: Use the Extended Euclidean Algorithm to find integers u and v satisfying p·u + q·v = gcd(p,q).
+description: "CryptoHack Extended GCD: find the Bezout coefficients for 26513 and 32321 with SymPy's gcdex(), plus a recursive implementation from scratch."
 ---
 
 ## The Capture
@@ -119,6 +119,8 @@ u = 10245
 v = -8404
 gcd = 1
 ```
+
+[Modular Inverting](/generated/writeups/cryptohack-Modular-Arithmetic/chall5-Modular-Inverting.html) uses the inverse this algorithm produces, and [Greatest Common Divisor](/generated/writeups/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.html) covers the underlying gcd.
 
 ## Flag
 

@@ -9,9 +9,10 @@ interface Props {
   canonical: string;
   type: "post" | "writeup";
   mermaid?: boolean;
+  jsonLd?: Record<string, unknown> | null;
 }
 
-const { title, description, canonical, type, mermaid = false } = Astro.props;
+const { title, description, canonical, type, mermaid = false, jsonLd = null } = Astro.props;
 ---
 <QuestShell
   title={title}
@@ -25,6 +26,7 @@ const { title, description, canonical, type, mermaid = false } = Astro.props;
   bodyClass={type === "writeup" ? "writeup-document content-document" : "content-document"}
   disablePageLoader={type === "writeup"}
   mermaid={mermaid}
+  jsonLd={jsonLd}
   preloadFonts={[
     "/assets/fonts/press-start/press-start-k.woff2",
     "/assets/fonts/sf-pixelate/sf-pixelate-bold.woff2",

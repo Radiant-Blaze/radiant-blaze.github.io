@@ -31,10 +31,14 @@ export async function readMarkdown(relativePath) {
 export function parseLegacyMarkdown(source, file) {
   const [, frontmatter = "", body = ""] =
     source.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/) || [];
+  const unquote = (value) => {
+    const quoted = /^"([\s\S]*)"$/.exec(value) ?? /^'([\s\S]*)'$/.exec(value);
+    return quoted ? quoted[1] : value;
+  };
   const data = Object.fromEntries(
     frontmatter.split("\n").map((line) => {
       const [key, ...value] = line.split(":");
-      return [key?.trim(), value.join(":").trim().replace(/^\[|\]$/g, "")];
+      return [key?.trim(), unquote(value.join(":").trim().replace(/^\[|\]$/g, ""))];
     }),
   );
   return {

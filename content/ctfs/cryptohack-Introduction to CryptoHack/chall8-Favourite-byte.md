@@ -7,7 +7,7 @@ flag: crypto{0x10_15_my_f4v0ur173_by7e}
 solves: 
 tags: [crypto, xor, brute-force]
 author: Radiant Blaze
-description: A hexadecimal ciphertext has been XORed with a single unknown byte. Brute-force all 256 possible keys to recover the plaintext.
+description: "CryptoHack Favorite byte: brute-force all 256 single-byte XOR keys against a hex ciphertext and filter the results for the crypto{ prefix."
 ---
 
 ## The Capture
@@ -63,6 +63,8 @@ The correct key produces the readable plaintext:
 ```text
 crypto{0x10_15_my_f4v0ur173_by7e}
 ```
+
+For a repeating key instead of a single byte, see [You either know XOR you don't](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall9-You-either-know-XOR-you-don%27t.html).
 
 ## Flag
 

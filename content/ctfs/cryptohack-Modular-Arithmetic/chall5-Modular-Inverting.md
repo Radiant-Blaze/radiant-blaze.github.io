@@ -7,7 +7,7 @@ flag: "9"
 solves: 
 tags: [crypto, modular-arithmetic, modular-inverse]
 author: Radiant Blaze
-description: Find the multiplicative inverse of 3 modulo 13 using modular arithmetic.
+description: "CryptoHack Modular Inverting: find the multiplicative inverse of 3 modulo 13 with pow(3, -1, 13) and verify it by multiplying back to 1 mod 13."
 ---
 
 ## The Capture
@@ -86,6 +86,8 @@ Therefore:
 ```text
 3^-1 ≡ 9 mod 13
 ```
+
+The coefficients behind this inverse come from [Extended GCD](/generated/writeups/cryptohack-Modular-Arithmetic/chall2-Extended-GCD.html).
 
 ## Flag
 

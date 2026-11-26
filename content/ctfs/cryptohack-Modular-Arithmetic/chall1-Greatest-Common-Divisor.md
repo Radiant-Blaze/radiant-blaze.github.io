@@ -7,7 +7,7 @@ flag:
 solves: 
 tags: [crypto, gcd, euclidean-algorithm]
 author: Radiant Blaze
-description: Calculate the Greatest Common Divisor of two integers and determine whether they are coprime.
+description: "CryptoHack Greatest Common Divisor: compute gcd(66528, 52920) with Python's math.gcd and confirm the result by hand with Euclid's algorithm."
 ---
 
 ## The Capture
@@ -97,6 +97,8 @@ We can verify the Euclidean Algorithm manually:
 ```
 
 The last non-zero remainder is `1512`.
+
+The same algorithm with coefficients is the subject of [Extended GCD](/generated/writeups/cryptohack-Modular-Arithmetic/chall2-Extended-GCD.html), which later becomes the modular inverse.
 
 ## Result
 

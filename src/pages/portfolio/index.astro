@@ -9,6 +9,15 @@ import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { escapeHtml, formatDate, renderMarkdown } from "../../lib/markdown";
 import { portfolioConfigSchema } from "../../lib/portfolio-config";
 import { portfolioProjectRoute } from "../../lib/portfolio-data";
+import {
+  breadcrumbEntity,
+  itemListEntity,
+  jsonLdGraph,
+  personEntity,
+  SITE_DESCRIPTION,
+  webPageEntity,
+  websiteEntity,
+} from "../../lib/seo";
 
 const config = portfolioConfigSchema.parse(portfolioSettings);
 const entries = await getCollection("portfolio");
@@ -74,6 +83,25 @@ const projectCard = (entry: (typeof projects)[number]) => {
   return `<article class="portfolio-card${featured ? " is-featured" : ""}" data-portfolio-project data-category="${escapeHtml(category.toLocaleLowerCase())}" data-technologies="${escapeHtml(technologies.map((technology) => technology.toLocaleLowerCase()).join("|"))}">${imageHtml}<div class="portfolio-card-copy"><p class="portfolio-kicker">${escapeHtml(category).toUpperCase()}${featured ? " · FEATURED" : ""}</p><h3><a class="portfolio-card__title-link" href="${projectHref}">${escapeHtml(title)}</a></h3><p>${escapeHtml(description)}</p></div><div class="portfolio-card-details">${technologyList}<nav class="portfolio-actions" aria-label="${escapeHtml(title)} links">${linkList}</nav></div></article>`;
 };
 
+const portfolioUrl = "https://radiant-blaze.github.io/portfolio/";
+const jsonLd = jsonLdGraph(
+  personEntity(),
+  websiteEntity(SITE_DESCRIPTION),
+  webPageEntity({ type: "ProfilePage", name: config.displayName, description: config.description, url: portfolioUrl }),
+  breadcrumbEntity([
+    { name: "Home", path: "/" },
+    { name: "Portfolio", path: "/portfolio/" },
+  ]),
+  itemListEntity({
+    name: "Portfolio projects",
+    url: portfolioUrl,
+    items: projects.map((project) => ({
+      name: project.data.type === "project" ? project.data.title : "",
+      path: portfolioProjectRoute(project),
+    })),
+  }),
+);
+
 const recordLinks = (title: string, links: { label: string; url: string }[]) => links.length
   ? `<nav class="portfolio-actions" aria-label="${escapeHtml(title)} links">${links.map((link) => `<a class="portfolio-text-link" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)} <span aria-hidden="true">↗</span></a>`).join("")}</nav>`
   : "";
@@ -81,7 +109,8 @@ const recordLinks = (title: string, links: { label: string; url: string }[]) => 
 <QuestShell
   title={config.pageTitle}
   description={config.description}
-  canonical="https://radiant-blaze.github.io/portfolio/"
+  canonical={portfolioUrl}
+  jsonLd={jsonLd}
   currentPage="portfolio"
   brandHref="/"
   pageLinkPrefix="/pages/"

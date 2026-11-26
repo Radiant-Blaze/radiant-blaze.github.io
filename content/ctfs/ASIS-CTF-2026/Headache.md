@@ -7,10 +7,8 @@ flag: Not saved
 solves:
 tags: [crypto, oracle, nonlinear, optimization, scipy]
 author: Radiant Blaze
-description: Recover the parameters of a nonlinear Hamiltonian oracle using chosen-input queries and nonlinear least-squares optimization.
+description: "ASIS CTF 2026 Headache: recover a seven-round nonlinear oracle's parameters with chosen inputs and nonlinear least squares, then authenticate."
 ---
-# Headache
-
 ## Challenge Overview
 
 The challenge provides a remote **Non-Linear Hamiltonian Authenticator Oracle (H-PRF)**.
@@ -30,7 +28,7 @@ There are seven rounds in total.
 
 At first glance this looks like a complicated cryptographic construction. However, the oracle is actually a small differentiable mathematical model with only 60 continuous parameters. This makes it possible to recover the hidden parameters using numerical optimization.
 
-# The Oracle
+## The Oracle
 
 The important part of the challenge is:
 
@@ -120,7 +118,7 @@ F(X)= \sum_{c=0}^{2} \sum_i p_i(x_i^TB_c).
 
 So despite the fancy terminology, the server is simply evaluating a differentiable nonlinear function.
 
-# Recovering the First Secret Information
+## Recovering the First Secret Information
 
 The first weakness appears when we submit a sequence containing only one vector.
 
@@ -182,7 +180,7 @@ Bsum[2] = 3.455141027440
 Bsum[3] = 2.914002707811
 ```
 
-# Turning the Oracle Into a Regression Problem
+## Turning the Oracle Into a Regression Problem
 
 The server generates:
 
@@ -249,7 +247,7 @@ This reduces the optimization problem from 60 parameters to:
 \boxed{56\text{ parameters}}
 ```
 
-# Building the Reduced Model
+## Building the Reduced Model
 
 The solver uses:
 
@@ -270,7 +268,7 @@ def unpack_params(params, Bsum):
 
 This guarantees that the fitted parameters always satisfy the leaked constraint.
 
-# Analytical Jacobian
+## Analytical Jacobian
 
 A major part of making the attack reliable is giving SciPy the analytical Jacobian instead of forcing it to estimate derivatives numerically.
 
@@ -345,7 +343,7 @@ else:
 
 This gives the optimizer an exact 56-parameter Jacobian.
 
-# Collecting Training Data
+## Collecting Training Data
 
 We generate random sequences with values in the same range as the challenge:
 
@@ -377,7 +375,7 @@ oracle calls are required per round.
 
 This is far below the server's limit of 1200 queries.
 
-# Pipelining the Oracle Queries
+## Pipelining the Oracle Queries
 
 The remote server sleeps for 0.03 seconds after every evaluation:
 
@@ -424,7 +422,7 @@ This significantly improves reliability and speed against the remote service.
 
 It also helped avoid the connection failures encountered with the earlier one-query-at-a-time implementation.
 
-# Nonlinear Least Squares
+## Nonlinear Least Squares
 
 After collecting the training data, we have pairs:
 
@@ -470,7 +468,7 @@ The parameter bounds are known from the challenge:
 
 This is extremely useful because it prevents the optimizer from wandering into meaningless parameter regions.
 
-# Multiple Restarts
+## Multiple Restarts
 
 Nonlinear optimization is not guaranteed to find the correct solution from every starting point.
 
@@ -503,7 +501,7 @@ maxerr=1.7764e-15
 
 which is effectively exact compared with the server's tolerance of $1 \times 10^{-6}$.
 
-# Predicting the Challenge
+## Predicting the Challenge
 
 Once the parameters have been recovered, we request:
 
@@ -541,7 +539,7 @@ The server checks:
 \max_i |\hat y_i-y_i| < 10^{-6}.
 ```
 
-# Round-by-Round Attack
+## Round-by-Round Attack
 
 The entire process is repeated for every round.
 
@@ -566,7 +564,7 @@ true_A, true_B = init_ensemble()
 
 so parameters from one round cannot simply be reused for the next.
 
-# Why the Challenge Is Breakable
+## Why the Challenge Is Breakable
 
 The fundamental problem is not the mathematical formula itself.
 
@@ -620,7 +618,7 @@ Only 56 independent parameters remain after exploiting the `Bsum` leak.
 
 Even tiny optimization errors can be detected and corrected because the oracle returns precise values.
 
-# Final Solver Structure
+## Final Solver Structure
 
 The final exploit can be summarized as:
 
@@ -671,7 +669,7 @@ The final exploit can be summarized as:
                       FLAG
 ```
 
-# Conclusion
+## Conclusion
 
 The "Headache" challenge disguises a relatively small system-identification problem behind a nonlinear Hamiltonian model.
 
@@ -682,6 +680,8 @@ The remaining 56 parameters can then be recovered using chosen-input oracle eval
 Only 84 oracle queries per round were required by the final solver, and the recovered model predicted the hidden challenge values with errors around `10^{-14}`, comfortably below the required `10^{-6}`.
 
 ## Repeating the process across all seven rounds results in successful authentication and recovery of the flag.
+
+The other ASIS 2026 crypto challenge in this archive, [Hackel](/generated/writeups/ASIS-CTF-2026/Hackel.html), turns leaked training samples into a 496-bit flag.
 
 ## Exploit Summary
 

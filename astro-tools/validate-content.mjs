@@ -274,7 +274,7 @@ export function inspectMarkdown(body, file) {
 
 const decodeHtml = (value) => value.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
 
-export function inspectLinks({ html, route, headings, routes, assetExists, headingsForRoute }) {
+export function inspectLinks({ html, route, routes, assetExists, headingsForRoute }) {
   const issues = [];
   const safeDecode = (value) => {
     try { return decodeURIComponent(value); } catch { return value; }
@@ -326,10 +326,14 @@ export function inspectLinks({ html, route, headings, routes, assetExists, headi
       continue;
     }
 
-    const targetRoute = routes.get(pathname);
+    // Route keys are stored percent-encoded (`routeForWriteup`), while the
+    // link pathname was decoded above, so normalize before the lookup
+    // (e.g. "Introduction to CryptoHack" -> "Introduction%20to%20CryptoHack").
+    const routeKey = pathname.split("/").map((segment) => encodeURIComponent(segment)).join("/");
+    const targetRoute = routes.get(routeKey) ?? routes.get(pathname);
     if (targetRoute) {
       if (hash) {
-        const targetHeadings = targetRoute === route ? new Set(headings) : headingsForRoute(pathname);
+        const targetHeadings = headingsForRoute(routeKey);
         if (!targetHeadings || !targetHeadings.has(hash)) {
           issues.push(error(null, "link", `missing anchor #${hash} on ${pathname}`));
         }
@@ -582,7 +586,6 @@ const main = async () => {
     const found = inspectLinks({
       html: view.html,
       route: actualRoute,
-      headings: flatten(view.headings),
       routes,
       assetExists,
       headingsForRoute,

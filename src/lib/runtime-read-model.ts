@@ -11,10 +11,17 @@ type ParsedMarkdown = Record<string, string | string[]> & {
 function parseMarkdown(source: string, file: string): ParsedMarkdown {
   const [, frontmatter = "", body = ""] =
     source.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/) || [];
+  // Values may be YAML-quoted (descriptions contain colons), and this parser is
+  // lighter than the loader's YAML pass; strip the outer quotes so listings and
+  // the client read model match the rendered metadata.
+  const unquote = (value: string) => {
+    const quoted = /^"([\s\S]*)"$/.exec(value) ?? /^'([\s\S]*)'$/.exec(value);
+    return quoted ? quoted[1] : value;
+  };
   const data = Object.fromEntries(
     frontmatter.split("\n").map((line) => {
       const [key, ...value] = line.split(":");
-      return [key?.trim(), value.join(":").trim().replace(/^\[|\]$/g, "")];
+      return [key?.trim(), unquote(value.join(":").trim().replace(/^\[|\]$/g, ""))];
     }),
   ) as Record<string, string>;
 

@@ -230,7 +230,7 @@ const testSpaStability = async (session) => {
     "/pages/blog.html",
     "/pages/ctf.html",
     "/pages/search.html?q=xor",
-    "/portfolio.html",
+    "/portfolio/",
     PROJECT_DETAIL,
     "/generated/posts/linux/021-tiny-command-line-toolkit.html",
     writeupUrl(CTF, DIAGRAM),
@@ -280,12 +280,14 @@ const readSpaMetadata = (session) => session.evaluate(`({
   ogDescription: document.querySelector('meta[property="og:description"]')?.content ?? "",
   ogUrl: document.querySelector('meta[property="og:url"]')?.content ?? "",
   ogType: document.querySelector('meta[property="og:type"]')?.content ?? "",
+  jsonLd: [...document.querySelectorAll('script[type="application/ld+json"]')].map((node) => node.textContent).join(" "),
   counts: {
     canonical: document.querySelectorAll('link[rel="canonical"]').length,
     description: document.querySelectorAll('meta[name="description"]').length,
     ogTitle: document.querySelectorAll('meta[property="og:title"]').length,
     ogDescription: document.querySelectorAll('meta[property="og:description"]').length,
     ogUrl: document.querySelectorAll('meta[property="og:url"]').length,
+    jsonLd: document.querySelectorAll('script[type="application/ld+json"]').length,
   },
 })`);
 
@@ -400,7 +402,9 @@ const testSpaMetadata = async (session) => {
   await session.goto(`${PREVIEW}/`);
   const home = await readSpaMetadata(session);
   assert.equal(home.canonical, "https://radiant-blaze.github.io/", "home canonical");
-  assert.equal(home.description, "A pixel-powered cybersecurity portfolio with software field notes and CTF writeups.", "home description");
+  assert.equal(home.description, "CTF writeups, Linux field notes, and software build logs from Talha Ahmed's cybersecurity and programming journey.", "home description");
+  assert.equal(home.counts.jsonLd, 1, "home has one JSON-LD block");
+  assert.match(home.jsonLd, /"WebSite"/, "home JSON-LD describes the site");
 
   await session.spaNavigate(PROJECT_DETAIL);
   await session.waitFor(`location.pathname === ${JSON.stringify(PROJECT_DETAIL)}`, "project path");
@@ -412,14 +416,17 @@ const testSpaMetadata = async (session) => {
   assert.equal(project.ogUrl, "https://radiant-blaze.github.io/portfolio/projects/radiant-blaze-site.html", "project og:url after SPA");
   assert.equal(project.ogDescription, project.description, "project og:description after SPA");
   for (const [name, count] of Object.entries(project.counts)) assert.equal(count, 1, `project has one ${name} element`);
+  assert.match(project.jsonLd, /"CreativeWork"/, "project JSON-LD swaps in the project entity");
+  assert.doesNotMatch(project.jsonLd, /"BlogPosting"/, "project JSON-LD drops the previous page schema");
 
-  await session.spaNavigate("/portfolio.html");
-  await session.waitFor('location.pathname === "/portfolio.html"', "portfolio path");
+  await session.spaNavigate("/portfolio/");
+  await session.waitFor('location.pathname === "/portfolio/"', "portfolio path");
   const portfolio = await readSpaMetadata(session);
   assert.equal(portfolio.title, "Portfolio · Radiant Blaze", "portfolio title after SPA");
   assert.equal(portfolio.canonical, "https://radiant-blaze.github.io/portfolio/", "portfolio canonical after SPA");
   assert.equal(portfolio.description, "A personal portfolio of software projects, areas of learning, and CTF writeups.", "portfolio description after SPA");
   assert.equal(portfolio.ogUrl, "https://radiant-blaze.github.io/portfolio/", "portfolio og:url after SPA");
+  assert.match(portfolio.jsonLd, /"ProfilePage"/, "portfolio JSON-LD after SPA");
 
   await session.evaluate("history.back(); true");
   await session.waitFor(`location.pathname === ${JSON.stringify(PROJECT_DETAIL)} && document.querySelector('link[rel="canonical"]')?.href === ${JSON.stringify("https://radiant-blaze.github.io/portfolio/projects/radiant-blaze-site.html")}`, "back to project");

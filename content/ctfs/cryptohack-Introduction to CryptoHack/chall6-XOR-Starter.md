@@ -7,7 +7,7 @@ flag: crypto{aloha}
 solves: 
 tags: [crypto, xor]
 author: Radiant Blaze
-description: XOR each character of the string "label" with the integer 13 and convert the resulting integers back into characters.
+description: "CryptoHack XOR-Starter: XOR each character of 'label' with 13 using ord() and chr(), including a pwntools xor() alternative that gives the same result."
 ---
 
 ## The Capture
@@ -90,6 +90,8 @@ print(decoded)
 ```
 
 Both approaches produce the same result.
+
+Next, [XOR Properties](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall7-XOR-Properties.html) uses the same operation to cancel a chain of keys.
 
 ## Flag
 

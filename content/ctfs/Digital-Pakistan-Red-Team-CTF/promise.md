@@ -7,10 +7,8 @@ flag: "crypto{r4t10s_0f_sh1ft3d_1nv3rs3s_c0nv3rg3_t0_th3_k3y1794649908OFtMEeTDb0
 solves:
 tags: [crypto, knapsack, continued-fractions, number-theory, modular-inverse, ctf]
 author: Radiant Blaze
-description: A knapsack-style KEM whose public key is a set of primes' modular inverses shifted by one common secret. Recover every prime with continued fractions, rebuild the private key, and unmask the flag.
+description: "Break a knapsack-style KEM: continued fractions recover the shifted primes behind the public key, rebuild the private key, and unmask the flag."
 ---
-# Promise
-
 | Item       | Value                                                                                                      |
 | ---------- | ---------------------------------------------------------------------------------------------------------- |
 | Service    | `nc <ip> <port>`                                                                                       |
@@ -386,6 +384,8 @@ Captured from the service and solved offline:
 ```
 
 The XOR step was also redone by hand from the captured `enc` and the recovered key (`enc XOR shake_256(key)`, 116 printable bytes), so the flag does not depend on the solver's own XOR line.
+
+The same event's threshold-sharing challenge, [Helios Vault](/generated/writeups/Digital-Pakistan-Red-Team-CTF/helios-vault.html), applies Lagrange interpolation over a prime field.
 
 ## Flag
 

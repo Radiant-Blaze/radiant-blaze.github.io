@@ -1,5 +1,5 @@
 import { createReadStream, statSync } from "node:fs";
-import { cp, copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { cp, copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -213,7 +213,11 @@ export function sourceAssetsIntegration() {
         );
         const portfolioDirectory = path.join(output, "portfolio");
         await mkdir(portfolioDirectory, { recursive: true });
+        // `build.format: "file"` emits `/portfolio.html`; GitHub Pages needs the
+        // directory index for the canonical `/portfolio/` URL. Copy it, then drop
+        // the alias so only one URL serves the page (no duplicate content).
         await copyFile(path.join(output, "portfolio.html"), path.join(portfolioDirectory, "index.html"));
+        await rm(path.join(output, "portfolio.html"));
         const legacyJsOutput = path.join(output, "legacy", "assets", "js");
         await mkdir(legacyJsOutput, { recursive: true });
         await Promise.all([

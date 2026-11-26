@@ -80,6 +80,13 @@
       for (const stale of currentCanonicals) stale.remove();
     }
 
+    // Structured data describes the page it was rendered for, so stale blocks
+    // from the previous page must be swapped out with the rest of the head.
+    const currentJsonLd = [...head.querySelectorAll('script[type="application/ld+json"]')];
+    const nextJsonLd = [...nextHead.querySelectorAll('script[type="application/ld+json"]')];
+    for (const node of currentJsonLd) node.remove();
+    for (const node of nextJsonLd) head.append(node.cloneNode(true));
+
     const isManagedMeta = (element) => {
       if (element.tagName !== "META") return false;
       const name = element.getAttribute("name");

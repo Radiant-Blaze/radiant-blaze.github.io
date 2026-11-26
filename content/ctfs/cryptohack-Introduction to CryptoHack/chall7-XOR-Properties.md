@@ -7,7 +7,7 @@ flag: crypto{x0r_i5_ass0c1at1v3}
 solves: 
 tags: [crypto, xor]
 author: Radiant Blaze
-description: Use the properties of XOR to undo a chain of XOR operations and recover the encrypted flag.
+description: "CryptoHack XOR Properties: use commutativity, associativity and self-inversion to cancel three chained keys and recover the encrypted flag."
 ---
 
 ## The Capture
@@ -107,6 +107,8 @@ A ^ B ^ B = A
 ```
 
 Therefore, the three unknown keys can be eliminated from the final expression, leaving the original flag.
+
+The next step, [Favorite byte](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall8-Favourite-byte.html), drops the known key entirely and brute-forces one byte of it.
 
 ## Flag
 

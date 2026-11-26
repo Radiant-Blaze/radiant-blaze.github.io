@@ -7,7 +7,7 @@ flag: "pwn{sh4r1ng_th3_p00l_w4s_4_b1g_m1st4k3_1794658939acIKOIWw051c23e0e18bbf2a
 solves:
 tags: [pwn, heap, custom-allocator, binary-exploitation, ctf]
 author: Radiant Blaze
-description: A handle-only heap shared by two forked actors. A split that never shrinks the allocated cell's span creates overlapping cells, leaking the session key and handing out the internal actor record, whose function-pointer hook is then hijacked into a shell.
+description: "Exploit a handle-only heap shared by two forked actors: a split that never shrinks span overlaps cells, leaking the session key and a hijackable hook."
 ---
 ## Challenge Overview
 
@@ -17,7 +17,7 @@ description: A handle-only heap shared by two forked actors. A split that never 
 | **Files**     | `hoe_ap`, `libc.so.6`, `ld-linux-x86-64.so.2`     |
 | **Objective** | Execute a shell on the remote service and read the flag |
 
-The challenge statement sets the scene:
+The challenge statement sets the scene: two forked actors share one handle-only pool, and no raw pointer ever leaves it.
 
 > The people actually think sharing is caring :(
 >
@@ -441,6 +441,8 @@ exploit therefore never predicts a random choice:
 - when the returned handle matters, it reads the printed `handle: %u` and branches,
 - the `magic` key is recovered with an information leak instead of being guessed,
 - memory that must not be re-used is *held live*, so the allocator cannot touch it.
+
+The same event's MIPS pwn target, [meeeps (gp_slide)](/generated/writeups/Digital-Pakistan-Red-Team-CTF/meeeps.html), shifts `$gp` to hijack a GOT call.
 
 ## Flag
 

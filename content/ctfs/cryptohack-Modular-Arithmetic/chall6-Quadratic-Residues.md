@@ -7,7 +7,7 @@ flag: "8"
 solves: 
 tags: [crypto, quadratic-residues, modular-arithmetic]
 author: Radiant Blaze
-description: Determine which integers are quadratic residues modulo a prime by checking whether they have square roots.
+description: "CryptoHack Quadratic Residues: brute-force 14, 6 and 11 modulo 29 to see which value has square roots, and why every residue has two of them."
 ---
 
 ## The Capture
@@ -110,6 +110,8 @@ So:
 ```
 
 The challenge asks for the value associated with the quadratic residue.
+
+For large primes, the brute force here gives way to the [Legendre Symbol](/generated/writeups/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.html).
 
 ## Flag
 

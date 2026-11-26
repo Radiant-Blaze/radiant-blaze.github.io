@@ -7,6 +7,16 @@ import Footer from "../../components/Footer.astro";
 import QuestShell from "../../layouts/QuestShell.astro";
 import PlayerStats from "../../components/PlayerStats.astro";
 import { calculatePlayerStats } from "../../lib/player-stats";
+import { homePostPageUrl } from "../../lib/home-selection";
+import {
+  breadcrumbEntity,
+  itemListEntity,
+  jsonLdGraph,
+  personEntity,
+  SITE_DESCRIPTION,
+  webPageEntity,
+  websiteEntity,
+} from "../../lib/seo";
 
 const readModel = await getRuntimeReadModel();
 const { posts } = readModel;
@@ -24,22 +34,39 @@ const pagination = Array.from({ length: totalPages }, (_, index) => {
   const page = index + 1;
   return `<a class="pixel-button start-button" href="${page === 1 ? "blog.html" : `blog.html?pg=${page}`}"${page === 1 ? ' aria-current="page"' : ""}>${page}</a>`;
 }).join("");
+const url = "https://radiant-blaze.github.io/pages/blog.html";
+const description = "Field notes on Linux, programming, security, and side projects from the Radiant Blaze journal.";
+const jsonLd = jsonLdGraph(
+  personEntity(),
+  websiteEntity(SITE_DESCRIPTION),
+  webPageEntity({ type: "CollectionPage", name: "Blog", description, url }),
+  breadcrumbEntity([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/pages/blog.html" },
+  ]),
+  itemListEntity({
+    name: "Blog posts",
+    url,
+    items: posts.map((post) => ({ name: post.title, path: homePostPageUrl(post.file) })),
+  }),
+);
 const paginationWithControls = totalPages > 1
   ? `<a class="pixel-button start-button" href="${totalPages > 1 ? "blog.html" : "#"}" aria-label="Previous page" aria-disabled="true" tabindex="-1">‹</a>${pagination}<a class="pixel-button start-button" href="blog.html?pg=2" aria-label="Next page">›</a>`
   : "";
 ---
 <QuestShell
-  title="MY Blogs · Radiant Blaze"
-  description="Dev posts on programming, Linux, security, and side projects."
-  canonical="https://radiant-blaze.github.io/pages/blog.html"
-  ogTitle="Quest Log · Radiant Blaze"
+  title="Blog · Linux & Software Field Notes · Radiant Blaze"
+  description={description}
+  canonical={url}
+  jsonLd={jsonLd}
+  ogTitle="Blog · Radiant Blaze"
   currentPage="blog"
   bodyClass="listing-document"
 >
   <section class="quest-hero quest-wrap">
     <p class="eyebrow">PLAYER JOURNAL · ONLINE</p>
     <h1 class="quest-title" data-category-title>My Blogs</h1>
-    <p class="quest-intro" data-category-intro>Field notes, build logs, and side missions collected along the Radiant Blaze adventure.</p>
+    <p class="quest-intro" data-category-intro>Field notes, build logs, and side missions collected along the Radiant Blaze adventure — Linux workflows, software development, and the experiments behind this site.</p>
     <form class="search-form blog-search-form" action="blog.html" method="get" data-blog-search>
       <input type="hidden" name="category" data-blog-search-category />
       <label class="sr-only" for="blog-search">Search blog posts</label>

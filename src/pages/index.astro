@@ -4,6 +4,7 @@ import "../styles/style.css";
 import { getHomepageProjection } from "../lib/home-data";
 import { formatDate } from "../lib/markdown";
 import Footer from "../components/Footer.astro";
+import { jsonLdGraph, personEntity, serializeJsonLd, SITE_DESCRIPTION, websiteEntity } from "../lib/seo";
 
 const { latestWriteup, latestPost, featuredProject } = await getHomepageProjection();
 const feature = latestWriteup ?? latestPost ?? {
@@ -15,29 +16,32 @@ const feature = latestWriteup ?? latestPost ?? {
   category: "CRYPTO",
 };
 const featureDate = "dateLabel" in feature ? feature.dateLabel : formatDate(feature.date);
+const pageTitle = "Radiant Blaze — CTF Writeups & Linux Field Notes";
+const jsonLd = jsonLdGraph(personEntity(), websiteEntity(SITE_DESCRIPTION));
 ---
 <!doctype html>
 <html lang="en" class="dark-theme">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A pixel-powered cybersecurity portfolio with software field notes and CTF writeups." />
-    <title>Radiant Blaze</title>
+    <meta name="description" content={SITE_DESCRIPTION} />
+    <title>{pageTitle}</title>
     <link rel="canonical" href="https://radiant-blaze.github.io/" />
     <meta name="theme-color" content="#171329" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script type="application/ld+json" is:inline set:html={serializeJsonLd(jsonLd)} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Radiant Blaze" />
-    <meta property="og:title" content="Radiant Blaze" />
-    <meta property="og:description" content="A pixel-powered cybersecurity portfolio with software field notes and CTF writeups." />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={SITE_DESCRIPTION} />
     <meta property="og:url" content="https://radiant-blaze.github.io/" />
     <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta property="og:image:alt" content="Radiant Blaze pixel-art city banner" />
     <meta property="og:image:width" content="1500" />
     <meta property="og:image:height" content="592" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Radiant Blaze" />
-    <meta name="twitter:description" content="A pixel-powered cybersecurity portfolio with software field notes and CTF writeups." />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={SITE_DESCRIPTION} />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:image:alt" content="Radiant Blaze pixel-art city banner" />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
