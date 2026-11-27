@@ -149,8 +149,8 @@ class Session {
     );
   }
 
-  async waitFor(expression, label) {
-    const deadline = Date.now() + WAIT;
+  async waitFor(expression, label, timeout = WAIT) {
+    const deadline = Date.now() + timeout;
     for (;;) {
       if (await this.evaluate(`Boolean(${expression})`)) return;
       if (Date.now() > deadline) throw new Error(`Timed out waiting for ${label ?? expression}`);
@@ -198,14 +198,30 @@ const run = (body) =>
 
 // Production defers Mermaid until a diagram approaches the viewport. Tests
 // exercise rendering immediately, so opt into the public forced-render hook.
+// render() schedules an async run, so wait for its effect (SVG or the error
+// fallback) instead of assuming the first call painted anything.
 const forceDiagrams = async (session) => {
   await session.waitFor(run("return Boolean(window.RadiantBlazeDiagrams)"), "diagram viewer");
   await session.evaluate(run("window.RadiantBlazeDiagrams.render(document); return true;"));
+  await session.waitFor(
+    run("return diagramSvgs().length > 0 || document.querySelector('.diagram-error') !== null"),
+    "diagram render settled",
+  );
 };
 
+// A cold Mermaid module load occasionally stalls on CI (observed as the
+// 1920x1080 layout step timing out). Retry once with a fresh document; this is
+// a page reload, not a weaker assertion.
 const gotoDiagram = async (session, route) => {
-  await session.goto(route);
-  await forceDiagrams(session);
+  for (let attempt = 1; ; attempt += 1) {
+    await session.goto(route);
+    try {
+      await forceDiagrams(session);
+      return;
+    } catch (error) {
+      if (attempt >= 2) throw error;
+    }
+  }
 };
 
 const consoleWarnings = (session) => {
