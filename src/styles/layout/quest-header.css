@@ -123,6 +123,18 @@
 .theme-checkbox:checked + .theme-switch .moon-icon {
   display: none;
 }
+/* The inline bootstrap sets the theme class before this stylesheet applies, but
+   the deferred controls module has not checked the box yet. Reflect that stored
+   light theme immediately so the switch never flashes the dark state. */
+html.light-theme .theme-checkbox:not(:checked) + .theme-switch {
+  background-color: #2196f3;
+}
+html.light-theme .theme-checkbox:not(:checked) + .theme-switch .sun-icon {
+  display: block;
+}
+html.light-theme .theme-checkbox:not(:checked) + .theme-switch .moon-icon {
+  display: none;
+}
 .theme-checkbox:focus-visible + .theme-switch {
   outline: 3px solid var(--accent-cyan-text);
   outline-offset: 3px;

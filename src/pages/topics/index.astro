@@ -1,0 +1,93 @@
+---
+import Footer from "../../components/Footer.astro";
+import QuestShell from "../../layouts/QuestShell.astro";
+import { getRuntimeReadModel } from "../../lib/runtime-read-model";
+import {
+  collectTopics,
+  TOPICS_INDEX_ROUTE,
+  topicRoute,
+} from "../../lib/topics";
+import {
+  absoluteUrl,
+  breadcrumbEntity,
+  itemListEntity,
+  jsonLdGraph,
+  personEntity,
+  SITE_DESCRIPTION,
+  webPageEntity,
+  websiteEntity,
+} from "../../lib/seo";
+
+const readModel = await getRuntimeReadModel();
+const topics = collectTopics(readModel);
+const sortedTopics = [...topics].sort(
+  (left, right) => right.count - left.count || left.label.localeCompare(right.label),
+);
+const totalRecords =
+  readModel.posts.length +
+  readModel.ctfs.reduce((total, ctf) => total + (ctf.challenges?.length ?? 0), 0);
+const url = absoluteUrl(TOPICS_INDEX_ROUTE);
+const heading = "Topic Hubs";
+const description =
+  `Browse ${topics.length} Radiant Blaze topic hubs covering all ${totalRecords} posts and CTF writeups. ` +
+  "Follow a topic to see every entry filed under it.";
+const jsonLd = jsonLdGraph(
+  personEntity(),
+  websiteEntity(SITE_DESCRIPTION),
+  webPageEntity({ type: "CollectionPage", name: heading, description, url }),
+  breadcrumbEntity([
+    { name: "Home", path: "/" },
+    { name: "Topics", path: TOPICS_INDEX_ROUTE },
+  ]),
+  itemListEntity({
+    name: "Topic hubs",
+    url,
+    items: sortedTopics.map((topic) => ({
+      name: topic.label,
+      path: topicRoute(topic.slug),
+    })),
+  }),
+);
+---
+
+<QuestShell
+  title="Topic Hubs · Radiant Blaze"
+  description={description}
+  canonical={url}
+  jsonLd={jsonLd}
+  ogTitle="Topic Hubs · Radiant Blaze"
+  bodyClass="listing-document topic-document"
+>
+  <section class="quest-hero quest-wrap">
+    <p class="eyebrow">KNOWLEDGE MAP · ALL TOPICS</p>
+    <h1 class="quest-title">TOPIC HUBS</h1>
+    <p class="quest-intro">
+      Every category and tag in the archive, merged into one hub per topic. Pick a topic to see its
+      blog posts and CTF writeups in one place. Hubs with fewer than two entries stay listed below
+      for readers, but they are kept out of search results until more coverage lands.
+    </p>
+    <p class="record-count">
+      {topics.length} TOPIC{topics.length === 1 ? "" : "S"} · {totalRecords} RECORD{totalRecords === 1 ? "" : "S"}
+    </p>
+    <nav class="topic-hub-links" aria-label="Topic hub navigation">
+      <a href="/pages/search.html">SEARCH THE ARCHIVE</a>
+    </nav>
+  </section>
+  <div class="quest-wrap topic-index">
+    <div class="topic-grid">
+      {sortedTopics.map((topic) => (
+        <a class="topic-card" href={topicRoute(topic.slug)}>
+          <span class="topic-card__label">{topic.label}</span>
+          <span class="topic-card__count">
+            {topic.count} {topic.count === 1 ? "ENTRY" : "ENTRIES"}
+          </span>
+          <span class="topic-card__meta">
+            {topic.posts.length} POST{topic.posts.length === 1 ? "" : "S"} · {topic.writeups.length} WRITEUP
+            {topic.writeups.length === 1 ? "" : "S"}
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+  <Footer />
+</QuestShell>

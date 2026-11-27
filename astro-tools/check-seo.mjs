@@ -42,7 +42,13 @@ const decode = (value) => {
   }
 };
 
-const htmlFiles = walk(DIST).filter((file) => file.endsWith(".html"));
+// Google Search Console verification tokens are opaque `google<token>.html`
+// files with no title, canonical, or heading. They are served from the site
+// root but are not pages, so page-level SEO checks skip them.
+const VERIFICATION_FILE = /^google[0-9a-z]+\.html$/i;
+const htmlFiles = walk(DIST).filter(
+  (file) => file.endsWith(".html") && !VERIFICATION_FILE.test(path.basename(file)),
+);
 if (htmlFiles.length === 0) {
   console.error("dist/ has no HTML output. Run `npm run build` first.");
   process.exit(1);

@@ -177,6 +177,7 @@ const main = async () => {
     assert.equal(clearedQuery.hidden, true);
     assert.equal(clearedQuery.href, "");
 
+    await new Promise((resolve) => setTimeout(resolve, 250));
     await session.evaluate(`document.querySelector('[data-search-filter="posts"]').click(); true`);
     await new Promise((resolve) => setTimeout(resolve, 250));
     const postsOnly = await session.evaluate(`({
@@ -241,6 +242,7 @@ const main = async () => {
       "browser forward restores page 3",
     );
 
+    await new Promise((resolve) => setTimeout(resolve, 250));
     await session.evaluate(`document.querySelector('[data-search-filter="posts"]').click(); true`);
     await session.waitFor('!location.search.includes("pg=")', "filters reset pagination");
     assert.doesNotMatch(await session.evaluate("location.search"), /[?&]pg=/);

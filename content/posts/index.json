@@ -1,6 +1,7 @@
 {
-  "posts":
-  [
+  "posts": [
+    "web-development/022-static-site-app-feel.md",
+    "web-development/023-searchable-topic-layer.md",
     "linux/021-tiny-command-line-toolkit.md"
   ]
 }

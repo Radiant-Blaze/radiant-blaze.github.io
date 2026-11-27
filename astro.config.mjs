@@ -19,6 +19,12 @@ export default defineConfig({
   devToolbar: { enabled: false },
   vite: {
     resolve: { alias: viteCompat },
+    build: {
+      // Defensive: keep any small JS chunk external so the SPA router always
+      // has a `src` to discover after a <main> swap. Current entries already
+      // emit externally; this prevents a future small chunk from inlining.
+      assetsInlineLimit: (filePath) => (filePath.endsWith(".js") ? false : undefined),
+    },
   },
   integrations: [sourceAssetsIntegration()],
 });

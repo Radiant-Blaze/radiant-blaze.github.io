@@ -1,24 +1,54 @@
 ---
 import { ASSET_VERSION } from "../lib/assets";
+import ThemeBootstrap from "../components/ThemeBootstrap.astro";
 import "../styles/style.css";
 import Footer from "../components/Footer.astro";
+import { getRuntimeReadModel } from "../lib/runtime-read-model";
+import { collectTopics, TOPICS_INDEX_ROUTE, topicRoute } from "../lib/topics";
+import { homeWriteupPageUrl } from "../lib/home-selection";
+
+const readModel = await getRuntimeReadModel();
+const topTopics = [...collectTopics(readModel)]
+  .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+  .slice(0, 5);
+const latestWriteups = readModel.ctfs
+  .flatMap((ctf) =>
+    (ctf.challenges || []).map(
+      (challenge: { title?: unknown; file: string }) => ({
+        event: String(ctf.title || ctf.id),
+        title: String(challenge.title || challenge.file),
+        date: new Date(`${ctf.date}T00:00:00Z`),
+        href: homeWriteupPageUrl(ctf.id, challenge.file),
+      }),
+    ),
+  )
+  .filter((writeup) => !Number.isNaN(writeup.date.getTime()))
+  .sort(
+    (left, right) =>
+      right.date.getTime() - left.date.getTime() ||
+      left.title.localeCompare(right.title) ||
+      left.href.localeCompare(right.href),
+  )
+  .slice(0, 3);
 ---
 <!doctype html>
 <html lang="en" class="dark-theme">
   <head>
     <meta charset="UTF-8" />
+    <ThemeBootstrap />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <title>404 — Game Over · Radiant Blaze</title>
     <meta name="theme-color" content="#171329" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <script src={`/assets/js/astro-controls.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src="../scripts/astro-controls.ts"></script>
     <script defer src={`/assets/js/music-controller.js?v=${ASSET_VERSION}`} is:inline></script>
-    <script src={`/assets/js/page-loader.js?v=${ASSET_VERSION}`} defer is:inline></script>
+    <script src="../scripts/page-loader.ts"></script>
   </head>
   <body>
-    <main class="game-screen">
+    <a class="skip-link" href="#main-content">SKIP TO CONTENT</a>
+    <main class="game-screen" id="main-content" tabindex="-1">
       <header class="top-bar">
         <a class="pixel-logo" href="/" aria-label="Radiant Blaze home">RB</a>
         <div class="top-controls"><input class="theme-checkbox" id="theme-toggle-checkbox" type="checkbox" data-theme-toggle aria-label="Switch to light theme" /><label class="theme-switch" for="theme-toggle-checkbox" aria-hidden="true"><span class="theme-switch-thumb"><svg class="sun-icon" viewBox="0 0 16 16"><path d="M7 0h2v3H7zM7 13h2v3H7zM0 7h3v2H0zM13 7h3v2h-3zM2 2h2v2H2zM12 2h2v2h-2zM2 12h2v2H2zM12 12h2v2h-2zM5 5h6v6H5z" /></svg><svg class="moon-icon" viewBox="0 0 24 24"><path d="M19.8 15.1A9.4 9.4 0 0 1 8.9 4.2 9.6 9.6 0 1 0 19.8 15.1Z" /><path d="M17 3v4M15 5h4M6 2v3M4.5 3.5h3M20 9v3M18.5 10.5h3" /></svg></span></label></div>
@@ -42,6 +72,57 @@ import Footer from "../components/Footer.astro";
         <h1 id="rb-404-title">SIGNAL <span>LOST</span></h1>
         <p class="rb-404-copy">This quest doesn't exist —<br />the page wandered off the map.</p>
         <a class="pixel-button rb-404-home" href="/">RETURN HOME <span aria-hidden="true">→</span></a>
+        <section class="rb-404-recover" aria-labelledby="rb-404-recover-title">
+          <div class="rb-404-recover-head">
+            <h2 class="rb-404-recover-title" id="rb-404-recover-title">FIND ANOTHER PATH</h2>
+            <p class="rb-404-recover-copy">SCAN THE ARCHIVE OR JUMP STRAIGHT TO A HUB.</p>
+          </div>
+          <form class="rb-404-search" role="search" action="/pages/search.html" method="get">
+            <label class="sr-only" for="rb-404-search-input">Search posts, writeups and topics</label>
+            <input
+              id="rb-404-search-input"
+              name="q"
+              type="search"
+              placeholder="SEARCH POSTS, WRITEUPS, TOPICS..."
+              data-search
+              aria-keyshortcuts="/"
+            />
+            <button class="pixel-button rb-404-search-submit" type="submit">SCAN <span aria-hidden="true">→</span></button>
+          </form>
+          <div class="rb-404-recover-groups">
+            <section class="rb-404-group" aria-labelledby="rb-404-topics-title">
+              <div class="rb-404-group-head">
+                <h3 id="rb-404-topics-title">POPULAR TOPICS</h3>
+                <a class="rb-404-group-all" href={TOPICS_INDEX_ROUTE}>ALL TOPIC HUBS <span aria-hidden="true">→</span></a>
+              </div>
+              <ul class="rb-404-topics">
+                {topTopics.map((topic) => (
+                  <li>
+                    <a class="rb-404-pill" href={topicRoute(topic.slug)}>
+                      {topic.label.toUpperCase()} <small>{topic.count}</small>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section class="rb-404-group" aria-labelledby="rb-404-writeups-title">
+              <div class="rb-404-group-head">
+                <h3 id="rb-404-writeups-title">LATEST WRITEUPS</h3>
+              </div>
+              <ul class="rb-404-writeups">
+                {latestWriteups.map((writeup) => (
+                  <li>
+                    <a class="rb-404-writeup" href={writeup.href}>
+                      <span class="rb-404-writeup-event">{writeup.event.toUpperCase()}</span>
+                      <span class="rb-404-writeup-title">{writeup.title}</span>
+                      <span class="rb-404-writeup-arrow" aria-hidden="true">→</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </section>
       </section>
       <Footer simple />
     </main>

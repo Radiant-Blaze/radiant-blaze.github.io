@@ -1,0 +1,169 @@
+---
+import Footer from "../../components/Footer.astro";
+import QuestShell from "../../layouts/QuestShell.astro";
+import { getRuntimeReadModel } from "../../lib/runtime-read-model";
+import { formatDate } from "../../lib/markdown";
+import {
+  collectTopics,
+  isThinTopic,
+  relatedTopics,
+  TOPICS_INDEX_ROUTE,
+  topicRoute,
+  type Topic,
+} from "../../lib/topics";
+import {
+  absoluteUrl,
+  breadcrumbEntity,
+  itemListEntity,
+  jsonLdGraph,
+  personEntity,
+  SITE_DESCRIPTION,
+  webPageEntity,
+  websiteEntity,
+} from "../../lib/seo";
+
+export async function getStaticPaths() {
+  const topics = collectTopics(await getRuntimeReadModel());
+  return topics.map((topic) => ({
+    params: { topic: topic.slug },
+    props: { topic, related: relatedTopics(topics, topic) },
+  }));
+}
+
+const { topic, related } = Astro.props as { topic: Topic; related: Topic[] };
+const thin = isThinTopic(topic);
+const route = topicRoute(topic.slug);
+const url = absoluteUrl(route);
+const heading = `${topic.label} Topic Hub`;
+const brandedTitle = `${heading} · Radiant Blaze`;
+const title =
+  brandedTitle.length <= 65
+    ? brandedTitle
+    : heading.length <= 65
+      ? heading
+      : `${heading.slice(0, 62)}...`;
+const entryWord = topic.count === 1 ? "entry" : "entries";
+const postWord = topic.posts.length === 1 ? "post" : "posts";
+const writeupWord = topic.writeups.length === 1 ? "writeup" : "writeups";
+const coverage = [
+  topic.posts.length ? `${topic.posts.length} blog ${postWord}` : "",
+  topic.writeups.length ? `${topic.writeups.length} CTF ${writeupWord}` : "",
+]
+  .filter(Boolean)
+  .join(" and ");
+const intro = thin
+  ? `${topic.count} ${entryWord} in the archive currently carries the ${topic.label} label, with the latest filing dated ${formatDate(topic.lastmod)}. This hub stays browsable for readers exploring the topic map, but it is kept out of search results until more ${topic.label} coverage lands; every new ${entryWord} will appear here automatically.`
+  : `${topic.count} Radiant Blaze ${entryWord} carry the ${topic.label} label — ${coverage} — collected newest first, most recently on ${formatDate(topic.lastmod)}. Open a card to read the full entry${related.length ? ", or use the related hubs below to see where this topic overlaps with the rest of the archive" : ""}.`;
+const rawDescription = `${topic.count} archive ${entryWord} tagged ${topic.label}: ${topic.posts.length} blog ${postWord} and ${topic.writeups.length} CTF ${writeupWord}. Browse every Radiant Blaze entry filed under this topic.`;
+const description =
+  rawDescription.length > 200 ? `${rawDescription.slice(0, 197)}...` : rawDescription;
+const searchRoute = `/pages/search.html?topic=${encodeURIComponent(topic.label.toLowerCase())}`;
+const jsonLd = jsonLdGraph(
+  personEntity(),
+  websiteEntity(SITE_DESCRIPTION),
+  webPageEntity({ type: "CollectionPage", name: heading, description, url }),
+  breadcrumbEntity([
+    { name: "Home", path: "/" },
+    { name: "Topics", path: TOPICS_INDEX_ROUTE },
+    { name: topic.label, path: route },
+  ]),
+  itemListEntity({
+    name: `${topic.label} posts and writeups`,
+    url,
+    items: [...topic.posts, ...topic.writeups].map((item) => ({
+      name: item.title,
+      path: item.href,
+    })),
+  }),
+);
+---
+
+<QuestShell
+  title={title}
+  description={description}
+  canonical={url}
+  jsonLd={jsonLd}
+  noindex={thin}
+  ogTitle={`${topic.label} Topic Hub · Radiant Blaze`}
+  bodyClass="listing-document topic-document"
+>
+  <section class="quest-hero quest-wrap">
+    <p class="eyebrow">TOPIC HUB · FIELD INDEX</p>
+    <h1 class="quest-title">{topic.label}</h1>
+    <p class="quest-intro">{intro}</p>
+    <p class="record-count">
+      {topic.count} {entryWord.toUpperCase()} · {topic.posts.length} POST{topic.posts.length === 1 ? "" : "S"} ·
+      {topic.writeups.length} WRITEUP{topic.writeups.length === 1 ? "" : "S"} · UPDATED {formatDate(topic.lastmod)}
+    </p>
+    <nav class="topic-hub-links" aria-label="Topic hub navigation">
+      <a href={TOPICS_INDEX_ROUTE}>← ALL TOPIC HUBS</a>
+      <a href={searchRoute}>SEARCH THIS TOPIC</a>
+    </nav>
+  </section>
+  <div class="quest-wrap topic-hub">
+    {topic.writeups.length > 0 && (
+      <section class="topic-hub__section" aria-labelledby="topic-writeups-title">
+        <h2 id="topic-writeups-title">CTF WRITEUPS <span>{topic.writeups.length}</span></h2>
+        <div class="quest-list">
+          {topic.writeups.map((item) => (
+            <article class="quest-card listing-entry listing-entry--writeup">
+              <div class="listing-entry__main">
+                <p class="quest-number">WRITEUP · {item.category}</p>
+                <h3><a href={item.href}>{item.title}</a></h3>
+                {item.description && <p>{item.description}</p>}
+                <div class="quest-meta">
+                  <span>{formatDate(item.date)}</span>
+                  {item.event && <span>{item.event}</span>}
+                  <span><b>{item.category}</b></span>
+                </div>
+              </div>
+              <a class="listing-entry__action pixel-button start-button" href={item.href}>
+                READ WRITEUP →
+              </a>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+    {topic.posts.length > 0 && (
+      <section class="topic-hub__section" aria-labelledby="topic-posts-title">
+        <h2 id="topic-posts-title">BLOG POSTS <span>{topic.posts.length}</span></h2>
+        <div class="quest-list">
+          {topic.posts.map((item) => (
+            <article class="quest-card listing-entry listing-entry--post">
+              <div class="listing-entry__main">
+                <p class="quest-number">POST · {item.category}</p>
+                <h3><a href={item.href}>{item.title}</a></h3>
+                {item.description && <p>{item.description}</p>}
+                <div class="quest-meta">
+                  <span>{formatDate(item.date)}</span>
+                  <span><b>{item.category}</b></span>
+                </div>
+              </div>
+              <a class="listing-entry__action pixel-button start-button" href={item.href}>
+                READ POST →
+              </a>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+    {related.length > 0 && (
+      <section class="topic-hub__section topic-hub__related" aria-labelledby="topic-related-title">
+        <h2 id="topic-related-title">RELATED TOPICS <span>{related.length}</span></h2>
+        <p>
+          Hubs whose entries overlap with <strong>{topic.label}</strong>. Each link opens another
+          topic index in the same archive.
+        </p>
+        <nav class="topic-hub-links" aria-label="Related topic hubs">
+          {related.map((item) => (
+            <a href={topicRoute(item.slug)}>
+              {item.label} · {item.count} {item.count === 1 ? "ENTRY" : "ENTRIES"}
+            </a>
+          ))}
+        </nav>
+      </section>
+    )}
+  </div>
+  <Footer />
+</QuestShell>

@@ -1,6 +1,8 @@
 ---
 import { ASSET_VERSION } from "../lib/assets";
-import { serializeJsonLd } from "../lib/seo";
+import ThemeBootstrap from "../components/ThemeBootstrap.astro";
+import { DEFAULT_OG_IMAGE } from "../lib/og";
+import { JSON_FEED_URL, RSS_FEED_URL, serializeJsonLd } from "../lib/seo";
 import "../styles/style.css";
 
 interface Props {
@@ -11,13 +13,20 @@ interface Props {
   ogTitle?: string;
   ogDescription?: string;
   ogType?: string;
+  ogImage?: string;
   ogImageAlt?: string;
+  ogImageWidth?: number;
+  ogImageHeight?: number;
   viewport?: string;
   currentPage?: "blog" | "ctf" | "search" | "portfolio";
   spa?: boolean;
   brandHref?: string;
   pageLinkPrefix?: string;
   bodyClass?: string;
+  /** Thin hubs stay readable but tell crawlers to follow without indexing. */
+  noindex?: boolean;
+  /** Document-style pages (writeups, portfolio) suppress the page loader overlay. */
+  disablePageLoader?: boolean;
   mermaid?: boolean;
   preloadFonts?: string[];
   /** Structured data for the page head; serialized and escaped by the layout. */
@@ -32,14 +41,18 @@ const {
   ogTitle = title,
   ogDescription = description,
   ogType = "website",
+  ogImage = DEFAULT_OG_IMAGE,
   ogImageAlt = "Radiant Blaze pixel-art city banner",
+  ogImageWidth = 1500,
+  ogImageHeight = 592,
   viewport = "width=device-width,initial-scale=1.0",
   currentPage,
   spa = true,
   brandHref = "../index.html",
-  pageLinkPrefix = "",
+  pageLinkPrefix = "/pages/",
   disablePageLoader = false,
   bodyClass,
+  noindex = false,
   mermaid = false,
   preloadFonts = [],
   jsonLd = null,
@@ -49,8 +62,10 @@ const {
 <html lang="en" class="dark-theme">
   <head>
     <meta charset="UTF-8" />
+    <ThemeBootstrap />
     <meta name="viewport" content={viewport} />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <title>{title}</title>
     {canonical && <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content="#171329" />
@@ -60,31 +75,29 @@ const {
     <meta property="og:title" content={ogTitle} />
     <meta property="og:description" content={ogDescription} />
     {ogUrl && <meta property="og:url" content={ogUrl} />}
-    <meta property="og:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta property="og:image" content={ogImage} />
     <meta property="og:image:alt" content={ogImageAlt} />
-    <meta property="og:image:width" content="1500" />
-    <meta property="og:image:height" content="592" />
+    <meta property="og:image:width" content={String(ogImageWidth)} />
+    <meta property="og:image:height" content={String(ogImageHeight)} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={ogDescription} />
-    <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
+    <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
+    <link rel="alternate" type="application/rss+xml" title="Radiant Blaze — RSS feed" href={RSS_FEED_URL} />
+    <link rel="alternate" type="application/feed+json" title="Radiant Blaze — JSON feed" href={JSON_FEED_URL} />
     {jsonLd && <script type="application/ld+json" is:inline set:html={serializeJsonLd(jsonLd)} />}
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
     {preloadFonts.map((font) => <link rel="preload" href={font} as="font" type="font/woff2" crossorigin />)}
-    <script src={`/assets/js/astro-controls.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src="../scripts/astro-controls.ts"></script>
     <script defer src={`/assets/js/music-controller.js?v=${ASSET_VERSION}`} is:inline></script>
-    <script src={`/assets/js/page-loader.js?v=${ASSET_VERSION}`} defer is:inline></script>
-    {spa && <script defer src={`/assets/js/astro-navigation.js?v=${ASSET_VERSION}`} is:inline></script>}
-    {mermaid && (
-      <script type="module">
-        import "../scripts/mermaid-viewer.js";
-      </script>
-    )}
+    <script src="../scripts/page-loader.ts"></script>
+    {spa && <script src="../scripts/astro-navigation.ts"></script>}
     <slot name="headScripts" />
   </head>
   <body class:list={[disablePageLoader && "disable-page-loader", bodyClass]}>
-    <main class="quest-screen">
+    <a class="skip-link" href="#main-content">SKIP TO CONTENT</a>
+    <main class="quest-screen" id="main-content" tabindex="-1">
       <header class="quest-top quest-wrap site-header">
         <a class="quest-brand" href={brandHref}><span class="pixel-logo">RB</span><span class="brand-copy"><span class="brand-title">RADIANT BLAZE</span><span class="brand-caption">QUEST LOG / FIELD HQ</span></span></a>
         <div class="quest-nav-group">
@@ -106,7 +119,7 @@ const {
         </div>
       </header>
       <slot />
+      {mermaid && <script src="../scripts/mermaid-viewer.js"></script>}
     </main>
-    <slot name="pageScripts" />
   </body>
 </html>

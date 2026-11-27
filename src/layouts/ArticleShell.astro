@@ -1,6 +1,7 @@
 ---
 import { ASSET_VERSION } from "../lib/assets";
 import Footer from "../components/Footer.astro";
+import { ogImageUrl } from "../lib/og";
 import QuestShell from "./QuestShell.astro";
 
 interface Props {
@@ -13,12 +14,18 @@ interface Props {
 }
 
 const { title, description, canonical, type, mermaid = false, jsonLd = null } = Astro.props;
+const articleOgImage = ogImageUrl(canonical);
+const articleOgImageAlt = `Cover image for ${title}`;
 ---
 <QuestShell
   title={title}
   description={description}
   canonical={canonical}
   ogType="article"
+  ogImage={articleOgImage}
+  ogImageAlt={articleOgImageAlt}
+  ogImageWidth={1200}
+  ogImageHeight={630}
   viewport="width=device-width, initial-scale=1.0"
   spa={true}
   brandHref="/"
@@ -32,7 +39,7 @@ const { title, description, canonical, type, mermaid = false, jsonLd = null } = 
     "/assets/fonts/sf-pixelate/sf-pixelate-bold.woff2",
   ]}
 >
-  <script slot="headScripts" type="module" src={`/assets/js/astro-article.js?v=${ASSET_VERSION}`} is:inline></script>
+  <script type="module" src={`/assets/js/astro-article.js?v=${ASSET_VERSION}`} is:inline></script>
   <slot />
   <Footer heading={type === "post" ? "BLOG STATUS" : "CONNECT"} stats={type === "post"} />
 </QuestShell>

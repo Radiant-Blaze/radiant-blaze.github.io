@@ -1,5 +1,4 @@
 ---
-import { ASSET_VERSION } from "../../lib/assets";
 import { getCollection } from "astro:content";
 import portfolioSettings from "../../../content/portfolio/config.json";
 import Footer from "../../components/Footer.astro";
@@ -8,7 +7,7 @@ import { homeWriteupPageUrl } from "../../lib/home-selection";
 import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { escapeHtml, formatDate, renderMarkdown } from "../../lib/markdown";
 import { portfolioConfigSchema } from "../../lib/portfolio-config";
-import { portfolioProjectRoute } from "../../lib/portfolio-data";
+import { isPortfolioEntry, portfolioProjectRoute, type PortfolioEntryOfType } from "../../lib/portfolio-data";
 import {
   breadcrumbEntity,
   itemListEntity,
@@ -22,17 +21,17 @@ import {
 const config = portfolioConfigSchema.parse(portfolioSettings);
 const entries = await getCollection("portfolio");
 const publishedEntries = entries.filter((entry) => entry.data.published);
-const profiles = publishedEntries.filter((entry) => entry.data.type === "profile");
+const profiles = publishedEntries.filter(isPortfolioEntry("profile"));
 if (profiles.length > 1) throw new Error("Portfolio supports one published profile entry.");
 const profile = config.sections.some((section) => section.type === "profile" && section.enabled) ? profiles[0] : undefined;
-const skills = publishedEntries.filter((entry) => entry.data.type === "skill")
+const skills = publishedEntries.filter(isPortfolioEntry("skill"))
   .sort((left, right) => left.data.order - right.data.order || (right.data.date?.getTime() ?? 0) - (left.data.date?.getTime() ?? 0));
-const projects = publishedEntries.filter((entry) => entry.data.type === "project")
+const projects = publishedEntries.filter(isPortfolioEntry("project"))
   .sort((left, right) => left.data.order - right.data.order || (right.data.date?.getTime() ?? 0) - (left.data.date?.getTime() ?? 0));
-const achievements = publishedEntries.filter((entry) => entry.data.type === "achievement");
-const research = publishedEntries.filter((entry) => entry.data.type === "research");
-const certifications = publishedEntries.filter((entry) => entry.data.type === "certification");
-const customEntries = publishedEntries.filter((entry) => entry.data.type === "custom");
+const achievements = publishedEntries.filter(isPortfolioEntry("achievement"));
+const research = publishedEntries.filter(isPortfolioEntry("research"));
+const certifications = publishedEntries.filter(isPortfolioEntry("certification"));
+const customEntries = publishedEntries.filter(isPortfolioEntry("custom"));
 const { ctfs } = await getRuntimeReadModel();
 const writeupCount = ctfs.reduce((count, ctf) => count + ctf.challenges.length, 0);
 const categoryOptions = [...new Set(projects.map((entry) => entry.data.category))].sort((a, b) => a.localeCompare(b));
@@ -54,6 +53,9 @@ const configuredSections = [...config.sections]
   .filter((section) => section.enabled)
   .sort((left, right) => left.order - right.order);
 const visibleSections = configuredSections.filter((section) => section.showEmpty || contentFor(section).length > 0);
+type PublicationEntry = PortfolioEntryOfType<"research"> | PortfolioEntryOfType<"certification">;
+const publicationEntriesFor = (section: typeof config.sections[number]): PublicationEntry[] =>
+  section.type === "research" ? research : certifications;
 const profileSection = visibleSections.find((section) => section.type === "profile");
 const sectionsWithContent = visibleSections.filter((section) => section.type !== "profile");
 
@@ -123,7 +125,7 @@ const recordLinks = (title: string, links: { label: string; url: string }[]) => 
       <p class="portfolio-role">{config.focusLine}</p>
       {profile && <>
         <h2 class="sr-only">{profile.data.title}</h2>
-        <div class="portfolio-intro quest-intro" set:html={renderMarkdown(profile.body)} />
+        <div class="portfolio-intro quest-intro" set:html={renderMarkdown(profile.body ?? "")} />
       </>}
     </div>
     <aside class="portfolio-snapshot" aria-label="Portfolio at a glance">
@@ -150,7 +152,7 @@ const recordLinks = (title: string, links: { label: string; url: string }[]) => 
     {section.type === "skills" && <div class="portfolio-skill-groups">
       {sortEntries(skills, section).map((entry) => entry.data.type === "skill" && <article class="portfolio-skill-group">
         <h3>{entry.data.category}</h3>
-        {entry.body.trim() && <p>{entry.body.trim()}</p>}
+        {Boolean(entry.body?.trim()) && <p>{entry.body?.trim()}</p>}
         <ul class="portfolio-tags" aria-label={entry.data.category}>{entry.data.skills.map((skill) => <li>{skill}</li>)}</ul>
       </article>)}
       {skills.length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
@@ -209,7 +211,7 @@ const recordLinks = (title: string, links: { label: string; url: string }[]) => 
     </div>}
 
     {(section.type === "research" || section.type === "certifications") && <div class="portfolio-entry-list">
-      {sortEntries(section.type === "research" ? research : certifications, section).map((entry) => <article class="portfolio-record">
+      {sortEntries(publicationEntriesFor(section), section).map((entry) => <article class="portfolio-record">
         {entry.data.type === "research" && <>
           {(entry.data.publication || entry.data.date) && <p class="portfolio-kicker">{entry.data.publication}{entry.data.publication && entry.data.date ? " · " : ""}{entry.data.date ? formatDate(entry.data.date) : ""}</p>}
           <h3>{entry.data.title}</h3><p>{entry.data.description}</p>
@@ -231,12 +233,12 @@ const recordLinks = (title: string, links: { label: string; url: string }[]) => 
         {(entry.data.date || entry.data.featured) && <p class="portfolio-kicker">{entry.data.date ? formatDate(entry.data.date) : ""}{entry.data.date && entry.data.featured ? " · " : ""}{entry.data.featured ? "FEATURED" : ""}</p>}
         <h3>{entry.data.title}</h3>
         {entry.data.description && <p>{entry.data.description}</p>}
-        {entry.body.trim() && <div class="portfolio-record-body" set:html={renderMarkdown(entry.body)} />}
+        {Boolean(entry.body?.trim()) && <div class="portfolio-record-body" set:html={renderMarkdown(entry.body ?? "")} />}
         <Fragment set:html={recordLinks(entry.data.title, entry.data.links)} />
       </article>)}
       {customEntries.filter((entry) => entry.data.sectionId === section.id).length === 0 && <p class="portfolio-empty">No published entries yet.</p>}
     </div>}
   </section>)}
   <Footer />
-  <script slot="pageScripts" type="module" src={`/assets/js/portfolio.js?v=${ASSET_VERSION}`} is:inline></script>
+  <script src="../../scripts/portfolio.ts"></script>
 </QuestShell>

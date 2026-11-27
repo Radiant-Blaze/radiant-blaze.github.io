@@ -38,7 +38,7 @@ for (const post of model.posts.slice(0, 5)) {
 
 const archive = await getText("/pages/archive.html");
 assert.match(archive, /location\.replace\(`search\.html\$\{location\.search\}`\)/);
-assert.deepEqual(pageSlice(model.posts, 999).shown.map((post) => post.file), [model.posts.at(-1).file]);
+assert.deepEqual(pageSlice(model.posts, 999).shown.map((post) => post.file), model.posts.slice(-5).map((post) => post.file));
 assert.deepEqual(pageSlice([], 999).shown, []);
 
 const sourceText = (post) =>

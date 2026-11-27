@@ -18,6 +18,12 @@ const legacyFallbackFiles = ["blog.js", "ctf.js", "content.js"];
 // Modules that live in public/assets/js/ but are also served from
 // /legacy/assets/js/ because the compatibility fallback imports them as
 // same-directory siblings.
+//
+// Both files are frozen compatibility artifacts: `public/assets/js/` holds the
+// single source of truth, the build copies it byte-for-byte into
+// `dist/legacy/assets/js/`, and `astro-tools/test-compatibility-assets.mjs`
+// pins their SHA-256 digests. Do not edit them (or reformat them) to satisfy a
+// tool; treat any byte change as a public contract change.
 const sharedLegacyFiles = ["list-utils.js", "markdown-renderer.js"];
 const isCompatibilityJson = (relativePath) =>
   relativePath === "posts/index.json" ||
@@ -218,6 +224,9 @@ export function sourceAssetsIntegration() {
         // the alias so only one URL serves the page (no duplicate content).
         await copyFile(path.join(output, "portfolio.html"), path.join(portfolioDirectory, "index.html"));
         await rm(path.join(output, "portfolio.html"));
+        // `/legacy/assets/js/` keeps the retired fallback renderers and the two
+        // frozen shared modules reachable. `sharedLegacyFiles` are copied
+        // verbatim from `public/assets/js/`; their bytes must not change.
         const legacyJsOutput = path.join(output, "legacy", "assets", "js");
         await mkdir(legacyJsOutput, { recursive: true });
         await Promise.all([

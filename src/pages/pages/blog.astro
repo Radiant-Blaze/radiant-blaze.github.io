@@ -23,7 +23,7 @@ const { posts } = readModel;
 const playerStats = calculatePlayerStats(readModel);
 const pageSize = 5;
 const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
-const categories = [...new Set(posts.map((post) => post.category).filter(Boolean))].sort();
+const categories = [...new Set(posts.map((post) => post.category).filter((name): name is string => typeof name === "string" && name.length > 0))].sort();
 const yearCounts = posts.reduce((counts, post) => {
   const year = new Date(`${post.date}T00:00:00`).getFullYear();
   counts.set(year, (counts.get(year) || 0) + 1);
@@ -70,7 +70,7 @@ const paginationWithControls = totalPages > 1
     <form class="search-form blog-search-form" action="blog.html" method="get" data-blog-search>
       <input type="hidden" name="category" data-blog-search-category />
       <label class="sr-only" for="blog-search">Search blog posts</label>
-      <input id="blog-search" type="search" name="q" placeholder="SEARCH BLOG POSTS" data-blog-search-input />
+      <input id="blog-search" type="search" name="q" placeholder="SEARCH BLOG POSTS" data-blog-search-input aria-keyshortcuts="/" />
       <button class="pixel-button start-button" type="submit">SEARCH</button>
     </form>
     <p class="record-count" data-blog-count>{posts.length} POST{posts.length === 1 ? "" : "S"} · PAGE 1 OF {totalPages}</p>
@@ -87,5 +87,5 @@ const paginationWithControls = totalPages > 1
     </aside>
   </div>
   <Footer />
+  <script type="module" src={`/assets/js/astro-pages.js?v=${ASSET_VERSION}`} is:inline></script>
 </QuestShell>
-<script slot="pageScripts" type="module" src={`/assets/js/astro-pages.js?v=${ASSET_VERSION}`} is:inline></script>

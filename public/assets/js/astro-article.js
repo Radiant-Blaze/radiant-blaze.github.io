@@ -1,4 +1,4 @@
-import { initReadingProgress, typesetMath } from "./astro-runtime.js?v=20261120-3";
+import { initReadingProgress, typesetMath } from "./astro-runtime.js?v=20261127-1";
 
 // Every navigation replaces <main>. Keeping the article, its headings, and the
 // observers in module scope used to retain the previous page's DOM for the rest

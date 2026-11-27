@@ -1,4 +1,4 @@
-import { escapeHtml, markdownToHtml } from "./markdown-renderer.js";
+import { escapeHtml, markdownToHtml } from "./markdown-renderer.js?v=20261127-1";
 
 // Re-exported so existing consumers keep importing both from the runtime.
 export { escapeHtml, markdownToHtml };
@@ -21,19 +21,43 @@ export const writeupPageUrl = (ctfId, file) =>
   `/generated/writeups/${encodeURIComponent(ctfId)}/${encodeURIComponent(file.replace(/\.md$/i, ".html"))}`;
 
 export const getReadModel = async () => {
-  const response = await fetch("/content/runtime-read-model.json");
-  if (!response.ok) throw new Error(`Read model responded ${response.status}`);
-  return response.json();
+  // A stalled archive request must not leave the SPA loader up forever.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch("/content/runtime-read-model.json", {
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`Read model responded ${response.status}`);
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const socialIcons = {
+  LinkedIn:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 22H4v-2h16v2ZM4 20H2V4h2v16Zm18 0h-2V4h2v16ZM9 17H7v-6h2v6Zm6-6v2h-2v4h-2v-6h4Zm2 6h-2v-4h2v4ZM9 9H7V7h2v2Zm11-5H4V2h16v2Z" /></svg>',
+  GitHub:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2h4v2H7v2H5V2Zm0 10H3V6h2v6Zm2 2H5v-2h2v2Zm2 2v-2H7v2H3v-2H1v2h2v2h4v4h2v-4h2v-2H9Zm0 0v2H7v-2h2Zm6-12v2H9V4h6Zm4 2h-2V4h-2V2h4v4Zm0 6V6h2v6h-2Zm-2 2v-2h2v2h-2Zm-2 2v-2h2v2h-2Zm0 2h-2v-2h2v2Zm0 0h2v4h-2v-4Z" /></svg>',
+  X: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 20H4v-2h2v2Zm14-2h2v2h-6v-2h2v-2h2v2ZM8 18H6v-2h2v2Zm8 0h-2v-2h2v2Zm-6-2H8v-2h2v2Zm4 0h-2v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2h-2v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2H8v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2H6V8h2v2Zm4 0h-2V8h2v2Zm4 0h-2V8h2v2ZM8 6H6v2H4V6H2V4h6v2Zm2 2H8V6h2v2Zm8 0h-2V6h2v2Zm2-2h-2V4h2v2Z" /></svg>',
+  RSS: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.18 17.82a2.18 2.18 0 1 1-3.08 3.09 2.18 2.18 0 0 1 3.08-3.09ZM3 10.9v3.6c3.6 0 6.5 2.9 6.5 6.5h3.6c0-5.58-4.52-10.1-10.1-10.1ZM3 4v3.6c7.5 0 13.4 5.9 13.4 13.4H20C20 11.5 12.5 4 3 4Z" /></svg>',
+  fallback:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H4v-2h16v2ZM4 18H2V6h2v12Zm18 0h-2V6h2v12Zm-8-4h-4v-2h4v2Zm-4-2H8v-2h2v2Zm6 0h-2v-2h2v2Zm-8-2H6V8h2v2Zm10 0h-2V8h2v2Zm2-4H4V4h16v2Z" /></svg>',
 };
 
 export const socialHtml = (social = []) =>
   social
     .map((item) => {
-      const icon = item.label === "LinkedIn" ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 22H4v-2h16v2ZM4 20H2V4h2v16Zm18 0h-2V4h2v16ZM9 17H7v-6h2v6Zm6-6v2h-2v4h-2v-6h4Zm2 6h-2v-4h2v4ZM9 9H7V7h2v2Zm11-5H4V2h16v2Z" /></svg>' : item.label === "GitHub" ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2h4v2H7v2H5V2Zm0 10H3V6h2v6Zm2 2H5v-2h2v2Zm2 2v-2H7v2H3v-2H1v2h2v2h4v4h2v-4h2v-2H9Zm0 0v2H7v-2h2Zm6-12v2H9V4h6Zm4 2h-2V4h-2V2h4v4Zm0 6V6h2v6h-2Zm-2 2v-2h2v2h-2Zm-2 2v-2h2v2h-2Zm0 2h-2v-2h2v2Zm0 0h2v4h-2v-4Z" /></svg>' : item.label === "X" ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 20H4v-2h2v2Zm14-2h2v2h-6v-2h2v-2h2v2ZM8 18H6v-2h2v2Zm8 0h-2v-2h2v2Zm-6-2H8v-2h2v2Zm4 0h-2v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2h-2v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2H8v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2H6V8h2v2Zm4 0h-2V8h2v2Zm4 0h-2V8h2v2ZM8 6H6v2H4V6H2V4h6v2Zm2 2H8V6h2v2Zm8 0h-2V6h2v2Zm2-2h-2V4h2v2Z" /></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H4v-2h16v2ZM4 18H2V6h2v12Zm18 0h-2V6h2v12Zm-8-4h-4v-2h4v2Zm-4-2H8v-2h2v2Zm6 0h-2v-2h2v2Zm-8-2H6V8h2v2Zm10 0h-2V8h2v2Zm2-4H4V4h16v2Z" /></svg>';
-      if (!/^(https?:|mailto:)/i.test(item.url || ""))
-        return `<span class="social-link is-pending" title="${item.label} · coming soon" aria-label="${item.label} · coming soon"><span class="social-label">${item.label}</span><span class="social-kind">STANDBY</span><span class="social-icon">${icon}</span></span>`;
-      const external = !item.url.startsWith("mailto:");
-      return `<a class="social-link" href="${item.url}"${external ? ' target="_blank" rel="noopener"' : ""}><span class="social-label">${item.label}</span><span class="social-kind">${external ? "OPEN LINK" : "SEND NOTE"}</span><span class="social-icon">${icon}</span></a>`;
+      const url = item.url || "";
+      const internal = url.startsWith("/");
+      const external = /^https?:/i.test(url);
+      const valid = internal || /^(https?:|mailto:)/i.test(url);
+      const icon = `<span class="social-icon">${socialIcons[item.label] ?? socialIcons.fallback}</span>`;
+      if (!valid)
+        return `<span class="social-link is-pending" title="${item.label} · coming soon" aria-label="${item.label} · coming soon"><span class="social-label">${item.label}</span><span class="social-kind">STANDBY</span>${icon}</span>`;
+      const kind = external ? "OPEN LINK" : /^mailto:/i.test(url) ? "SEND NOTE" : "SUBSCRIBE";
+      return `<a class="social-link" href="${url}"${external ? ' target="_blank" rel="noopener"' : ""}><span class="social-label">${item.label}</span><span class="social-kind">${kind}</span>${icon}</a>`;
     })
     .join("");
 

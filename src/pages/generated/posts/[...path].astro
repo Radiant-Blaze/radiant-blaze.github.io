@@ -5,6 +5,10 @@ import ContentHeader from "../../../components/content/ContentHeader.astro";
 import ContentViewer from "../../../components/content/ContentViewer.astro";
 import { renderContentView, renderTocHtml } from "../../../lib/content-view";
 import { encodePath, escapeHtml, formatDate } from "../../../lib/markdown";
+import { ogImageUrl } from "../../../lib/og";
+import { renderPostPager, selectPostNeighbors } from "../../../lib/post-pager.ts";
+import { getRuntimeReadModel } from "../../../lib/runtime-read-model";
+import { collectTopics, TOPICS_INDEX_ROUTE, topicRoute } from "../../../lib/topics";
 import {
   articleEntity,
   breadcrumbEntity,
@@ -18,13 +22,25 @@ import {
 
 export async function getStaticPaths() {
   const { posts } = await getOrderedArticles();
+  const pagerItems = posts.map(({ entry }) => ({
+    id: entry.id,
+    title: getPostPresentation(entry.data).title,
+    href: postRoute(entry.id),
+  }));
+  const topicRoutes = Object.fromEntries(
+    collectTopics(await getRuntimeReadModel()).map((topic) => [
+      topic.label.toLowerCase(),
+      topicRoute(topic.slug),
+    ]),
+  );
+
   return posts.map(({ entry }) => ({
     params: { path: entry.id },
-    props: { entry },
+    props: { entry, ...selectPostNeighbors(pagerItems, entry.id), topicRoutes },
   }));
 }
 
-const { entry } = Astro.props;
+const { entry, newer, older, topicRoutes } = Astro.props;
 const post = entry.data;
 const { title, description, category, tags, author, estimatedPlayTime } = getPostPresentation(post);
 const route = postRoute(entry.id);
@@ -46,19 +62,23 @@ const jsonLd = jsonLdGraph(
     datePublished: isoDate(post.date),
     articleSection: category,
     keywords: tags,
+    image: ogImageUrl(url),
   }),
 );
 const { html: body, headings } = await renderContentView(entry.body ?? "");
+const pagerHtml = renderPostPager({ newer, older });
 const hasMermaid = body.includes('data-language="mermaid"');
 const tocHtml = renderTocHtml(headings, "This article has no section headings.");
+const tagHref = (tag: string) =>
+  (topicRoutes as Record<string, string>)[tag.trim().toLowerCase()] ?? TOPICS_INDEX_ROUTE;
 const related = [
   `<a href="/pages/blog.html?category=${encodePath(category)}">MORE ${escapeHtml(category).toUpperCase()} POSTS</a>`,
   ...tags.slice(0, 2).map((tag) =>
-    `<a href="/pages/search.html?topic=${encodePath(tag.toLowerCase())}">MORE ${escapeHtml(tag).toUpperCase()}</a>`,
+    `<a href="${tagHref(tag)}">MORE ${escapeHtml(tag).toUpperCase()}</a>`,
   ),
 ].join("");
 const tagsHtml = tags
-  .map((tag) => `<a href="/pages/search.html?topic=${encodePath(tag.toLowerCase())}"># ${escapeHtml(tag).toUpperCase()}</a>`)
+  .map((tag) => `<a href="${tagHref(tag)}"># ${escapeHtml(tag).toUpperCase()}</a>`)
   .join("");
 const tagsPanel = `<section class="pixel-panel"><h2>TAGS</h2><nav class="region-list">${tagsHtml}</nav></section>`;
 ---
@@ -69,6 +89,7 @@ const tagsPanel = `<section class="pixel-panel"><h2>TAGS</h2><nav class="region-
   jsonLd={jsonLd}
   type="post"
   body={body}
+  pagerHtml={pagerHtml}
   tocHtml={tocHtml}
   tocLabel="Article contents"
   relatedHtml={related}

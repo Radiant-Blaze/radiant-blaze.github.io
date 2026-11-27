@@ -37,6 +37,20 @@
       "evidence": "Brand + project page; no external competition observed."
     },
     {
+      "route": "generated/posts/web-development/022-static-site-app-feel.html",
+      "primary": "static astro site spa navigation",
+      "secondary": ["astro spa navigation", "static site theme bootstrap", "main scoped page modules"],
+      "intent": "informational: keep a static Astro build while adding SPA-like navigation",
+      "evidence": "Build log for this site; targets the architecture intent rather than a generic Astro tutorial query."
+    },
+    {
+      "route": "generated/posts/web-development/023-searchable-topic-layer.html",
+      "primary": "astro topic hubs static site",
+      "secondary": ["searchable static site archive", "full content rss feed", "astro json feed"],
+      "intent": "informational: derive topic, feed, and social-card layers from static content",
+      "evidence": "Build log for the generated topic/feed layer; no external competition observed for the combined intent."
+    },
+    {
       "route": "generated/posts/linux/021-tiny-command-line-toolkit.html",
       "primary": "command line toolkit aliases",
       "secondary": ["useful linux aliases", "small command line tools"],

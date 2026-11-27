@@ -18,6 +18,8 @@ export const PERSON_ID = `${SITE_URL}/#person`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;
 export const SITE_DESCRIPTION =
   "CTF writeups, Linux field notes, and software build logs from Talha Ahmed's cybersecurity and programming journey.";
+export const RSS_FEED_URL = `${SITE_URL}/rss.xml`;
+export const JSON_FEED_URL = `${SITE_URL}/feed.json`;
 
 type Entity = Record<string, unknown>;
 
@@ -64,6 +66,14 @@ export function websiteEntity(description: string): Entity {
     description,
     inLanguage: "en",
     publisher: { "@id": PERSON_ID },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${SITE_URL}/pages/search.html?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
   };
 }
 
@@ -134,6 +144,7 @@ export function articleEntity({
   datePublished,
   articleSection,
   keywords,
+  image,
 }: {
   type: "BlogPosting" | "TechArticle";
   headline: string;
@@ -142,6 +153,7 @@ export function articleEntity({
   datePublished: string;
   articleSection?: string;
   keywords?: string[];
+  image?: string;
 }): Entity {
   return {
     "@type": type,
@@ -153,6 +165,7 @@ export function articleEntity({
     datePublished,
     ...(articleSection ? { articleSection } : {}),
     ...(keywords && keywords.length ? { keywords: keywords.join(", ") } : {}),
+    ...(image ? { image } : {}),
     author: { "@id": PERSON_ID },
     publisher: { "@id": PERSON_ID },
     isPartOf: { "@id": WEBSITE_ID },

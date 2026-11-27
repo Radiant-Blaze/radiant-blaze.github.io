@@ -2,6 +2,8 @@ import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import { getOrderedArticles, postRoute, writeupRoute } from "../lib/article-data";
 import { portfolioProjectRoute, publishedProjects } from "../lib/portfolio-data";
+import { getRuntimeReadModel } from "../lib/runtime-read-model";
+import { collectTopics, isThinTopic, TOPICS_INDEX_ROUTE, topicRoute } from "../lib/topics";
 
 const ORIGIN = "https://radiant-blaze.github.io";
 const NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9";
@@ -29,11 +31,25 @@ export const GET: APIRoute = async () => {
     ? isoDate(new Date(Math.max(...contentDates)))
     : undefined;
 
+  const topics = collectTopics(await getRuntimeReadModel());
+  const topicDates = topics.map((topic) => topic.lastmod.getTime());
+  const topicsLastmod = topicDates.length
+    ? isoDate(new Date(Math.max(...topicDates)))
+    : listingLastmod;
+  // Thin hubs are noindexed, so the sitemap lists only hubs with enough entries
+  // to stand on their own. The index page still links every hub for readers.
+  const indexableTopics = topics.filter((topic) => !isThinTopic(topic));
+
   const entries: SitemapEntry[] = [
     { loc: `${ORIGIN}/`, lastmod: listingLastmod },
     { loc: `${ORIGIN}/pages/blog.html`, lastmod: listingLastmod },
     { loc: `${ORIGIN}/pages/search.html`, lastmod: listingLastmod },
     { loc: `${ORIGIN}/pages/ctf.html`, lastmod: listingLastmod },
+    { loc: `${ORIGIN}${TOPICS_INDEX_ROUTE}`, lastmod: topicsLastmod },
+    ...indexableTopics.map((topic) => ({
+      loc: `${ORIGIN}${topicRoute(topic.slug)}`,
+      lastmod: isoDate(topic.lastmod),
+    })),
     // Portfolio entries carry optional dates, so no lastmod is declared here.
     { loc: `${ORIGIN}/portfolio/` },
     ...projects.map((project) => ({ loc: `${ORIGIN}${portfolioProjectRoute(project)}` })),

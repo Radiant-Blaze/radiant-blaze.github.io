@@ -38,6 +38,9 @@ export const STATIC_ROUTES = new Set([
   "/pages/search.html",
   "/pages/writeup.html",
   "/portfolio/",
+  "/topics.html",
+  "/rss.xml",
+  "/feed.json",
   "/sitemap.xml",
   "/astro-article-order.json",
   "/content/runtime-read-model.json",
@@ -344,6 +347,11 @@ export function inspectLinks({ html, route, routes, assetExists, headingsForRout
     if (pathname.startsWith("/content/")) {
       if (/^\/content\/(?:posts|ctfs)\/index\.json$/.test(pathname) || pathname === "/content/runtime-read-model.json") continue;
       if (!assetExists(pathname)) issues.push(error(null, "link", `content endpoint/file does not exist: ${pathname}`));
+      continue;
+    }
+
+    if (pathname.startsWith("/topics/") || pathname.startsWith("/og/")) {
+      // Generated from the content model; check:seo verifies the built routes.
       continue;
     }
 
