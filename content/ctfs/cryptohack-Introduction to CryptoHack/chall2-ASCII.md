@@ -7,7 +7,7 @@ flag: crypto{ASCII_pr1nt4bl3}
 solves: 
 tags: [crypto, ascii]
 author: Radiant Blaze
-description: Convert a sequence of ASCII integer values into their corresponding characters to recover the flag.
+description: "CryptoHack ASCII: convert a list of decimal character codes back into text with Python's chr(), then reverse it with ord() to check the round trip."
 ---
 
 ## The Capture
@@ -65,6 +65,8 @@ crypto{ASCII_pr1nt4bl3}
 ```
 
 The second loop simply converts the characters back into their ASCII integer values using `ord()`, demonstrating the reverse operation.
+
+Once the bytes are text, [HEX](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall3-Hex.html) and [Base64](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall4-Base64.html) show how the same bytes are encoded for transport.
 
 ## Flag
 

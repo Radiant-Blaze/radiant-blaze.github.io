@@ -1,0 +1,250 @@
+{
+  "$comment": "Keyword-to-page map for the published archive. One primary intent per page; no two pages may claim the same primary keyword. `evidence` records what was actually observed during research (search results, CryptoHack solve counts on 2026-11-26) - no search volumes are asserted because none were measured.",
+  "pages": [
+    {
+      "route": "index.html",
+      "primary": "radiant blaze ctf writeups",
+      "secondary": ["linux field notes", "cybersecurity portfolio"],
+      "intent": "navigational: find the site behind the Radiant Blaze name",
+      "evidence": "Brand term; no competing site uses the name."
+    },
+    {
+      "route": "pages/blog.html",
+      "primary": "linux and software field notes",
+      "secondary": ["linux terminal notes", "software development build logs"],
+      "intent": "informational: browse short technical notes",
+      "evidence": "Generic category term; broad and competitive, so the page targets the browse intent rather than a single post."
+    },
+    {
+      "route": "pages/ctf.html",
+      "primary": "ctf writeups by event",
+      "secondary": ["capture the flag walkthroughs", "ctf challenge solutions"],
+      "intent": "informational: browse writeups grouped by competition",
+      "evidence": "Observed aggregator pages (CTFtime, team blogs) compete for generic 'ctf writeups'; the event grouping is the differentiator."
+    },
+    {
+      "route": "portfolio/index.html",
+      "primary": "talha ahmed portfolio",
+      "secondary": ["software development portfolio", "cybersecurity learner portfolio"],
+      "intent": "navigational: find the author's work",
+      "evidence": "Name-based query; matches the portfolio's own display name."
+    },
+    {
+      "route": "portfolio/projects/radiant-blaze-site.html",
+      "primary": "radiant blaze website project",
+      "secondary": ["astro content site", "static site portfolio"],
+      "intent": "navigational/informational: the project file for this site",
+      "evidence": "Brand + project page; no external competition observed."
+    },
+    {
+      "route": "generated/posts/linux/021-tiny-command-line-toolkit.html",
+      "primary": "command line toolkit aliases",
+      "secondary": ["useful linux aliases", "small command line tools"],
+      "intent": "informational: practical terminal workflow",
+      "evidence": "Long-tail; generic 'linux aliases' is saturated by listicles, so the note targets the narrower toolkit framing."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall1-Great-Snakes.html",
+      "primary": "cryptohack great snakes writeup",
+      "secondary": ["cryptohack introduction solutions", "xor with 50"],
+      "intent": "informational: solve a specific course challenge",
+      "evidence": "CryptoHack reports 98,485 solves and 2 official solutions; many independent blogs publish writeups, so competition is high and the exact-name query is the viable entry point."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall2-ASCII.html",
+      "primary": "cryptohack ascii writeup",
+      "secondary": ["chr ord python", "ascii integer array decode"],
+      "intent": "informational: decode ASCII codes",
+      "evidence": "Course challenge page exists; several multi-challenge blog posts cover it as one section."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall3-Hex.html",
+      "primary": "cryptohack hex writeup",
+      "secondary": ["bytes.fromhex", "hex decode python"],
+      "intent": "informational: decode hex to bytes",
+      "evidence": "Course challenge page exists; independent writeups observed."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall4-Base64.html",
+      "primary": "cryptohack base64 writeup",
+      "secondary": ["base64 b64encode python", "hex to base64"],
+      "intent": "informational: hex to bytes to Base64",
+      "evidence": "Course challenge page exists; usually covered inside multi-challenge posts."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall5-Bytes-and-Big-Integers.html",
+      "primary": "cryptohack bytes and big integers writeup",
+      "secondary": ["long_to_bytes", "Cryptodome import windows"],
+      "intent": "informational: convert an integer back to bytes",
+      "evidence": "Course challenge page exists; the Windows import detail is a distinct long-tail angle."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall6-XOR-Starter.html",
+      "primary": "cryptohack xor starter writeup",
+      "secondary": ["pwntools xor", "ord chr xor python"],
+      "intent": "informational: first XOR exercise",
+      "evidence": "Course challenge page exists; covered inside CryptoHack series posts."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall7-XOR-Properties.html",
+      "primary": "cryptohack xor properties writeup",
+      "secondary": ["xor associativity", "self inverse xor"],
+      "intent": "informational: undo chained XOR",
+      "evidence": "Course challenge page exists; fewer dedicated writeups than the starter challenge."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall8-Favourite-byte.html",
+      "primary": "cryptohack favorite byte writeup",
+      "secondary": ["single byte xor brute force", "xor cipher brute force python"],
+      "intent": "informational: brute-force a one-byte XOR key",
+      "evidence": "Course challenge page exists; the brute-force angle overlaps many general single-byte-XOR tutorials."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Introduction to CryptoHack/chall9-You-either-know-XOR-you-don't.html",
+      "primary": "cryptohack you either know xor you dont writeup",
+      "secondary": ["repeating xor key known plaintext", "crypto prefix xor"],
+      "intent": "informational: known-plaintext key recovery",
+      "evidence": "Course challenge page exists; the challenge name is distinctive enough for an exact-query match."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.html",
+      "primary": "cryptohack greatest common divisor writeup",
+      "secondary": ["math.gcd python", "euclidean algorithm example"],
+      "intent": "informational: gcd of two integers",
+      "evidence": "Course challenge page exists; a Chinese-language series was the main competing writeup observed."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall2-Extended-GCD.html",
+      "primary": "cryptohack extended gcd writeup",
+      "secondary": ["sympy gcdex", "bezout coefficients python"],
+      "intent": "informational: extended Euclidean algorithm",
+      "evidence": "Course challenge page exists; competing writeups often only show the SymPy call."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall3-Modular-Arithmetic-1.html",
+      "primary": "cryptohack modular arithmetic 1 writeup",
+      "secondary": ["python modulo operator", "11 mod 6"],
+      "intent": "informational: basic modular reduction",
+      "evidence": "Course challenge page exists; covered as a section in series posts."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall4-Modular-Arithmetic-2.html",
+      "primary": "cryptohack modular arithmetic 2 writeup",
+      "secondary": ["fermats little theorem python", "pow with modulus"],
+      "intent": "informational: prime-modulus exponentiation",
+      "evidence": "Course challenge page exists; Fermat's Little Theorem is a well-covered general topic."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall5-Modular-Inverting.html",
+      "primary": "cryptohack modular inverting writeup",
+      "secondary": ["pow 3 -1 13", "modular inverse python"],
+      "intent": "informational: multiplicative inverse",
+      "evidence": "Course challenge page exists; the three-argument pow() one-liner is the distinctive detail."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall6-Quadratic-Residues.html",
+      "primary": "cryptohack quadratic residues writeup",
+      "secondary": ["quadratic residue mod 29", "square roots modulo prime"],
+      "intent": "informational: identify residues by brute force",
+      "evidence": "Course challenge page exists; usually grouped inside modular-arithmetic series posts."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.html",
+      "primary": "cryptohack legendre symbol writeup",
+      "secondary": ["eulers criterion", "legendre symbol python"],
+      "intent": "informational: classify residues for a large prime",
+      "evidence": "CryptoHack reports 16,895 solves and 55 official solutions - high competition, so the exact challenge-name query is the target."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall8-Modular-Square-Root.html",
+      "primary": "cryptohack modular square root writeup",
+      "secondary": ["tonelli shanks python", "sagemath sqrt mod p"],
+      "intent": "informational: extract a modular square root",
+      "evidence": "CryptoHack reports 15,267 solves and 51 official solutions; competing writeups often stop at the SageMath one-liner."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall9-Chinese-Remainder-Theorem.html",
+      "primary": "cryptohack chinese remainder theorem writeup",
+      "secondary": ["crt modular equations", "crt python example"],
+      "intent": "informational: solve simultaneous congruences",
+      "evidence": "Course challenge page exists; CRT is a common textbook topic with broad competition."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall10-Adrien's-Signs.html",
+      "primary": "cryptohack adriens signs writeup",
+      "secondary": ["goldwasser micali", "legendre symbol bits"],
+      "intent": "informational: decode a Goldwasser-Micali style ciphertext",
+      "evidence": "Course challenge page exists; the challenge name is distinctive."
+    },
+    {
+      "route": "generated/writeups/cryptohack-Modular-Arithmetic/chall11-Modular-Binomials.html",
+      "primary": "cryptohack modular binomials writeup",
+      "secondary": ["rsa common modulus gcd", "lcm exponent attack"],
+      "intent": "informational: recover RSA primes from linear combinations",
+      "evidence": "Course challenge page exists; RSA factor-recovery searches are competitive but usually target generic attacks."
+    },
+    {
+      "route": "generated/writeups/ASIS-CTF-2026/Hackel.html",
+      "primary": "asis ctf 2026 hackel writeup",
+      "secondary": ["asis quals 2026 crypto", "one bit classifier"],
+      "intent": "informational: solve a specific competition challenge",
+      "evidence": "Observed competitor writeups: cybersecurityelite.com ASIS 2026 crypto roundup, a 28-challenge GitHub repo, and a Magichrist archive page."
+    },
+    {
+      "route": "generated/writeups/ASIS-CTF-2026/Headache.html",
+      "primary": "asis ctf 2026 headache writeup",
+      "secondary": ["nonlinear oracle least squares", "scipy least_squares ctf"],
+      "intent": "informational: solve the nonlinear-oracle crypto challenge",
+      "evidence": "Competitor coverage appears inside multi-challenge ASIS 2026 roundups rather than dedicated pages."
+    },
+    {
+      "route": "generated/writeups/Digital-Pakistan-Red-Team-CTF/helios-vault.html",
+      "primary": "digital pakistan red team ctf helios vault",
+      "secondary": ["shamir secret sharing ctf", "lagrange interpolation at zero"],
+      "intent": "informational: solve the threshold-sharing challenge",
+      "evidence": "No dedicated public writeup surfaced for this event's challenges during the search; the event name plus challenge is the long-tail target."
+    },
+    {
+      "route": "generated/writeups/Digital-Pakistan-Red-Team-CTF/spec-warden.html",
+      "primary": "digital pakistan red team ctf spec warden",
+      "secondary": ["yaml nan openapi bypass", "prefix oracle"],
+      "intent": "informational: solve the OpenAPI validation bypass",
+      "evidence": "No dedicated public writeup surfaced; target the exact challenge name."
+    },
+    {
+      "route": "generated/writeups/Digital-Pakistan-Red-Team-CTF/promise.html",
+      "primary": "digital pakistan red team ctf promise",
+      "secondary": ["knapsack kem attack", "continued fractions cryptography"],
+      "intent": "informational: solve the continued-fractions KEM",
+      "evidence": "No dedicated public writeup surfaced; exact-name query only."
+    },
+    {
+      "route": "generated/writeups/Digital-Pakistan-Red-Team-CTF/meeeps.html",
+      "primary": "digital pakistan red team ctf meeeps",
+      "secondary": ["mips gp slide exploit", "mipsel pwn ctf"],
+      "intent": "informational: solve the MIPS pwn challenge",
+      "evidence": "No dedicated public writeup surfaced; MIPS pwn content is rare, which favours the long-tail query."
+    },
+    {
+      "route": "generated/writeups/Digital-Pakistan-Red-Team-CTF/hoe-ap.html",
+      "primary": "digital pakistan red team ctf hoe ap",
+      "secondary": ["custom allocator heap exploit", "handle based pwn"],
+      "intent": "informational: solve the handle-only heap challenge",
+      "evidence": "No dedicated public writeup surfaced; the challenge name is the only realistic query."
+    }
+  ],
+  "gaps": [
+    {
+      "topic": "linux alias examples",
+      "reason": "The existing toolkit post is the only Linux note and is short; a dedicated note with verified command examples would be required before targeting this query."
+    },
+    {
+      "topic": "astro markdown content pipeline",
+      "reason": "The site itself is built on this stack, but no article documents it yet; writing one requires a separate, researched piece."
+    },
+    {
+      "topic": "ctf beginner path",
+      "reason": "Would need a curated guide that does not exist; do not fake it."
+    }
+  ]
+}

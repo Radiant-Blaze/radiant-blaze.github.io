@@ -7,6 +7,16 @@ import { renderContentView, renderTocHtml } from "../../../../lib/content-view";
 import { difficultyMeterHtml } from "../../../../lib/difficulty";
 import { escapeHtml, formatDate } from "../../../../lib/markdown";
 import { selectRelatedWriteups, type RelatedWriteup } from "../../../../lib/related-content";
+import {
+  articleEntity,
+  breadcrumbEntity,
+  isoDate,
+  jsonLdGraph,
+  personEntity,
+  SITE_DESCRIPTION,
+  webPageEntity,
+  websiteEntity,
+} from "../../../../lib/seo";
 
 export async function getStaticPaths() {
   const { writeups } = await getOrderedArticles();
@@ -56,6 +66,31 @@ const {
   author,
 } = getWriteupPresentation(challenge, challengeFile, eventTitle);
 const route = writeupRoute(ctfId, challengeFile);
+const url = `https://radiant-blaze.github.io${route}`;
+// Keep the browser/SEO title inside the ~65-character guideline: long
+// challenge plus event names drop the brand suffix instead of being truncated.
+const eventScopedTitle = `${title} · ${eventTitle}`;
+const brandedTitle = `${eventScopedTitle} · Radiant Blaze`;
+const pageTitle = brandedTitle.length > 65 ? eventScopedTitle : brandedTitle;
+const jsonLd = jsonLdGraph(
+  personEntity(),
+  websiteEntity(SITE_DESCRIPTION),
+  webPageEntity({ name: title, description, url }),
+  breadcrumbEntity([
+    { name: "Home", path: "/" },
+    { name: "CTF Writeups", path: "/pages/ctf.html" },
+    { name: title, path: route },
+  ]),
+  articleEntity({
+    type: "TechArticle",
+    headline: title,
+    description,
+    url,
+    datePublished: isoDate(event.data.date),
+    articleSection: category,
+    keywords: challengeTags,
+  }),
+);
 const challengeNumber = eventChallengeFiles.indexOf(challengeFile);
 const previous = eventChallengeFiles[challengeNumber - 1];
 const following = eventChallengeFiles[challengeNumber + 1];
@@ -74,9 +109,10 @@ const relatedChallengesHtml = relatedWriteups.length > 0
   : "";
 ---
 <ContentViewer
-  title={`${title} · ${eventTitle} · Radiant Blaze`}
+  title={pageTitle}
   description={description}
-  canonical={`https://radiant-blaze.github.io${route}`}
+  canonical={url}
+  jsonLd={jsonLd}
   type="writeup"
   body={body}
   tocHtml={tocHtml}

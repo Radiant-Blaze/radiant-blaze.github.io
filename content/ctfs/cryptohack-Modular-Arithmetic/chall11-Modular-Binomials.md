@@ -7,11 +7,11 @@ flag: crypto{1122740001692584863902620644419912006085563761274089527015149626443
 solves:
 tags: [crypto, rsa, modular-arithmetic, gcd, lcm, common-modulus]
 author: Radiant Blaze
-description: Recover the RSA primes p and q from two modular equations involving linear combinations of the factors.
+description: "CryptoHack Modular Binomials: raise both ciphertext equations to a common lcm exponent and use gcd(N, x - y) to recover the two RSA primes."
 ---
 ## The Capture
 
-The challenge gives us an RSA modulus:
+The challenge gives us an RSA modulus and two ciphertext equations built from its factors; the task is to recover the primes `p` and `q`.
 
 ```text
 N = p · q
@@ -247,6 +247,8 @@ True
 ```
 
 Thus the two hidden RSA primes have been successfully recovered.
+
+The final factor extraction is a plain [Greatest Common Divisor](/generated/writeups/cryptohack-Modular-Arithmetic/chall1-Greatest-Common-Divisor.html); [Extended GCD](/generated/writeups/cryptohack-Modular-Arithmetic/chall2-Extended-GCD.html) shows the coefficient form used for RSA inverses.
 
 ## Flag
 

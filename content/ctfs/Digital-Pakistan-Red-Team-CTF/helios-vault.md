@@ -7,10 +7,8 @@ flag: "prg{th3_qu0rum_h0lds_[A-Za-z0-9]{81794651779Y1v4PR83785774856de4af93010f8
 solves:
 tags: [programming, crypto, shamir-secret-sharing, lagrange-interpolation, ctf]
 author: Radiant Blaze
-description: Recover a sealed secret from a threshold secret-sharing scheme. The service sends a quorum of shares over a fresh prime field in each of 50 rounds and expects the polynomial's value at x = 0.
+description: "Recover a threshold secret-sharing key: 50 rounds of Shamir shares over a fresh prime field, rebuilt with Lagrange interpolation at x = 0."
 ---
-
-# Helios Vault
 
 ## Challenge Overview
 
@@ -194,6 +192,8 @@ server: {'status': 'unsealed', 'rounds': 50, 'flag': 'prg{th3_qu0rum_h0lds_[A-Za
 ```
 
 All 50 rounds were answered. The whole session finished in about 11 seconds, comfortably inside the window, and the server reported `unsealed`.
+
+Another crypto challenge from the same event, [Promise](/generated/writeups/Digital-Pakistan-Red-Team-CTF/promise.html), turns a knapsack-style KEM into a continued-fractions problem.
 
 ## Flag
 

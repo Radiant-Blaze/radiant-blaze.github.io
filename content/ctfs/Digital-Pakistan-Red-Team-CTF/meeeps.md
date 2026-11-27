@@ -7,11 +7,8 @@ flag: "pwn{m1p5_1s_34s13r_th4n_y0u_7h1nK_[A-Za-z0-9]{61794652441MpRubRMB93711fc9
 solves:
 tags: [pwn, mips, mipsel, gp-slide, ctf]
 author: Radiant Blaze
-description: A 32-bit little-endian MIPS menu program with an unchecked read, an unchecked stack write and a $gp-relative GOT call. Leak libc and the PIE base, plant a pointer, then slide $gp to turn a puts() call into system().
+description: "A 32-bit MIPS menu binary with an unchecked read and write: leak PIE and libc, plant &system in a table, then slide $gp to hijack a puts() call."
 ---
-
-# meeeps (gp_slide)
-
 
 | Item | Value |
 |---|---|
@@ -483,6 +480,8 @@ Run with `python3 exploit.py`.
 ```
 
 Then the socket returned the flag. Addresses differ on every run because ASLR randomises both the PIE and libc mappings.
+
+For a glibc heap target instead of MIPS, [hoe-ap](/generated/writeups/Digital-Pakistan-Red-Team-CTF/hoe-ap.html) abuses a custom allocator in a handle-only pool.
 
 ## Flag
 

@@ -7,7 +7,7 @@ flag: crypto{Base+64+Encoding+is+Web+Safe}
 solves: 
 tags: [crypto, base64, encoding]
 author: Radiant Blaze
-description: Decode a hexadecimal string into bytes and then encode those bytes using Base64.
+description: "CryptoHack Base64: decode a hex string into bytes and re-encode it with base64.b64encode(), then reverse the steps to verify the result."
 ---
 
 ## The Capture
@@ -69,6 +69,8 @@ The resulting Base64 value is:
 ```text
 b'crypto/Base+64+Encoding+is+Web+Safe/
 ```
+
+Next in the series: [Bytes and Big Integers](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall5-Bytes-and-Big-Integers.html) turns the same hex bytes into one large integer, the representation RSA actually works with.
 
 ## Flag
 

@@ -237,3 +237,42 @@
     gap: 3px;
   }
 }
+
+/* Event cards list their writeups so every writeup is reachable from the
+   listing itself, with or without JavaScript. */
+.event-writeups {
+  display: grid;
+  gap: 4px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.event-writeups li {
+  min-width: 0;
+}
+.event-writeups a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--text);
+  font-size: 8px;
+  line-height: 1.8;
+  text-decoration-color: var(--accent-cyan-text);
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.event-writeups a::before {
+  content: "▸";
+  margin-right: 6px;
+  color: var(--accent-cyan-text);
+}
+.event-writeups a:hover {
+  color: var(--accent-cyan-text);
+}
+.event-writeups a:focus-visible {
+  outline: 3px solid var(--accent-cyan-text);
+  outline-offset: 3px;
+}
+.light-theme .event-writeups a {
+  color: var(--light-text);
+}

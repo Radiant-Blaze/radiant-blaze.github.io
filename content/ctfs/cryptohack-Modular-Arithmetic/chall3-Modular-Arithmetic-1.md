@@ -7,7 +7,7 @@ flag: "4"
 solves: 
 tags: [crypto, modular-arithmetic, rsa]
 author: Radiant Blaze
-description: Calculate two modular arithmetic problems and submit the smaller resulting value.
+description: "CryptoHack Modular Arithmetic 1: compute 11 mod 6 and 8146798528947 mod 17 with Python's % operator, and see why the smaller answer is 4."
 ---
 
 ## The Capture
@@ -107,6 +107,8 @@ And:
 ```
 
 So the final answer is `4`.
+
+Prime moduli add Fermat's Little Theorem, covered in [Modular Arithmetic 2](/generated/writeups/cryptohack-Modular-Arithmetic/chall4-Modular-Arithmetic-2.html).
 
 ## Flag
 

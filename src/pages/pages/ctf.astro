@@ -7,6 +7,16 @@ import Footer from "../../components/Footer.astro";
 import QuestShell from "../../layouts/QuestShell.astro";
 import PlayerStats from "../../components/PlayerStats.astro";
 import { calculatePlayerStats } from "../../lib/player-stats";
+import { homeWriteupPageUrl } from "../../lib/home-selection";
+import {
+  breadcrumbEntity,
+  itemListEntity,
+  jsonLdGraph,
+  personEntity,
+  SITE_DESCRIPTION,
+  webPageEntity,
+  websiteEntity,
+} from "../../lib/seo";
 
 const readModel = await getRuntimeReadModel();
 const { ctfs } = readModel;
@@ -25,14 +35,36 @@ const pagination = Array.from({ length: totalPages }, (_, index) => {
   const page = index + 1;
   return `<a class="pixel-button start-button" href="${page === 1 ? "ctf.html" : `ctf.html?pg=${page}`}"${page === 1 ? ' aria-current="page"' : ""}>${page}</a>`;
 }).join("");
+const url = "https://radiant-blaze.github.io/pages/ctf.html";
+const description = "Capture-the-flag writeups grouped by event — browse solved challenges and walkthroughs from each competition.";
+const jsonLd = jsonLdGraph(
+  personEntity(),
+  websiteEntity(SITE_DESCRIPTION),
+  webPageEntity({ type: "CollectionPage", name: "CTF Writeups", description, url }),
+  breadcrumbEntity([
+    { name: "Home", path: "/" },
+    { name: "CTF Writeups", path: "/pages/ctf.html" },
+  ]),
+  itemListEntity({
+    name: "CTF writeups",
+    url,
+    items: ctfs.flatMap((ctf) =>
+      (ctf.challenges || []).map((challenge: Record<string, any>) => ({
+        name: challenge.title || challenge.file,
+        path: homeWriteupPageUrl(ctf.id, challenge.file),
+      })),
+    ),
+  }),
+);
 const paginationWithControls = totalPages > 1
   ? `<a class="pixel-button start-button" href="ctf.html" aria-label="Previous page" aria-disabled="true" tabindex="-1">‹</a>${pagination}<a class="pixel-button start-button" href="ctf.html?pg=2" aria-label="Next page">›</a>`
   : "";
 ---
 <QuestShell
-  title="CTF Arena · Radiant Blaze"
-  description="Capture-the-flag write-ups grouped by event — browse solved challenges from each competition."
-  canonical="https://radiant-blaze.github.io/pages/ctf.html"
+  title="CTF Writeups · Radiant Blaze"
+  description={description}
+  canonical={url}
+  jsonLd={jsonLd}
   ogTitle="CTF Arena · Radiant Blaze"
   currentPage="ctf"
   bodyClass="listing-document"
@@ -41,7 +73,7 @@ const paginationWithControls = totalPages > 1
     <p class="ctf-back" data-ctf-back></p>
     <p class="eyebrow">CAPTURE LOG · ONLINE</p>
     <h1 class="quest-title" data-ctf-title>CTF ARENA</h1>
-    <p class="quest-intro" data-ctf-intro>Capture-the-flag write-ups, grouped by event. Pick a competition to browse the challenges I cracked.</p>
+    <p class="quest-intro" data-ctf-intro>Capture-the-flag write-ups, grouped by event. Pick a competition to browse the challenges I cracked — each entry documents the analysis and the commands or scripts used.</p>
     <form class="search-form ctf-search-form" action="ctf.html" method="get" data-ctf-search>
       <input type="hidden" name="ctf" data-ctf-search-scope />
       <input type="hidden" name="year" data-ctf-search-year />

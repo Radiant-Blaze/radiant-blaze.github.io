@@ -10,8 +10,6 @@ author: Radiant Blaze
 description: Recover the flag by identifying a leaked one-bit classification rule from the training samples and decoding the resulting 496-bit stream as ASCII.
 ---
 
-# ASIS CTF Writeup: Hackel Security Service
-
 ## Challenge Overview
 
 The challenge exposes a service called **Hackel Security Service v1.0** with several options:
@@ -448,6 +446,8 @@ Converting those bits to ASCII gives:
 ```text
 ASIS{sEm1d!r3c7_gr0uP_pr3S3nt4T10n____k3y___r3C0verY_4TtacK!!}
 ```
+
+The other ASIS 2026 crypto challenge in this archive, [Headache](/generated/writeups/ASIS-CTF-2026/Headache.html), recovers a nonlinear oracle with least squares.
 
 ## Key Takeaway
 

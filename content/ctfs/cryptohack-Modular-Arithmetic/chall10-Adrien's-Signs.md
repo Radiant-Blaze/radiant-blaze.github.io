@@ -7,11 +7,11 @@ flag: crypto{p4tterns_1n_re5idu3s}
 solves:
 tags: [crypto, goldwasser-micali, legendre-symbol, quadratic-residues, modular-arithmetic]
 author: Radiant Blaze
-description: Recover the flag by identifying the quadratic residue pattern in a Goldwasser-Micali style encryption scheme.
+description: "CryptoHack Adrien's Signs: read a Goldwasser-Micali ciphertext bit by bit with the Legendre symbol, then rebuild the flag from 8-bit groups."
 ---
 ## The Capture
 
-The challenge provides two files:
+The challenge provides two files — the encryption script and the captured ciphertext — and each ciphertext value stands in for one bit of the flag.
 
 ```text
 output.py
@@ -239,6 +239,8 @@ b'crypto{p4tterns_1n_re5idu3s}'
 ```
 
 is obtained.
+
+The Legendre symbol used to read each bit is explained in [Legendre Symbol](/generated/writeups/cryptohack-Modular-Arithmetic/chall7-Legendre-Symbol.html), with the underlying roots in [Quadratic Residues](/generated/writeups/cryptohack-Modular-Arithmetic/chall6-Quadratic-Residues.html).
 
 ## Flag
 

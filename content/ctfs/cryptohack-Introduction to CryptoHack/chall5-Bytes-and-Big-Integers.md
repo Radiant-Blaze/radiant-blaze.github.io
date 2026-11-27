@@ -7,7 +7,7 @@ flag: crypto{3nc0d1n6_4ll_7h3_w4y_d0wn}
 solves: 
 tags: [crypto, bytes, big-integers, rsa]
 author: Radiant Blaze
-description: Convert a large integer back into its original byte representation to recover the message.
+description: "CryptoHack Bytes and Big Integers: convert an RSA-sized integer back into bytes with PyCryptodome's long_to_bytes(), plus the Windows import fix."
 ---
 
 ## The Capture
@@ -63,6 +63,8 @@ b'crypto{3nc0d1n6_4ll_7h3_w4y_d0wn}'
 ```
 
 > **Windows warning:** If `from Cryptodome.Util.number import long_to_bytes` does not work, use `from Crypto.Util.number import long_to_bytes` instead.
+
+If you want the encoding side of the round trip, [HEX](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall3-Hex.html) covers the same bytes as a hexadecimal string.
 
 ## Flag
 

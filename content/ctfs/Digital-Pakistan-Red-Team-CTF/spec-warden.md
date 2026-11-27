@@ -7,10 +7,8 @@ flag: "prg{n4n_sl1pp3d_p4st_th3_sp3c_[A-Za-z0-9]{8179465937987cQ4YCJ46db0b40f33c
 solves:
 tags: [web, ctf, openapi, json-schema, yaml, validation-bypass]
 author: Radiant Blaze
-description: A contract-validated relay control gateway pins the maintenance console to false. Bypass the OpenAPI schema check with a YAML non-finite float and recover the vault key through a prefix oracle.
+description: "Bypass an OpenAPI-validated relay gateway with a YAML non-finite float, then recover the 106-character vault key through a prefix oracle."
 ---
-
-# Spec Warden
 
 ## Challenge Overview
 

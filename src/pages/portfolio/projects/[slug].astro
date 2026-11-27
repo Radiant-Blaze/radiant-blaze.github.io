@@ -4,6 +4,16 @@ import QuestShell from "../../../layouts/QuestShell.astro";
 import Footer from "../../../components/Footer.astro";
 import { portfolioProjectRoute, portfolioSlug, publishedProjects } from "../../../lib/portfolio-data";
 import { escapeHtml, formatDate, renderMarkdown } from "../../../lib/markdown";
+import {
+  breadcrumbEntity,
+  isoDate,
+  jsonLdGraph,
+  personEntity,
+  projectEntity,
+  SITE_DESCRIPTION,
+  webPageEntity,
+  websiteEntity,
+} from "../../../lib/seo";
 
 export async function getStaticPaths() {
   const entries = await getCollection("portfolio");
@@ -25,11 +35,29 @@ const canonical = `https://radiant-blaze.github.io${portfolioProjectRoute(entry)
 const externalLinks = links ?? [];
 const technologyItems = technologies ?? [];
 const projectNumber = entry.data.order;
+const jsonLd = jsonLdGraph(
+  personEntity(),
+  websiteEntity(SITE_DESCRIPTION),
+  webPageEntity({ name: title, description, url: canonical }),
+  breadcrumbEntity([
+    { name: "Home", path: "/" },
+    { name: "Portfolio", path: "/portfolio/" },
+    { name: title, path: portfolioProjectRoute(entry) },
+  ]),
+  projectEntity({
+    name: title,
+    description,
+    url: canonical,
+    datePublished: date ? isoDate(date) : undefined,
+    keywords: [category, ...technologyItems],
+  }),
+);
 ---
 <QuestShell
   title={`${title} · Portfolio · Radiant Blaze`}
   description={description}
   canonical={canonical}
+  jsonLd={jsonLd}
   ogTitle={`${title} · Radiant Blaze`}
   currentPage="portfolio"
   brandHref="/"

@@ -1,10 +1,10 @@
 {
-  "title": "cryptohack-Modular Arithmetic",
+  "title": "Modular Arithmetic",
   "event": "CryptoHack",
   "date": "2026-07-31",
   "difficulty": 3,
   "url": "https://cryptohack.org/courses/modular/course_details/",
-  "description": "Wrirteups for the module 2 of cryptohack",
+  "description": "Writeups for module 2 of CryptoHack: modular arithmetic, quadratic residues and RSA factor recovery.",
   "challenges":
   [
     "chall1-Greatest-Common-Divisor.md",

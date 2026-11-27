@@ -22,6 +22,10 @@ npm run test:astro-route-parity
 npm run test:compatibility-assets
 npm run check:homepage-parity
 npm run check:mermaid
+npm run check:seo          # validates dist/ SEO: metadata, canonicals, JSON-LD, sitemap, internal links
+npm run check:live         # same contract against the deployed site (SITE_URL to override)
+# Keyword-to-page targets live in astro-tools/seo-keywords.json; check:seo also
+# reports unmapped articles, overlapping intent and missing keyword coverage.
 python astro-tools/compare_output.py
 ```
 

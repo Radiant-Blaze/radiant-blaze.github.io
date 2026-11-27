@@ -7,7 +7,7 @@ flag: crypto{You_will_be_working_with_hex_strings_a_lot}
 solves: 
 tags: [crypto, hex, encoding]
 author: Radiant Blaze
-description: Decode a hexadecimal string back into bytes to recover the original flag.
+description: "CryptoHack HEX: decode a hexadecimal ciphertext into raw bytes with bytes.fromhex(), and see why hex is an encoding rather than encryption."
 ---
 
 ## The Capture
@@ -55,6 +55,8 @@ The decoded bytes reveal the flag:
 ```text
 b'crypto{You_will_be_working_with_hex_strings_a_lot}'
 ```
+
+Continue with [Base64](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall4-Base64.html) to see why the same bytes get a different, web-safe encoding.
 
 ## Flag
 

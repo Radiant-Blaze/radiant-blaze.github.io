@@ -83,7 +83,12 @@ def parse_frontmatter(relative_path):
     fields = {}
     for line in match.group(1).split("\n"):
         parts = line.split(":")
-        fields[parts[0].strip()] = ":".join(parts[1:]).strip().replace("[", "", 1).removesuffix("]")
+        value = ":".join(parts[1:]).strip().replace("[", "", 1).removesuffix("]")
+        # YAML-quoted scalars (descriptions containing colons) reach the page
+        # without their quotes, so mirror that here.
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        fields[parts[0].strip()] = value
     return fields
 
 

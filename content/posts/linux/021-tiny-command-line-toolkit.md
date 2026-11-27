@@ -1,6 +1,6 @@
 ---
 title: Building a Tiny Command-Line Toolkit
-description: A practical guide to small tools, useful aliases, and less terminal friction.
+description: "A practical guide to small command-line tools, useful shell aliases, and pruning a terminal setup until only the commands you actually need remain."
 date: 2026-07-22
 tags: [terminal, tooling, productivity]
 category: Linux

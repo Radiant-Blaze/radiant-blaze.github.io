@@ -544,7 +544,13 @@ const testSpaNavigation = async (session) => {
       return true;
     `),
   );
-  await session.waitFor('document.querySelectorAll(\'a[href*="writeups"]\').length > 0', "event challenge cards via SPA");
+  // Event cards on the all-events listing also carry writeup links now, so
+  // wait until the filtered event view has replaced the listing before
+  // selecting a challenge card.
+  await session.waitFor(
+    run(`return document.querySelectorAll(".event-writeups").length === 0 && document.querySelectorAll('a[href*="writeups"]').length > 0`),
+    "event challenge cards via SPA",
+  );
   await session.evaluate(
     run(`
       const link = [...document.querySelectorAll('a[href*="writeups"]')].find((item) => item.href.includes("meeeps"));

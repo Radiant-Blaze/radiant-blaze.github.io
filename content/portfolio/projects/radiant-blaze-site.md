@@ -13,3 +13,5 @@ order: 1
 published: true
 ---
 The site combines Markdown-backed articles and CTF writeups with searchable, year-aware content indexes. Its shared layouts and theme styles keep the archive, event listings, and portfolio in one visual system.
+
+The generated archive it serves is split into [Linux and software field notes](/pages/blog.html) and [CTF writeups](/pages/ctf.html).

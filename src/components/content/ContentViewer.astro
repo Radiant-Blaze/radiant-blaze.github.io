@@ -22,6 +22,7 @@ interface Props {
   progressLabel?: string;
   showProgress?: boolean;
   mermaid?: boolean;
+  jsonLd?: Record<string, unknown> | null;
 }
 
 const {
@@ -43,9 +44,10 @@ const {
   progressLabel = "ARTICLE",
   showProgress = true,
   mermaid = false,
+  jsonLd = null,
 } = Astro.props;
 ---
-<ArticleShell {title} {description} {canonical} {type} {mermaid}>
+<ArticleShell {title} {description} {canonical} {type} {mermaid} {jsonLd}>
   <slot name="before" />
   <slot name="header" />
   <div class:list={[layoutClass, "content-layout", "quest-wrap"]}>

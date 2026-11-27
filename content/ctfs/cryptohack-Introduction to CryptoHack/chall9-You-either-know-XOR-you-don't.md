@@ -7,7 +7,7 @@ flag: crypto{1f_y0u_Kn0w_En0uGH_y0u_Kn0w_1t_4ll}
 solves: 
 tags: [crypto, xor, known-plaintext]
 author: Radiant Blaze
-description: Recover a repeating XOR key by using the known CryptoHack flag format, then decrypt the ciphertext.
+description: "CryptoHack You either know XOR you don't: recover the repeating key from the known crypto{ plaintext prefix, then decrypt the rest of the flag."
 ---
 
 ## The Capture
@@ -84,6 +84,8 @@ b'crypto{1f_y0u_Kn0w_En0uGH_y0u_Kn0w_1t_4ll}'
 ```
 
 The key was not actually impossible to guess. The known plaintext prefix gave us enough information to recover it.
+
+The properties that make this work are broken down in [XOR Properties](/generated/writeups/cryptohack-Introduction%20to%20CryptoHack/chall7-XOR-Properties.html).
 
 ## Flag
 
