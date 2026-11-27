@@ -1,0 +1,9 @@
+# Frozen compatibility artifacts: byte-identical public contract.
+# Do not format these; hashes are pinned in astro-tools/test-compatibility-assets.mjs.
+public/assets/js/list-utils.js
+public/assets/js/markdown-renderer.js
+
+# Legacy copies are produced by the build, but ignore any local copies too.
+dist/legacy/assets/js/list-utils.js
+dist/legacy/assets/js/markdown-renderer.js
+

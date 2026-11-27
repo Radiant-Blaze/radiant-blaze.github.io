@@ -2,10 +2,25 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { getOrderedArticles } from "./article-data";
 
-type ParsedMarkdown = Record<string, string | string[]> & {
+type ParsedMarkdown = {
+  title: string;
+  date: string;
+  description?: string;
+  category?: string;
   tags: string[];
   body: string;
   file: string;
+  [key: string]: string | string[] | undefined;
+};
+
+type CtfMetadata = {
+  title: string;
+  date: string;
+  event?: string;
+  description?: string;
+  difficulty?: number | string;
+  url?: string;
+  challenges?: string[];
 };
 
 function parseMarkdown(source: string, file: string): ParsedMarkdown {
@@ -27,6 +42,8 @@ function parseMarkdown(source: string, file: string): ParsedMarkdown {
 
   return {
     ...data,
+    title: data.title,
+    date: data.date,
     tags:
       data.tags
         ?.split(",")
@@ -58,7 +75,7 @@ export async function getRuntimeReadModel() {
     events.map(async ({ ctfId, event, challengeFiles }) => {
       const metadata = JSON.parse(
         await readFile(path.join(root, "content/ctfs", ctfId, "ctf.json"), "utf8"),
-      );
+      ) as CtfMetadata;
       const eventWriteups = writeups.filter((writeup) => writeup.ctfId === ctfId);
       const challenges = await Promise.all(
         eventWriteups.map(({ challengeFile, entry }) =>

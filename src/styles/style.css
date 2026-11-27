@@ -18,6 +18,7 @@
 @import "./pages/article.css";
 @import "./layout/footer.css";
 @import "./pages/ctf.css";
+@import "./pages/topics.css";
 @import "./utilities/accessibility-base.css";
 @import "./pages/not-found.css";
 @import "./components/music-player-overrides.css";

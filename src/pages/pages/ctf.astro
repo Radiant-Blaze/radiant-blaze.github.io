@@ -78,7 +78,7 @@ const paginationWithControls = totalPages > 1
       <input type="hidden" name="ctf" data-ctf-search-scope />
       <input type="hidden" name="year" data-ctf-search-year />
       <label class="sr-only" for="ctf-search">Search CTFs and challenges</label>
-      <input id="ctf-search" type="search" name="q" placeholder="SEARCH CTFS OR CHALLENGES" data-ctf-search-input />
+      <input id="ctf-search" type="search" name="q" placeholder="SEARCH CTFS OR CHALLENGES" data-ctf-search-input aria-keyshortcuts="/" />
       <button class="pixel-button start-button" type="submit">SEARCH</button>
     </form>
     <div class="ctf-toolbar" data-ctf-toolbar>
@@ -99,5 +99,5 @@ const paginationWithControls = totalPages > 1
     </aside>
   </div>
   <Footer />
+  <script type="module" src={`/assets/js/astro-pages.js?v=${ASSET_VERSION}`} is:inline></script>
 </QuestShell>
-<script slot="pageScripts" type="module" src={`/assets/js/astro-pages.js?v=${ASSET_VERSION}`} is:inline></script>

@@ -78,8 +78,14 @@ jobs:
       - name: Validate content
         run: npm run content:validate
 
+      - name: Typecheck
+        run: npm run check:types
+
       - name: Build site
         run: npm run build
+
+      - name: Check SEO
+        run: npm run check:seo
 
       - name: Fixture and unit tests
         run: |
@@ -94,6 +100,7 @@ jobs:
           npm run test:portfolio
           npm run test:portfolio-routes
           npm run test:home-project
+          npm run test:home-selection
           npm run test:related
           npm run test:player-stats
 

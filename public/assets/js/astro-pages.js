@@ -6,14 +6,14 @@ import {
   socialHtml,
   updatePageMetadata,
   writeupPageUrl,
-} from "./astro-runtime.js?v=20261120-3";
+} from "./astro-runtime.js?v=20261127-1";
 import {
   buildYearIndex,
   buildGlobalRecords,
   filterGlobalRecords,
   matchesBlogPost,
   searchCtfRecords,
-} from "./astro-query-model.js?v=20261120-3";
+} from "./astro-query-model.js?v=20261127-1";
 import {
   DEFAULT_PAGE_SIZE,
   difficultyMeter,
@@ -24,7 +24,7 @@ import {
   paginationHtml,
   recordTopics,
   syncSearchForm,
-} from "./list-utils.js?v=20261120-3";
+} from "./list-utils.js?v=20261127-1";
 
 let params = new URLSearchParams();
 let requestedPage = 1;
@@ -102,6 +102,9 @@ const refreshCtfAnimations = () => {
 };
 
 addEventListener("radiantblaze:pagedisposing", () => {
+  // Invalidate any in-flight read-model continuation so it cannot render into
+  // the page that replaced this one.
+  initGeneration += 1;
   disposeCtfAnimations?.();
   disposeCtfAnimations = null;
 });
@@ -705,22 +708,107 @@ const loadReadModel = () => {
   return modelPromise;
 };
 
+const renderModel = (model) => {
+  if (document.querySelector("[data-ctf-list]")) renderCtf(model);
+  else renderBlog(model);
+};
+
+const failReadModel = (generation, error) => {
+  if (generation !== initGeneration) return;
+  console.error("[radiant-blaze:pages] Read model could not be loaded.", error);
+  renderReadModelError();
+};
+
+const hasActiveParam = (key, defaults = []) => {
+  const value = params.get(key);
+  return value !== null && value.trim() !== "" && !defaults.includes(value);
+};
+
+// Blog and CTF listings ship their first page as static HTML. Without query,
+// filter, or page state there is nothing to hydrate, so the read model can wait
+// until an interaction actually needs it. Search results are built entirely on
+// the client, and any non-default listing state changes what the server
+// rendered, so those pages still await the model.
+const pageNeedsModel = () => {
+  if (document.querySelector("[data-search]")) return true;
+  if (requestedPage > 1) return true;
+  if (document.querySelector("[data-ctf-list]")) {
+    return hasActiveParam("q")
+      || hasActiveParam("ctf")
+      || hasActiveParam("year")
+      || hasActiveParam("sort", ["recent"])
+      || hasActiveParam("category", ["all"]);
+  }
+  return hasActiveParam("q") || hasActiveParam("category");
+};
+
+// The static CTF listing keeps its sort/category selects live. Reflect a change
+// in the URL first, then load the model once and hand over to the regular
+// renderer, which reattaches its own listeners. Reading params again at render
+// time keeps rapid changes from racing a pending fetch.
+const initDeferredCtfFilters = (generation) => {
+  const sort = document.querySelector("[data-ctf-sort]");
+  const category = document.querySelector("[data-ctf-category]");
+  if (!sort && !category) return;
+  let hydrating = false;
+  const cleanup = () => {
+    sort?.removeEventListener("change", onChange);
+    category?.removeEventListener("change", onChange);
+  };
+  const onChange = () => {
+    const url = new URL(location.href);
+    if (sort && sort.value !== "recent") url.searchParams.set("sort", sort.value);
+    else url.searchParams.delete("sort");
+    if (category && category.value !== "all") url.searchParams.set("category", category.value);
+    else url.searchParams.delete("category");
+    url.searchParams.delete("pg");
+    history.replaceState(null, "", url);
+    params = new URLSearchParams(location.search);
+    requestedPage = 1;
+    if (hydrating) return;
+    hydrating = true;
+    void (async () => {
+      let model;
+      try {
+        model = await loadReadModel();
+      } catch (error) {
+        cleanup();
+        failReadModel(generation, error);
+        return;
+      }
+      if (generation !== initGeneration) return;
+      cleanup();
+      try {
+        renderModel(model);
+      } catch (error) {
+        console.error("[radiant-blaze:pages] The archive could not be rendered.", error);
+      }
+    })();
+  };
+  sort?.addEventListener("change", onChange);
+  category?.addEventListener("change", onChange);
+};
+
 export const initPage = async () => {
   const generation = ++initGeneration;
   params = new URLSearchParams(location.search);
   requestedPage = Math.max(1, parseInt(params.get("pg"), 10) || 1);
+  if (!pageNeedsModel()) {
+    // The server-rendered first page already matches the URL. Keep the CTF
+    // controls working without holding the SPA loader for the read model.
+    initDeferredCtfFilters(generation);
+    if (document.querySelector("[data-ctf-list]")) refreshCtfAnimations();
+    return;
+  }
   let model;
   try {
     model = await loadReadModel();
   } catch (error) {
-    if (generation !== initGeneration) return;
-    console.error("[radiant-blaze:pages] Read model could not be loaded.", error);
-    renderReadModelError();
+    failReadModel(generation, error);
     return;
   }
   if (generation !== initGeneration) return;
-  if (document.querySelector("[data-ctf-list]")) renderCtf(model);
-  else renderBlog(model);
+  renderModel(model);
 };
 
 if (!globalThis.__radiantBlazeSpaImport) void initPage();

@@ -189,22 +189,24 @@ const testConditionalMermaidLoading = async (session) => {
   session.on("Network.requestWillBeSent", ({ request }) => requested.push(request.url));
   await session.goto(`${PREVIEW}${writeupUrl(NO_DIAGRAM_CTF, NO_DIAGRAM)}`);
   await new Promise((resolve) => setTimeout(resolve, 800));
-  const withoutDiagram = requested.filter((url) => /mermaid|QuestShell\.astro_astro_type_script/i.test(url));
-  assert.equal(withoutDiagram.length, 0, "articles without diagrams must not load the Mermaid viewer");
+  const withoutDiagramState = await session.evaluate("typeof window.RadiantBlazeDiagrams");
+  assert.equal(withoutDiagramState, "undefined", "articles without diagrams must not load the Mermaid viewer");
+  const withoutDiagramRequests = requested.filter((url) => /mermaid/i.test(url)).length;
 
   requested.length = 0;
   await session.goto(`${PREVIEW}${writeupUrl(CTF, DIAGRAM)}`);
-  await session.waitFor("Boolean(window.RadiantBlazeDiagrams)", "diagram viewer");
+  await session.waitFor("typeof window.RadiantBlazeDiagrams !== 'undefined'", "diagram viewer");
+  const withDiagramState = await session.evaluate("typeof window.RadiantBlazeDiagrams");
+  assert.equal(withDiagramState, "object", "articles with diagrams load the Mermaid viewer");
   await session.evaluate("window.RadiantBlazeDiagrams.render(document); true");
   await session.waitFor('document.querySelectorAll(".diagram__stage > svg").length > 0', "diagram render");
-  const withDiagram = requested.filter((url) => /mermaid|QuestShell\.astro_astro_type_script/i.test(url));
-  assert.ok(withDiagram.length > 0, "articles with diagrams load the Mermaid viewer");
+  const withDiagramRequests = requested.filter((url) => /mermaid/i.test(url)).length;
   const counts = await session.evaluate(`({
     blocks: document.querySelectorAll('pre > code[data-language="mermaid"]').length,
     svgs: document.querySelectorAll(".diagram__stage > svg").length,
   })`);
   assert.equal(counts.svgs, counts.blocks, "one SVG is rendered per Mermaid block");
-  return { withoutDiagramRequests: withoutDiagram.length, withDiagramRequests: withDiagram.length, ...counts };
+  return { withoutDiagramRequests, withDiagramRequests, ...counts };
 };
 
 const testThemeSwitch = async (session) => {
@@ -231,6 +233,7 @@ const testSpaStability = async (session) => {
     "/pages/ctf.html",
     "/pages/search.html?q=xor",
     "/portfolio/",
+    "/topics/xor.html",
     PROJECT_DETAIL,
     "/generated/posts/linux/021-tiny-command-line-toolkit.html",
     writeupUrl(CTF, DIAGRAM),
@@ -249,6 +252,26 @@ const testSpaStability = async (session) => {
         await session.waitFor('document.querySelectorAll(".diagram__stage > svg").length > 0', `diagram in cycle ${cycle}`);
       } else {
         await new Promise((resolve) => setTimeout(resolve, 450));
+      }
+      const bodyClasses = await session.evaluate("document.body.className");
+      if (route === "/pages/blog.html" || route === "/pages/ctf.html") {
+        assert.match(bodyClasses, /listing-document/, `${route} must sync listing-document`);
+      } else if (route === "/pages/search.html?q=xor") {
+        assert.match(bodyClasses, /search-document/, "search page must sync search-document");
+        assert.equal(await session.evaluate('document.documentElement.classList.contains("search-has-filters")'), true, "search filters class must sync");
+      } else if (route === "/topics/xor.html") {
+        assert.match(bodyClasses, /topic-document/, "topic page must sync topic-document");
+        assert.match(bodyClasses, /listing-document/, "topic page must sync listing-document");
+        const navPaths = await session.evaluate(`[...document.querySelectorAll(".quest-nav a")].map((anchor) => new URL(anchor.href).pathname)`);
+        assert.ok(navPaths.every((pathname) => pathname.startsWith("/pages/") || pathname === "/portfolio/"), `topic nav links resolve: ${navPaths.join(", ")}`);
+      } else if (route === "/portfolio/") {
+        assert.equal(await session.evaluate('document.querySelector("[data-portfolio-projects]")?.dataset.portfolioReady'), "true", "portfolio module must initialize after SPA");
+      } else if (route.includes("/generated/posts/")) {
+        assert.match(bodyClasses, /content-document/, "article must sync content-document");
+        assert.doesNotMatch(bodyClasses, /listing-document|search-document/, "article must clear listing/search classes");
+      } else if (route === "/") {
+        assert.doesNotMatch(bodyClasses, /listing-document|search-document|content-document|topic-document/, "home must clear page classes");
+        assert.equal(await session.evaluate('document.documentElement.classList.contains("search-has-filters")'), false, "home must clear search filters class");
       }
     }
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -577,6 +600,7 @@ const testOffscreenPause = async (session) => {
   });
   await session.goto(`${PREVIEW}/pages/ctf.html`);
   await session.waitFor('document.querySelectorAll(".event-viewport__screen").length > 0', "CTF posters");
+  await session.evaluate('document.querySelector(".event-viewport__screen").scrollIntoView({ block: "center" }); true');
   await new Promise((resolve) => setTimeout(resolve, 600));
   const firstAnimated = await session.evaluate(`document.querySelector(".event-viewport__screen").getAttribute("src").includes("/static/") === false`);
   assert.equal(firstAnimated, true, "a visible card uses the animated poster");
@@ -632,6 +656,69 @@ const testPosterObserverLifecycle = async (session) => {
   return { initial, left, returned };
 };
 
+const testOverlappingNavigation = async (session) => {
+  await session.goto(`${PREVIEW}/`);
+  await session.evaluate(`(() => {
+    window.__navQueueErrors = [];
+    addEventListener("error", (event) => window.__navQueueErrors.push(String(event.error?.message ?? event.message)));
+    addEventListener("unhandledrejection", (event) => window.__navQueueErrors.push(String(event.reason?.message ?? event.reason)));
+    return true;
+  })()`);
+
+  const pausedRequests = [];
+  session.on("Fetch.requestPaused", (params) => pausedRequests.push(params));
+  let fetchEnabled = false;
+  let cacheDisabled = false;
+  try {
+    // Pause the first document request at the network layer so the second
+    // navigation is guaranteed to arrive while the router is still in flight.
+    await session.send("Network.setCacheDisabled", { cacheDisabled: true });
+    cacheDisabled = true;
+    await session.send("Fetch.enable", {
+      patterns: [{ urlPattern: "*/pages/blog.html*", requestStage: "Request" }],
+    });
+    fetchEnabled = true;
+
+    await session.evaluate("window.__navQueueErrors.length = 0; true");
+    await session.spaNavigate("/pages/blog.html");
+    await session.waitFor('document.documentElement.classList.contains("is-navigating")', "first slow navigation");
+    const pauseDeadline = Date.now() + WAIT;
+    while (!pausedRequests.length) {
+      if (Date.now() > pauseDeadline) throw new Error("Timed out waiting for the first navigation request");
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    await session.spaNavigate(PROJECT_DETAIL);
+    const [paused] = pausedRequests;
+    await session.send("Fetch.continueRequest", { requestId: paused.requestId });
+    await session.send("Fetch.disable");
+    fetchEnabled = false;
+
+    await session.waitFor(
+      `location.pathname === ${JSON.stringify(PROJECT_DETAIL)}` +
+        ' && document.querySelector("main h1.quest-title")?.textContent.includes("Radiant Blaze Website")' +
+        ' && !document.querySelector(".page-loader")' +
+        ' && !document.documentElement.classList.contains("is-navigating")',
+      "overlapping navigation settles on the latest target",
+    );
+    const settled = await session.evaluate(`({
+      path: location.pathname,
+      title: document.querySelector("main h1.quest-title")?.textContent.trim() ?? "",
+      loader: Boolean(document.querySelector(".page-loader")),
+      navigating: document.documentElement.classList.contains("is-navigating"),
+      errors: window.__navQueueErrors ?? [],
+    })`);
+    assert.equal(settled.path, PROJECT_DETAIL, "the latest overlapping navigation owns the address bar");
+    assert.match(settled.title, /Radiant Blaze Website/, "the latest overlapping navigation owns the rendered main");
+    assert.equal(settled.loader, false, "the loader is hidden after the queued navigation");
+    assert.equal(settled.navigating, false, "the navigating flag is cleared after the queued navigation");
+    assert.deepEqual(settled.errors, [], "overlapping navigation raises no runtime exception");
+    return settled;
+  } finally {
+    if (fetchEnabled) await session.send("Fetch.disable").catch(() => {});
+    if (cacheDisabled) await session.send("Network.setCacheDisabled", { cacheDisabled: false }).catch(() => {});
+  }
+};
+
 const main = async () => {
   stage("launching browser");
   const { child, endpoint, userDataDir, binary } = await launchBrowser();
@@ -677,6 +764,8 @@ const main = async () => {
     const offscreen = await testOffscreenPause(session);
     stage("G: poster observer lifecycle");
     const posterObservers = await testPosterObserverLifecycle(session);
+    stage("H: overlapping SPA navigation");
+    const overlappingNavigation = await testOverlappingNavigation(session);
 
     console.log(JSON.stringify({
       browser: binary,
@@ -693,6 +782,7 @@ const main = async () => {
       reducedMotion,
       offscreen,
       posterObservers,
+      overlappingNavigation,
       failures: 0,
     }, null, 2));
   } finally {

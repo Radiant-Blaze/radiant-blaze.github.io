@@ -1,4 +1,3 @@
-// Cache-busting version for the static assets served from public/. Keeping one
-// stamp means the home, shell, and listing pages cannot disagree about which
-// CSS/JavaScript generation they request.
-export const ASSET_VERSION = "20261120-7";
+// Cache-busting version for unbundled public resources served from public/.
+// Bundled scripts are hashed by Vite instead and must not receive this query.
+export const ASSET_VERSION = "20261127-1";

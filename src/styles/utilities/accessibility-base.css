@@ -13,3 +13,34 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Keyboard users skip the repeated header/navigation on every page. Fixed
+   positioning keeps the link visible even when tabbing starts mid-document. */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 12px;
+  z-index: 1000;
+  padding: 12px 16px;
+  border: 3px solid var(--text);
+  background: var(--accent-cyan);
+  color: var(--dark-shadow);
+  box-shadow: 4px 4px 0 var(--accent-pink);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 12px;
+  outline: 3px solid var(--accent-cyan-text);
+  outline-offset: 2px;
+}
+
+/* SPA navigation moves focus to <main> so assistive tech lands on the new
+   content. The container is not an interactive control, so its programmatic
+   focus must not paint an outline; link and button focus styles are untouched
+   by this id-scoped rule. */
+#main-content:focus {
+  outline: none;
+}

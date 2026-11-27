@@ -1,10 +1,11 @@
 ---
 import { ASSET_VERSION } from "../lib/assets";
+import ThemeBootstrap from "../components/ThemeBootstrap.astro";
 import "../styles/style.css";
 import { getHomepageProjection } from "../lib/home-data";
 import { formatDate } from "../lib/markdown";
 import Footer from "../components/Footer.astro";
-import { jsonLdGraph, personEntity, serializeJsonLd, SITE_DESCRIPTION, websiteEntity } from "../lib/seo";
+import { jsonLdGraph, JSON_FEED_URL, personEntity, RSS_FEED_URL, serializeJsonLd, SITE_DESCRIPTION, websiteEntity } from "../lib/seo";
 
 const { latestWriteup, latestPost, featuredProject } = await getHomepageProjection();
 const feature = latestWriteup ?? latestPost ?? {
@@ -23,6 +24,7 @@ const jsonLd = jsonLdGraph(personEntity(), websiteEntity(SITE_DESCRIPTION));
 <html lang="en" class="dark-theme">
   <head>
     <meta charset="UTF-8" />
+    <ThemeBootstrap />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={SITE_DESCRIPTION} />
     <title>{pageTitle}</title>
@@ -44,16 +46,19 @@ const jsonLd = jsonLdGraph(personEntity(), websiteEntity(SITE_DESCRIPTION));
     <meta name="twitter:description" content={SITE_DESCRIPTION} />
     <meta name="twitter:image" content="https://radiant-blaze.github.io/og-image.png" />
     <meta name="twitter:image:alt" content="Radiant Blaze pixel-art city banner" />
+    <link rel="alternate" type="application/rss+xml" title="Radiant Blaze — RSS feed" href={RSS_FEED_URL} />
+    <link rel="alternate" type="application/feed+json" title="Radiant Blaze — JSON feed" href={JSON_FEED_URL} />
     <link rel="preload" href="/assets/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/assets/fonts/press-start/press-start-k.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/assets/fonts/sf-pixelate/sf-pixelate-bold.woff2" as="font" type="font/woff2" crossorigin />
-    <script src={`/assets/js/astro-controls.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src="../scripts/astro-controls.ts"></script>
     <script defer src={`/assets/js/music-controller.js?v=${ASSET_VERSION}`} is:inline></script>
-    <script src={`/assets/js/page-loader.js?v=${ASSET_VERSION}`} defer is:inline></script>
-    <script defer src={`/assets/js/astro-navigation.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src="../scripts/page-loader.ts"></script>
+    <script src="../scripts/astro-navigation.ts"></script>
   </head>
   <body>
-    <main class="game-screen">
+    <a class="skip-link" href="#main-content">SKIP TO CONTENT</a>
+    <main class="game-screen" id="main-content" tabindex="-1">
       <header class="top-bar site-header">
         <a class="home-brand" href="#top" aria-label="Radiant Blaze home" aria-current="page"><span class="pixel-logo">RB</span><span class="brand-copy"><span class="brand-title">RADIANT BLAZE</span><span class="brand-caption">PLAYER ONE / HOME BASE</span></span></a>
         <nav class="home-nav" id="primary-site-nav" aria-label="Site navigation"><a href="pages/blog.html" data-nav-index="01">BLOG</a><a href="pages/ctf.html" data-nav-index="02">CTFS</a><a href="pages/search.html" data-nav-index="03">SEARCH</a><a href="portfolio/" data-nav-index="04">PORTFOLIO</a></nav>

@@ -43,8 +43,14 @@
 - `astro-tools/source-assets.mjs` — dev middleware and build-time static/compatibility asset copying.
 - `astro-tools/test-*.mjs`, `check_*.mjs`, `compare_output.py` — focused tests and parity/projection checks.
 - `compat/legacy-assets/js/blog.js`, `ctf.js`, `content.js` — preserved compatibility assets served under `/legacy/`; no active page loads them.
-- `public/assets/js/` — active browser modules, including `astro-pages.js`, `astro-navigation.js`, `astro-controls.js`, `astro-query-model.js`, and `list-utils.js`.
-- `src/scripts/mermaid-viewer.js` — bundled Mermaid viewer (lazy `import("mermaid")`, theme sync, viewer controls, source fallback).
+- `src/scripts/` — bundled TypeScript browser modules: `astro-controls.ts` (shell controls), `page-loader.ts` (initial page bootstrap), `astro-navigation.ts` (SPA navigation), `portfolio.ts`, `legacy-redirect.ts`, and `mermaid-viewer.js` (lazy `import("mermaid")`, theme sync, viewer controls, source fallback). Vite emits these as hashed assets; do not add `?v=` to them.
+- `src/components/ThemeBootstrap.astro` — the only initial theme reader; emits a tiny inline head script before CSS. `src/types/` holds browser/Node ambient types.
+- `src/lib/feeds.ts`, `src/pages/rss.xml.ts`, `src/pages/feed.json.ts` — RSS 2.0 and JSON Feed generation.
+- `src/lib/topics.ts`, `src/pages/topics/` — generated topic hubs.
+- `src/lib/og.ts`, `src/pages/og/` — generated per-article Open Graph PNGs.
+- `src/lib/post-pager.ts` — newer/older post navigation helper.
+- `public/assets/js/` — **unbundled public modules**, loaded by stable/versioned URL: `astro-article.js`, `astro-pages.js`, `astro-runtime.js`, `astro-query-model.js`, `music-controller.js`. Version references with `ASSET_VERSION`.
+- **Frozen compatibility artifacts**: `public/assets/js/list-utils.js` and `public/assets/js/markdown-renderer.js`. Byte-identical public contract, copied to `dist/legacy/assets/js/`, SHA-256 pinned in `astro-tools/test-compatibility-assets.mjs`, ignored by Prettier. Do not edit, bundle, convert, or reformat.
 - `.github/workflows/` — GitHub Pages deployment; installs dependencies, builds Astro, and uploads `dist/`.
 
 No current application file should read generated legacy HTML or `.generated` manifests.

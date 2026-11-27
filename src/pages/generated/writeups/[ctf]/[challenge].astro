@@ -6,7 +6,10 @@ import ContentViewer from "../../../../components/content/ContentViewer.astro";
 import { renderContentView, renderTocHtml } from "../../../../lib/content-view";
 import { difficultyMeterHtml } from "../../../../lib/difficulty";
 import { escapeHtml, formatDate } from "../../../../lib/markdown";
+import { ogImageUrl } from "../../../../lib/og";
 import { selectRelatedWriteups, type RelatedWriteup } from "../../../../lib/related-content";
+import { getRuntimeReadModel } from "../../../../lib/runtime-read-model";
+import { collectTopics, TOPICS_INDEX_ROUTE, topicRoute } from "../../../../lib/topics";
 import {
   articleEntity,
   breadcrumbEntity,
@@ -20,6 +23,10 @@ import {
 
 export async function getStaticPaths() {
   const { writeups } = await getOrderedArticles();
+  const topics = collectTopics(await getRuntimeReadModel());
+  const topicRoutes = Object.fromEntries(
+    topics.map((topic) => [topic.label.toLowerCase(), topicRoute(topic.slug)]),
+  );
   const candidates: RelatedWriteup[] = writeups.map((writeup) => ({
     ctfId: writeup.ctfId,
     challengeFile: writeup.challengeFile,
@@ -46,12 +53,13 @@ export async function getStaticPaths() {
         ...writeup,
         eventChallengeFiles: writeup.challengeFiles,
         related: selectRelatedWriteups(current, candidates, { exclude: excluded }),
+        topicRoutes,
       },
     };
   });
 }
 
-const { ctfId, challengeFile, entry, event, eventChallengeFiles, related: relatedWriteups } = Astro.props;
+const { ctfId, challengeFile, entry, event, eventChallengeFiles, related: relatedWriteups, topicRoutes } = Astro.props;
 const challenge = entry.data;
 const eventTitle = event.data.title;
 const {
@@ -89,6 +97,7 @@ const jsonLd = jsonLdGraph(
     datePublished: isoDate(event.data.date),
     articleSection: category,
     keywords: challengeTags,
+    image: ogImageUrl(url),
   }),
 );
 const challengeNumber = eventChallengeFiles.indexOf(challengeFile);
@@ -101,7 +110,10 @@ const hasMermaid = body.includes('data-language="mermaid"');
 const tocHtml = renderTocHtml(headings, "This writeup has no section headings.");
 const related = `${previous ? `<a href="${challengeUrl(previous)}">← PREVIOUS CHALLENGE</a>` : "<span>FIRST CHALLENGE</span>"}<span>CHALLENGE ${challengeNumber + 1} / ${eventChallengeFiles.length}</span>${following ? `<a href="${challengeUrl(following)}">NEXT CHALLENGE →</a>` : "<span>LAST CHALLENGE</span>"}`;
 const tagsForEvent = challengeTags
-  .map((tag) => `<a href="/pages/ctf.html?${eventQuery}"># ${escapeHtml(tag)}</a>`)
+  .map((tag) => {
+    const hub = (topicRoutes as Record<string, string>)[tag.trim().toLowerCase()] ?? TOPICS_INDEX_ROUTE;
+    return `<a href="${hub}"># ${escapeHtml(tag)}</a>`;
+  })
   .join("");
 const flagHtml = flagValue ? `<section class="writeup-flag"><h2>FLAG CAPTURED</h2><p class="ctf-flag">${escapeHtml(flagValue)}</p></section>` : "";
 const relatedChallengesHtml = relatedWriteups.length > 0

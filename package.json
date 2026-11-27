@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview --host 127.0.0.1",
+    "check:types": "astro check",
     "parity": "python astro-tools/compare_output.py",
     "check:json-compat": "python astro-tools/check_json_compat.py",
     "check:json-compat:preview": "python astro-tools/check_json_compat.py --astro-url http://127.0.0.1:4321",
@@ -18,8 +19,9 @@
     "test:portfolio": "node astro-tools/test-portfolio.mjs",
     "test:portfolio-routes": "node --experimental-strip-types astro-tools/test-portfolio-routes.mjs",
     "test:home-project": "node --experimental-strip-types astro-tools/test-home-project.mjs",
+    "test:home-selection": "node --experimental-strip-types astro-tools/test_home_selection.mjs",
     "test:related": "node --experimental-strip-types astro-tools/test-related-content.mjs",
-    "test:player-stats": "node astro-tools/test-player-stats.mjs",
+    "test:player-stats": "node --experimental-strip-types astro-tools/test-player-stats.mjs",
     "check:ctf-projection": "node astro-tools/check_ctf_projection.mjs",
     "check:homepage-parity": "python astro-tools/check_homepage_parity.py",
     "check:phase5h": "node astro-tools/check_phase5h.mjs",
@@ -42,5 +44,10 @@
     "astro": "^7.4.13",
     "js-yaml": "^5.5.0",
     "mermaid": "12.3.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "sharp": "^0.35.5",
+    "typescript": "^6.0.3"
   }
 }

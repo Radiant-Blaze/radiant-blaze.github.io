@@ -63,6 +63,14 @@ The content is owned in Markdown and JSON, while Astro turns the repository into
 - **CTF year and category filtering** - the writeup archive includes sorting, category filters, year search, and pagination.
 - **Player-facing stats** - blog, CTF, category, word-count, XP, and streak information is derived from published content.
 - **Theme control** - the interface includes a persistent light/dark theme switch.
+- **Feeds** - every published post and writeup is available as full-content RSS 2.0 at `/rss.xml` and JSON Feed at `/feed.json`, with discovery links in page heads and the footer.
+- **Keyboard access** - a skip link bypasses repeated navigation, and `/` focuses the nearest search field (or opens archive search elsewhere).
+- **Accessible routing** - client-side page swaps move focus into the new `<main>`, announce the page title, and keep page classes/search state in sync.
+- **Recovery 404** - the not-found page offers archive search, popular topic hubs, and the latest writeups instead of only a home link.
+- **Per-article social cards** - each post and writeup gets a generated 1200×630 PNG Open Graph image at `/og/...`, wired into `og:image`, Twitter cards, and Article JSON-LD.
+- **Topic hubs** - categories and tags become `/topics/<slug>.html` hubs plus a `/topics.html` index; hubs with fewer than two entries stay browsable but are `noindex` and omitted from the sitemap.
+- **Lazy listing hydration** - blog/CTF first pages render from SSR; the 189 KB search model loads only when a query, filter, later page, or search surface needs it.
+- **Newer/older post pager** - blog posts link adjacent entries when a newer or older post exists.
 - **Contextual music player** - playlists change for the homepage, archive listings, and article-reading contexts, with metadata-driven track names and artists.
 - **Static deployment** - Astro builds the complete site and sitemap into `dist/` for GitHub Pages.
 
@@ -81,6 +89,7 @@ The content is owned in Markdown and JSON, while Astro turns the repository into
 - **CSS** - the retro-inspired dark and light visual themes.
 - **Markdown + YAML frontmatter** - the primary authoring format for posts, writeups, and portfolio entries.
 - **js-yaml** - frontmatter parsing and YAML support.
+- **sharp** - build-time SVG rasterization for per-article Open Graph cards.
 - **GitHub Actions + GitHub Pages** - automated production deployment.
 
 ## Project Structure
@@ -147,6 +156,8 @@ The build writes the static output to `dist/`.
 ```sh
 npm run content:sync
 npm run content:check
+npm run check:types
+npm run check:seo
 npm run test:renderer
 npm run test:converter
 npm run test:real-content
@@ -155,10 +166,21 @@ npm run check:search-projection
 npm run check:ctf-projection
 npm run test:year-search
 npm run test:portfolio
+npm run test:home-selection
 npm run test:player-stats
 ```
 
 Additional parity, compatibility, and Astro route checks are also defined in `package.json`.
+
+### Browser module layout
+
+Browser JavaScript has two pipelines and they must not be mixed:
+
+- **Bundled shell/page modules** live in `src/scripts/` as TypeScript (`astro-controls.ts`, `page-loader.ts`, `astro-navigation.ts`, `portfolio.ts`, `legacy-redirect.ts`). Vite bundles them with content-hashed names, so their `<script>` tags carry no `?v=` query.
+- **Unbundled public modules** stay in `public/assets/js/` and are loaded by URL: `astro-article.js`, `astro-pages.js`, `astro-runtime.js`, `astro-query-model.js`, and `music-controller.js`. Reference them through `ASSET_VERSION` from `src/lib/assets.ts`.
+- **Protected files**: `public/assets/js/list-utils.js` and `public/assets/js/markdown-renderer.js` are frozen byte-identical compatibility artifacts copied to `/legacy/assets/js/`. Their SHA-256 digests are pinned in `astro-tools/test-compatibility-assets.mjs`, and `.prettierignore` excludes them. Do not edit, convert, bundle, or format them.
+
+Run `npm run check:types` for the Astro/TypeScript typecheck and `npm run test:home-selection` for the home selection unit test. Node tests that import TypeScript library modules use `node --experimental-strip-types`; see `package.json` for the full list.
 
 ## Content Management
 
@@ -246,7 +268,7 @@ Portfolio pages are configured centrally in `content/portfolio/config.json`. It 
 The repository deploys through `.github/workflows/deploy.yml`.
 
 1. Pushes to the `main` branch trigger the workflow.
-2. The `verify` job reuses `.github/workflows/ci.yml`: dependency audit, content validation, the full test suite, route/parity checks and the projection checks against a built preview must all pass.
+2. The `verify` job reuses `.github/workflows/ci.yml`: dependency audit, content validation, `astro check` typechecking, the SEO audit, the full test suite, route/parity checks and the projection checks against a built preview must all pass.
 3. `actions/checkout` checks out the repository.
 4. Node.js 24 is configured and dependencies are installed with `npm ci`.
 5. `npm run build` generates the static site in `dist/`.

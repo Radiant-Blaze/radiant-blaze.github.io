@@ -9,6 +9,7 @@ interface Props {
   canonical: string;
   type: "post" | "writeup";
   body: string;
+  pagerHtml?: string;
   tocHtml: string;
   tocLabel: string;
   relatedHtml: string;
@@ -31,6 +32,7 @@ const {
   canonical,
   type,
   body,
+  pagerHtml = "",
   tocHtml,
   tocLabel,
   relatedHtml,
@@ -53,6 +55,7 @@ const {
   <div class:list={[layoutClass, "content-layout", "quest-wrap"]}>
     <article class:list={["quest-article", "content-article", articleClass]} data-content-article>
       <Fragment set:html={body} />
+      {pagerHtml && <Fragment set:html={pagerHtml} />}
       <Fragment set:html={flagHtml} />
       <ContentNavigation label={relatedLabel} html={relatedHtml} />
       {relatedChallengesHtml && <Fragment set:html={relatedChallengesHtml} />}

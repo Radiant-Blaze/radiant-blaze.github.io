@@ -4,19 +4,13 @@ import QuestShell from "../../layouts/QuestShell.astro";
 import Footer from "../../components/Footer.astro";
 import { getRuntimeReadModel } from "../../lib/runtime-read-model";
 import { escapeHtml } from "../../lib/markdown";
+import { collectTopics, TOPICS_INDEX_ROUTE, topicRoute } from "../../lib/topics";
 
 const readModel = await getRuntimeReadModel();
-const topicCounts = new Map();
-for (const item of [...readModel.posts, ...readModel.ctfs.flatMap((ctf) => ctf.challenges ?? [])]) {
-  for (const value of [item.category, ...(item.tags || [])].filter(Boolean)) {
-    const topic = String(value).trim().toLowerCase();
-    topicCounts.set(topic, (topicCounts.get(topic) || 0) + 1);
-  }
-}
-const topTopics = [...topicCounts.entries()]
-  .sort(([left, leftCount], [right, rightCount]) => rightCount - leftCount || left.localeCompare(right))
-  .slice(0, 5)
-  .map(([topic, count]) => ({ topic, count }));
+const topics = collectTopics(readModel);
+const topTopics = [...topics]
+  .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+  .slice(0, 5);
 ---
 <QuestShell
   title="Search Database · Radiant Blaze"
@@ -43,7 +37,7 @@ const topTopics = [...topicCounts.entries()]
     <h1 class="quest-title">SEARCH RECORDS</h1>
     <form class="search-form" role="search">
       <label class="sr-only" for="search-database">Search quest records</label>
-      <input data-search id="search-database" name="q" type="search" placeholder="Search posts, writeups, tools, tags..." />
+      <input data-search id="search-database" name="q" type="search" placeholder="Search posts, writeups, tools, tags..." aria-keyshortcuts="/" />
       <button class="pixel-button start-button" type="submit">SCAN →</button>
     </form>
     <p class="record-count" data-record-count>LOADING RECORDS...</p>
@@ -60,8 +54,13 @@ const topTopics = [...topicCounts.entries()]
         </div>
         <div class="top-tags" data-top-tags role="group" aria-label="Top tags">
           <button type="button" class="filter-pill is-active" data-search-topic="all">ALL TOPICS</button>
-          {topTopics.map(({ topic, count }) => <button type="button" class="filter-pill" data-search-topic={escapeHtml(topic)}>{escapeHtml(topic.toUpperCase())} <small>{count}</small></button>)}
+          {topTopics.map((topic) => <button type="button" class="filter-pill" data-search-topic={escapeHtml(topic.label.toLowerCase())}>{escapeHtml(topic.label.toUpperCase())} <small>{topic.count}</small></button>)}
         </div>
+        <nav class="topic-hubs" aria-label="Topic hubs">
+          <span class="search-pills__label">TOPIC HUBS</span>
+          {topTopics.map((topic) => <a class="filter-pill" href={topicRoute(topic.slug)}>{escapeHtml(topic.label.toUpperCase())}</a>)}
+          <a class="filter-pill topic-hubs__all" href={TOPICS_INDEX_ROUTE}>ALL HUBS →</a>
+        </nav>
         <details class="tag-database">
           <summary>TAG DATABASE <span aria-hidden="true">+</span></summary>
           <label class="sr-only" for="tag-filter">Search tags</label>
@@ -83,5 +82,5 @@ const topTopics = [...topicCounts.entries()]
     </div>
   </div>
   <Footer />
+  <script type="module" src={`/assets/js/astro-pages.js?v=${ASSET_VERSION}`} is:inline></script>
 </QuestShell>
-<script slot="pageScripts" type="module" src={`/assets/js/astro-pages.js?v=${ASSET_VERSION}`} is:inline></script>

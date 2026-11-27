@@ -29,3 +29,10 @@ Aliases should remove repetition without obscuring behavior.
 ## Keep Improving
 
 Put your setup in version control and revise it whenever a command causes friction twice. That is where the useful little tools come from.
+
+## Keep Exploring
+
+- [Browse the Linux topic hub](/topics/linux.html) for terminal and open-source notes.
+- [Browse the Terminal topic hub](/topics/terminal.html) for command-line workflows.
+- [Read the static-site architecture build log](/generated/posts/web-development/022-static-site-app-feel.html).
+- [Explore the CTF archive](/pages/ctf.html) for applied command-line work.

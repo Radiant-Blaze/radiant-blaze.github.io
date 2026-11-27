@@ -30,7 +30,8 @@ for (const file of await markdownFiles(contentRoot)) {
     ? config.sections.find((candidate) => candidate.type === "custom" && candidate.id === data.sectionId)
     : config.sections.find((candidate) => candidate.type === ({ skill: "skills", project: "projects", achievement: "achievements", certification: "certifications" }[data.type] ?? data.type));
   if (data.published !== false && data.title && section?.enabled) {
-    assert.ok(output.includes(data.title), `${data.title} is rendered from published Markdown`);
+    const escapedTitle = String(data.title).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    assert.ok(output.includes(data.title) || output.includes(escapedTitle), `${data.title} is rendered from published Markdown`);
   } else if (data.title) {
     assert.ok(!output.includes(data.title), `${data.title} is excluded when unpublished`);
   }
@@ -67,9 +68,13 @@ assert.match(output, /href="\/portfolio\/"/);
 assert.match(output, /<body class="disable-page-loader">/);
 assert.match(output, /<h1 class="quest-title">Talha Ahmed<\/h1>/);
 assert.match(output, /Software development · cybersecurity learner/);
-assert.match(output, /data-portfolio-stat="projects">01/);
+assert.match(output, new RegExp(`data-portfolio-stat="projects">${String(publishedProjects.length).padStart(2, "0")}`));
 assert.match(output, /class="portfolio-card is-featured"/);
-assert.doesNotMatch(output, /class="portfolio-project-controls"/);
+if (publishedProjects.length > 1 && (categories.length > 1 || technologies.length > 1)) {
+  assert.match(output, /class="portfolio-project-controls"/, "filters render when multiple projects have divergent facets");
+} else {
+  assert.doesNotMatch(output, /class="portfolio-project-controls"/);
+}
 assert.doesNotMatch(output, /href="#profile">ABOUT ME<\/a>/);
 assert.doesNotMatch(output, /VIEW SELECTED WORK|portfolio-hero-link/);
 assert.doesNotMatch(output, /portfolio-contact|OPEN CHANNEL/);

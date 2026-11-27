@@ -193,15 +193,24 @@ def expected_social(site):
     expected = []
     for item in site.get("social", []):
         url = item.get("url", "")
-        valid = re.match(r"^(https?:|mailto:)", url, re.IGNORECASE) is not None
-        external = valid and not url.startswith("mailto:")
+        internal = url.startswith("/")
+        valid = internal or re.match(r"^(https?:|mailto:)", url, re.IGNORECASE) is not None
+        external = valid and re.match(r"^https?:", url, re.IGNORECASE) is not None
+        if not valid:
+            kind = "STANDBY"
+        elif external:
+            kind = "OPEN LINK"
+        elif url.startswith("mailto:"):
+            kind = "SEND NOTE"
+        else:
+            kind = "SUBSCRIBE"
         expected.append(
             {
                 "tag": "a" if valid else "span",
                 "class": "social-link" if valid else "social-link is-pending",
                 "href": url if valid else None,
                 "label": item["label"],
-                "kind": "STANDBY" if not valid else ("OPEN LINK" if external else "SEND NOTE"),
+                "kind": kind,
                 "pending_note": None if valid else f"{item['label']} · coming soon",
                 "external": external,
                 "has_icon": True,
